@@ -78,12 +78,14 @@ def checkData(data):
     for i in range(len(data)):
         print('Checking Data {}'.format(i))
         inf, sup = data[i]
-        # inf < sup
+        # inf <= sup
         assert(np.sum(sup < inf) == 0)
-        # inf is sorted
+        # inf is sorted (inf[i] <= inf[i+1])
         assert(np.sum(np.diff(inf) < 0) == 0)
-        # sup is sorted
+        # sup is sorted (sup[i] <= sup[i+1])
         assert(np.sum(np.diff(sup) < 0) == 0)
+        # sup[i] <= inf[i+1]
+        assert(np.sum(inf[1:] < sup[:-1]) == 0)
         pass
 
 def loadData(path, handle):
