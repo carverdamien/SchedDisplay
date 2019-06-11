@@ -6,35 +6,57 @@ import h5py
 def main():
     path = './data/idle_intervals/linux.hdf5'
     def handleData(data):
-        twidth = 960
-        tmin = min(data[i][0][0] for i in range(len(data)))
-        tmax = max(data[i][1][-1] for i in range(len(data)))
+        TMIN = min(data[i][0][0] for i in range(len(data)))
+        TMAX = max(data[i][1][-1] for i in range(len(data)))
+        TWIDTHMAX = TMAX-TMIN
+        TWIDTHMIN = min(np.min(data[i][1] - data[i][0]) for i in range(len(data)))
         slider_tmin = bk.models.widgets.Slider(
             title="tmin",
-            value=0,
-            start=tmin,
-            end=tmax,
-            step=1
+            value=TMIN,
+            start=TMIN,
+            end=TMAX,
+            step=1,
         )
-        source = [
-            bk.models.ColumnDataSource(data=dict(x=[], y=[]))
-            for l in range(len(data))
-        ]
-        def update_source(attrname, old, new):
-            print('TODO: attrname={} old={} new={}'.format(attrname, old, new))
-            pass
-        for widget in [slider_tmin]:
-            widget.on_change('value', update_source)
-        interactivity = bk.layouts.column(
-            slider_tmin,
+        slider_twidth = bk.models.widgets.Slider(
+            title="twidth",
+            value=TWIDTHMAX,
+            start=TWIDTHMIN,
+            end=TWIDTHMAX,
+            step=1,
         )
         plot = bkplt.figure(
             plot_height=540,
             plot_width=960,
             title=path,
             tools="crosshair,pan,reset,save,wheel_zoom",
-            x_range=[0, 1],
             y_range=[0, len(data)]
+        )
+        source = [
+            bk.models.ColumnDataSource(data=dict(x=[], y=[]))
+            for l in range(len(data))
+        ]
+        def update_source(attrname, old, new):
+            twidth = slider_twidth.value
+            tmin = slider_tmin.value
+            tmax = tmin + twidth
+            for l in range(len(data)):
+                x, y = [], []
+                inf, sup = data[l]
+                itmin, itmax = np.searchsorted(inf, tmin), np.searchsorted(sup, tmax)
+                if itmin == itmax:
+                    # No intervals
+                    continue
+                for i in range(itmin, itmax):
+                    x.extend([data[l][0][i], data[l][1][i]])
+                    y.extend([l,l])
+                source[l].data = dict(x=x, y=y)
+            print('update_source done')
+            pass
+        for widget in [slider_tmin, slider_twidth]:
+            widget.on_change('value', update_source)
+        interactivity = bk.layouts.column(
+            slider_tmin,
+            slider_twidth,
         )
         for src in source:
             plot.line(
