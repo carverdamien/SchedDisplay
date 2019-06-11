@@ -35,16 +35,15 @@ def main():
             tools="crosshair,pan,reset,save,wheel_zoom",
             y_range=[0, len(data)]
         )
-        source = [
-            bk.models.ColumnDataSource(data=dict(x=[], y=[]))
-            for l in range(len(data))
-        ]
+        source = {
+            'idle' : bk.models.ColumnDataSource(data=dict(x=[], y=[]))
+        }
         def update_source():
+            x, y = [], []
             twidth = slider_twidth.value
             tmin = slider_tmin.value
             tmax = tmin + twidth
             for l in range(len(data)):
-                x, y = [], []
                 inf, sup = data[l]
                 itmin, itmax = np.searchsorted(inf, tmin), np.searchsorted(sup, tmax)
                 if itmin == itmax:
@@ -53,7 +52,7 @@ def main():
                 for i in range(itmin, itmax):
                     x.extend([data[l][0][i], data[l][1][i], float('Nan')])
                     y.extend([l,l, float('Nan')])
-                source[l].data = dict(x=x, y=y)
+            source['idle'].data = dict(x=x, y=y)
             print('update_source done')
             pass
         def on_change(name, old, new):
@@ -68,14 +67,16 @@ def main():
             slider_twidth,
             button_plot,
         )
-        for src in source:
+        for name in source:
             plot.line(
                 'x',
                 'y',
-                source=src,
+                source=source[name],
+                legend=name,
                 line_width=3,
                 line_alpha=0.6
             )
+        plot.legend.click_policy="hide"
         root = bk.layouts.row(
             interactivity,
             plot,
