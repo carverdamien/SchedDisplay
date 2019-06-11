@@ -4,7 +4,7 @@ import bokeh.plotting as bkplt
 import h5py
 
 def main():
-    path = './data/idle_intervals/linux.hdf5'
+    path = './data/not_idle_intervals/linux.hdf5'
     def handleData(data):
         TMIN = min(data[i][0][0] for i in range(len(data)))
         TMAX = max(data[i][1][-1] for i in range(len(data)))
@@ -32,12 +32,11 @@ def main():
             plot_height=540,
             plot_width=960,
             title=path,
-            tools="crosshair,pan,reset,save,wheel_zoom",
+            tools="xpan,reset,save,xwheel_zoom",
+            active_scroll='xwheel_zoom',
             y_range=[0, len(data)]
         )
-        source = {
-            'idle' : bk.models.ColumnDataSource(data=dict(x=[], y=[]))
-        }
+        source = bk.models.ColumnDataSource(data=dict(x=[], y=[]))
         def update_source():
             x, y = [], []
             twidth = slider_twidth.value
@@ -52,7 +51,7 @@ def main():
                 for i in range(itmin, itmax):
                     x.extend([data[l][0][i], data[l][1][i], float('Nan')])
                     y.extend([l,l, float('Nan')])
-            source['idle'].data = dict(x=x, y=y)
+            source.data = dict(x=x, y=y)
             print('update_source done')
             pass
         def on_change(name, old, new):
@@ -67,16 +66,12 @@ def main():
             slider_twidth,
             button_plot,
         )
-        for name in source:
-            plot.line(
-                'x',
-                'y',
-                source=source[name],
-                legend=name,
-                line_width=3,
-                line_alpha=0.6
-            )
-        plot.legend.click_policy="hide"
+        plot.line(
+            'x',
+            'y',
+            source=source,
+            line_width=3,
+        )
         root = bk.layouts.row(
             interactivity,
             plot,
