@@ -41,8 +41,6 @@ def main():
             TMAX = max(data[i][1][-1] for i in range(len(data)))
             TWIDTHMAX = TMAX-TMIN
             TWIDTHMIN = min(np.min(data[i][1] - data[i][0]) for i in range(len(data)))
-            plot.title = bk.models.annotations.Title(text=path)
-            plot.y_range = bk.models.ranges.Range1d(0, len(data))
             slider_tmin.value = TMIN
             slider_tmin.start = TMIN
             slider_tmin.end = TMAX
@@ -67,7 +65,7 @@ def main():
         y_range=[0, len(data)]
     )
     source = bk.models.ColumnDataSource(data=dict(x=[], y=[]))
-    def update_source():
+    def update_source(new):
         x, y = [], []
         twidth = slider_twidth.value
         tmin = slider_tmin.value
@@ -82,15 +80,11 @@ def main():
                 x.extend([data[l][0][i], data[l][1][i], float('Nan')])
                 y.extend([l,l, float('Nan')])
         source.data = dict(x=x, y=y)
+        plot.title.text = select_path.value
+        plot.y_range = bk.models.ranges.Range1d(0, len(data))
         print('update_source done')
         pass
-    def on_change(name, old, new):
-        update_source()
-    def on_click(new):
-        update_source()
     button_plot.on_click(update_source)
-    # for widget in [slider_tmin, slider_twidth]:
-    #    widget.on_change('value', update_source)
     text = """Use tmin and twidth to reduce the dataset if the computation is too long"""
     paragraph_explain_tmin_twidth = bk.models.widgets.Paragraph(text=text)
     interactivity = bk.layouts.column(
