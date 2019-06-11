@@ -4,26 +4,44 @@ import bokeh.plotting as bkplt
 import h5py
 
 def main():
-    path = './data/not_idle_intervals/linux.hdf5'
-    data = loadData(path)
-    TMIN = min(data[i][0][0] for i in range(len(data)))
-    TMAX = max(data[i][1][-1] for i in range(len(data)))
-    TWIDTHMAX = TMAX-TMIN
-    TWIDTHMIN = min(np.min(data[i][1] - data[i][0]) for i in range(len(data)))
+    paths = ['./data/not_idle_intervals/linux.hdf5']
+    path = paths[0]
+    select_path = bk.models.widgets.Select(
+        title="path:",
+        value=path,
+        options=paths,
+    )
+    data = []
+    TMIN = None
+    TMAX = None
+    TWIDTHMAX = None
+    TWIDTHMIN = None
     slider_tmin = bk.models.widgets.Slider(
         title="tmin",
-        value=TMIN,
-        start=TMIN,
-        end=TMAX,
-        step=1,
     )
     slider_twidth = bk.models.widgets.Slider(
         title="twidth",
-        value=TWIDTHMAX,
-        start=TWIDTHMIN,
-        end=TWIDTHMAX,
-        step=1,
     )
+    def loadData(attrname, old, new):
+        path = select_path.value
+        with h5py.File(path, 'r') as h:
+            data.clear()
+            data.extend([np.array(h[cpu]) for cpu in sorted(list(h.keys()), key=lambda e:int(e))])
+            checkData(data)
+            TMIN = min(data[i][0][0] for i in range(len(data)))
+            TMAX = max(data[i][1][-1] for i in range(len(data)))
+            TWIDTHMAX = TMAX-TMIN
+            TWIDTHMIN = min(np.min(data[i][1] - data[i][0]) for i in range(len(data)))
+            slider_tmin.value = TMIN
+            slider_tmin.start = TMIN
+            slider_tmin.end = TMAX
+            slider_tmin.step = 1
+            slider_twidth.value = TWIDTHMAX
+            slider_twidth.start = TWIDTHMIN
+            slider_twidth.end = TWIDTHMAX
+            slider_twidth.step = 1
+    loadData('value',path,path)
+    select_path.on_change('value', loadData)
     button_plot = bk.models.widgets.Button(
         label="Plot",
         button_type="success",
@@ -64,6 +82,7 @@ def main():
     text = """Use tmin and twidth to reduce the dataset if the computation is too long"""
     paragraph_explain_tmin_twidth = bk.models.widgets.Paragraph(text=text)
     interactivity = bk.layouts.column(
+        select_path,
         paragraph_explain_tmin_twidth,
         slider_tmin,
         slider_twidth,
@@ -95,11 +114,5 @@ def checkData(data):
         # sup[i] <= inf[i+1]
         assert(np.sum(inf[1:] < sup[:-1]) == 0)
         pass
-
-def loadData(path):
-    with h5py.File(path, 'r') as h:
-        data = [np.array(h[cpu]) for cpu in sorted(list(h.keys()), key=lambda e:int(e))]
-        checkData(data)
-        return data
 
 main()
