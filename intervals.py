@@ -24,6 +24,10 @@ def main():
             end=TWIDTHMAX,
             step=1,
         )
+        button_plot = bk.models.widgets.Button(
+            label="Plot",
+            button_type="success",
+        )
         plot = bkplt.figure(
             plot_height=540,
             plot_width=960,
@@ -35,7 +39,7 @@ def main():
             bk.models.ColumnDataSource(data=dict(x=[], y=[]))
             for l in range(len(data))
         ]
-        def update_source(attrname, old, new):
+        def update_source():
             twidth = slider_twidth.value
             tmin = slider_tmin.value
             tmax = tmin + twidth
@@ -52,11 +56,17 @@ def main():
                 source[l].data = dict(x=x, y=y)
             print('update_source done')
             pass
-        for widget in [slider_tmin, slider_twidth]:
-            widget.on_change('value', update_source)
+        def on_change(name, old, new):
+            update_source()
+        def on_click(new):
+            update_source()
+        button_plot.on_click(update_source)
+        # for widget in [slider_tmin, slider_twidth]:
+        #    widget.on_change('value', update_source)
         interactivity = bk.layouts.column(
             slider_tmin,
             slider_twidth,
+            button_plot,
         )
         for src in source:
             plot.line(
