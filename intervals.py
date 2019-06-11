@@ -1,10 +1,10 @@
 import numpy as np
 import bokeh as bk
 import bokeh.plotting as bkplt
-import h5py
+import h5py, os
 
 def main():
-    paths = ['./data/not_idle_intervals/linux.hdf5']
+    paths = list(find_hdf5())
     path = paths[0]
     select_path = bk.models.widgets.Select(
         title="path:",
@@ -114,5 +114,12 @@ def checkData(data):
         # sup[i] <= inf[i+1]
         assert(np.sum(inf[1:] < sup[:-1]) == 0)
         pass
+
+def find_hdf5():
+    for root, dirs, files in os.walk("./data", topdown=False):
+        for name in files:
+            path = os.path.join(root, name)
+            if '.hdf5' == os.path.splitext(name)[1]:
+                yield path
 
 main()
