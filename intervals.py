@@ -47,8 +47,8 @@ def main():
                     # No intervals
                     continue
                 for i in range(itmin, itmax):
-                    x.extend([data[l][0][i], data[l][1][i]])
-                    y.extend([l,l])
+                    x.extend([data[l][0][i], data[l][1][i], float('Nan')])
+                    y.extend([l,l, float('Nan')])
                 source[l].data = dict(x=x, y=y)
             print('update_source done')
             pass
