@@ -11,6 +11,15 @@ def main():
         value=path,
         options=paths,
     )
+    plot = bkplt.figure(
+        plot_height=540,
+        plot_width=960,
+        sizing_mode='scale_width',
+        title=path,
+        tools="xpan,reset,save,xwheel_zoom",
+        active_scroll='xwheel_zoom',
+#        y_range=[0, len(data)]
+    )
     data = []
     TMIN = None
     TMAX = None
@@ -32,6 +41,8 @@ def main():
             TMAX = max(data[i][1][-1] for i in range(len(data)))
             TWIDTHMAX = TMAX-TMIN
             TWIDTHMIN = min(np.min(data[i][1] - data[i][0]) for i in range(len(data)))
+            plot.title = bk.models.annotations.Title(text=path)
+            plot.y_range = bk.models.ranges.Range1d(0, len(data))
             slider_tmin.value = TMIN
             slider_tmin.start = TMIN
             slider_tmin.end = TMAX
