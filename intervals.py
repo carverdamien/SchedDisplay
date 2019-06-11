@@ -49,6 +49,7 @@ def main():
     plot = bkplt.figure(
         plot_height=540,
         plot_width=960,
+        sizing_mode='scale_width',
         title=path,
         tools="xpan,reset,save,xwheel_zoom",
         active_scroll='xwheel_zoom',
