@@ -61,7 +61,10 @@ def main():
         button_plot.on_click(update_source)
         # for widget in [slider_tmin, slider_twidth]:
         #    widget.on_change('value', update_source)
+        text = """Use tmin and twidth to reduce the dataset if the computation is too long"""
+        paragraph_explain_tmin_twidth = bk.models.widgets.Paragraph(text=text)
         interactivity = bk.layouts.column(
+            paragraph_explain_tmin_twidth,
             slider_tmin,
             slider_twidth,
             button_plot,
