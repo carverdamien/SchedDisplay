@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, h5py, os, mmap, struct
+import sys, h5py, os, mmap, struct, json
 import numpy as np
 
 def main():
@@ -10,8 +10,13 @@ def main():
 
 def load_data(path):
     return {
+        'summary' : load_json(os.path.join(path, 'summary.json')),
         'sched_monitor' : load_sched_monitor(os.path.join(path,'sched_monitor')),
     }
+
+def load_json(path):
+    with open(path) as f:
+        return json.load(f)
 
 def load_sched_monitor(path):
     return {
