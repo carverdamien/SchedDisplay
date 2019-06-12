@@ -1,0 +1,2 @@
+#!/bin/bash
+grep Time output/run.out | awk "{ print \"{\" \"\\\"time\\\":\" \$2 \",\" \"\\\"tasks\\\":\" ${TASKS} \"}\" }" > output/data.json

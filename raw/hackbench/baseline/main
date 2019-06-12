@@ -1,0 +1,7 @@
+#!/bin/bash
+set -u -e
+source cleanup
+source prepare
+./run > >(tee output/run.out) 2> >(tee output/run.err) &
+wait
+source report
