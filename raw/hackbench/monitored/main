@@ -2,6 +2,8 @@
 set -u -e
 source cleanup
 source prepare
+source monitoring_start
 ./run > >(tee output/run.out) 2> >(tee output/run.err) &
 wait
+source monitoring_stop
 source report
