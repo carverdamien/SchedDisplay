@@ -1,2 +1,12 @@
 #!/bin/bash
-grep Time output/run.out | awk "{ print \"{\" \"\\\"time\\\":\" \$2 \",\" \"\\\"tasks\\\":\" ${TASKS} \"}\" }" > output/data.json
+CLOCK_START=$(perf report -i output/perf.data -D | grep PERF_RECORD_SAMPLE | awk '{print $2}' | head -n 1)
+CLOCK_END=$(perf report -i output/perf.data -D | grep PERF_RECORD_SAMPLE | awk '{print $2}' | tail -n 1)
+TIME=$(grep Time output/run.out | awk '{print $2}')
+cat > output/data.json <<EOF
+{
+  "time":${TIME},
+  "tasks":${TASKS},
+  "clock_start":${CLOCK_START},
+  "clock_end":${CLOCK_END}
+}
+EOF
