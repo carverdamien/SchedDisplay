@@ -7,3 +7,4 @@ source monitoring_start
 wait
 source monitoring_stop
 source report
+source cleanup

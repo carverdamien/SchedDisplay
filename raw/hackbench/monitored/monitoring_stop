@@ -5,7 +5,3 @@ for f in /proc/{schedstat,sched_debug,stat}
 do
     cp ${f} output/$(basename ${f}).stop
 done
-(
-    tar -C output/sched_monitor -czf output/tracer-raw.tgz tracer-raw;
-    rm -rf output/sched_monitor/tracer-raw
-) || true

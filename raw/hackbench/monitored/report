@@ -10,3 +10,4 @@ cat > output/data.json <<EOF
   "clock_end":${CLOCK_END}
 }
 EOF
+./report.py output.hdf5 output
