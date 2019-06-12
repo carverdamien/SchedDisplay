@@ -1,0 +1,5 @@
+#!/bin/bash
+[[ $((TASKS%40)) -eq 0 ]] ||
+   { echo 'TASKS%40'; exit 1; }
+export GROUP=$((TASKS/40))
+mkdir output
