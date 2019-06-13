@@ -61,7 +61,7 @@ segment_interval = [
         'y0',
         'x1',
         'y1',
-        source=source_event[i],
+        source=source_interval[i],
     )
     for i in range(len(source_interval))
 ]
