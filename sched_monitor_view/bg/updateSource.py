@@ -26,7 +26,7 @@ def target(data, event_selected, interval_selected, callback):
 			x0 = np.append(x0, timestamp[sel])
 			x1 = np.append(x1, timestamp[sel])
 			y0 = np.append(y0, float(cpu) * np.ones(N))
-			y1 = np.append(y1, (float(cpu)+.25) * np.ones(N))
+			y1 = np.append(y1, (float(cpu)+.75) * np.ones(N))
 		source_event_data.append(dict(x0=x0, y0=y0, x1=x1, y1=y1))
 	for i in range(len(Types.INTERVAL)):
 		if i not in interval_selected or i not in HANDLER:
@@ -36,6 +36,18 @@ def target(data, event_selected, interval_selected, callback):
 	callback(source_event_data, source_interval_data)
 
 def RQ_SIZE_eq_0(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
+
+def RQ_SIZE_gt_0(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
+
+def RQ_SIZE_eq_1(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
+
+def RQ_SIZE_gt_1(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
+
+def interval(data, event_id, measurement, op, value):
 	r = {
 		k : np.array([])
 		for k in ['x0','x1','y0','y1']
@@ -46,15 +58,15 @@ def RQ_SIZE_eq_0(data):
 	])
 	for cpu in data:
 		event = np.array(data[cpu]['event'])
-		sel = event == Types.ID_EVENT['RQ_SIZE']
+		sel = event == event_id
 		timestamp = np.array(data[cpu]['timestamp'])[sel]
-		size = np.array(data[cpu]['arg0'])[sel]
-		_r = interval(cpu, timestamp, tmax, size, operator.eq, 0)
+		m = np.array(data[cpu][measurement])[sel]
+		_r = interval_per_cpu(cpu, timestamp, tmax, m, op, value)
 		for k in r:
 			r[k] = np.append(r[k], _r[k])
 	return r
 
-def interval(cpu, timestamp, tmax, measurement, op, value):
+def interval_per_cpu(cpu, timestamp, tmax, measurement, op, value):
 	sel = op(measurement, value)
 	if np.sum(sel) == 0:
 		return dict(x0=[], y0=[], x1=[], y1=[])
@@ -67,4 +79,7 @@ def interval(cpu, timestamp, tmax, measurement, op, value):
 
 HANDLER = {
 	Types.ID_INTERVAL['RQ_SIZE=0'] : RQ_SIZE_eq_0,
+	Types.ID_INTERVAL['RQ_SIZE>0'] : RQ_SIZE_gt_0,
+	Types.ID_INTERVAL['RQ_SIZE=1'] : RQ_SIZE_eq_1,
+	Types.ID_INTERVAL['RQ_SIZE>1'] : RQ_SIZE_gt_1,
 }

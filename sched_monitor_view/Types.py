@@ -24,8 +24,9 @@ ID_EVENT = {
 }
 INTERVAL = [
     'RQ_SIZE=0',
+    'RQ_SIZE>0',
     'RQ_SIZE=1',
-    'RQ_SIZE>=2',
+    'RQ_SIZE>1',
 ]
 ID_INTERVAL = {
     INTERVAL[i] : i
