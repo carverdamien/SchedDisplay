@@ -6,7 +6,7 @@ from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
 # Internal imports
-import EventTypes
+import Types
 import feeds.fspath
 import bg.loadData
 import bg.updateSource
@@ -14,7 +14,7 @@ import bg.updateSource
 # Build the components
 doc = curdoc()
 checkboxgroup_event = CheckboxGroup(
-    labels = EventTypes.EVENT
+    labels = Types.EVENT
 )
 select_hdf5 = Select(
     title ='Data:'
@@ -34,7 +34,7 @@ source_event = [
     ColumnDataSource(
         data=dict(x0=[], y0=[], x1=[], y1=[])
     )
-    for i in range(len(EventTypes.EVENT))
+    for i in range(len(Types.EVENT))
 ]
 segment_event = [
     figure_plot.segment(

@@ -1,6 +1,6 @@
 from threading import Thread
 import numpy as np
-import EventTypes
+import Types
 
 def plot(data, event, callback):
 	args = (data, event, callback)
@@ -8,7 +8,7 @@ def plot(data, event, callback):
 
 def target(data, event_selected, callback):
 	source_event_data = []
-	for i in range(len(EventTypes.EVENT)):
+	for i in range(len(Types.EVENT)):
 		x0 = np.array([])
 		x1 = np.array([])
 		y0 = np.array([])
