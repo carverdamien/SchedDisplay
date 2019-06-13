@@ -18,7 +18,16 @@ EVENT = [
     'PERIODIC_BALANCE_BEG',
     'PERIODIC_BALANCE_END',
 ]
-ID = {
+ID_EVENT = {
     EVENT[i] : i
     for i in range(len(EVENT))
+}
+INTERVAL = [
+    'RQ_SIZE=0',
+    'RQ_SIZE=1',
+    'RQ_SIZE>=2',
+]
+ID_INTERVAL = {
+    INTERVAL[i] : i
+    for i in range(len(INTERVAL))
 }

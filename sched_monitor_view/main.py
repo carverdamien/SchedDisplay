@@ -16,6 +16,9 @@ doc = curdoc()
 checkboxgroup_event = CheckboxGroup(
     labels = Types.EVENT
 )
+checkboxgroup_interval = CheckboxGroup(
+    labels = Types.INTERVAL
+)
 select_hdf5 = Select(
     title ='Data:'
 )
@@ -36,6 +39,12 @@ source_event = [
     )
     for i in range(len(Types.EVENT))
 ]
+source_interval = [
+    ColumnDataSource(
+        data=dict(x0=[], y0=[], x1=[], y1=[])
+    )
+    for i in range(len(Types.INTERVAL))
+]
 segment_event = [
     figure_plot.segment(
         'x0',
@@ -45,6 +54,16 @@ segment_event = [
         source=source_event[i],
     )
     for i in range(len(source_event))
+]
+segment_interval = [
+    figure_plot.segment(
+        'x0',
+        'y0',
+        'x1',
+        'y1',
+        source=source_event[i],
+    )
+    for i in range(len(source_interval))
 ]
 button_plot = Button(
     label="Plot",
@@ -81,20 +100,35 @@ def on_click_loadhdf5(new):
     bg.loadData.load(path, callback_loadData).start()
 button_load_hdf5.on_click(on_click_loadhdf5)
 @gen.coroutine
-def coroutine_plot(source_event_data):
+def coroutine_plot(source_event_data, source_interval_data):
     for i in range(len(source_event)):
         source_event[i].data = source_event_data[i]
+    for i in range(len(source_interval)):
+        source_interval[i].data = source_interval_data[i]
     button_load_hdf5.disabled = False
     button_plot.disabled = False
     pass
-def callback_plot(source_event_data):
-    doc.add_next_tick_callback(partial(coroutine_plot, source_event_data))
+def callback_plot(source_event_data, source_interval_data):
+    doc.add_next_tick_callback(
+        partial(
+            coroutine_plot,
+            source_event_data,
+            source_interval_data,
+        )
+    )
 def on_click_plot(new):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
     event = checkboxgroup_event.active
-    bg.updateSource.plot(data, event, callback_plot).start()
+    interval = checkboxgroup_interval.active
+    bg.updateSource.plot(data, event, interval, callback_plot).start()
 button_plot.on_click(on_click_plot)
 # assamble components
-root = column(figure_plot, select_hdf5, button_load_hdf5, checkboxgroup_event, button_plot)
+root = column(
+    figure_plot,
+    select_hdf5,
+    button_load_hdf5,
+    row(checkboxgroup_event, checkboxgroup_interval),
+    button_plot,
+)
 doc.add_root(root)
