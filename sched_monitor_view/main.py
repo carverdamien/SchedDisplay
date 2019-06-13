@@ -8,6 +8,7 @@ from functools import partial
 # Internal imports
 import EventTypes
 import feeds.fspath
+import bg.loadData
 
 # Build the components
 doc = curdoc()
@@ -16,6 +17,10 @@ checkboxgroup_event = CheckboxGroup(
 )
 select_hdf5 = Select(
     title ='Data:'
+)
+button_load_hdf5 = Button(
+    label="load",
+    button_type="success",
 )
 figure_plot = figure(
     plot_height=540,
@@ -41,18 +46,38 @@ for i in range(len(source_event)):
 button_plot = Button(
     label="Plot",
     button_type="success",
+    disabled=True,
 )
-root = column(figure_plot, select_hdf5, checkboxgroup_event, button_plot)
-doc.add_root(root)
 
 # Add feeds
 root = './raw/hackbench/monitored'
 ext  = '.hdf5'
 @gen.coroutine
-def coroutine(l):
+def coroutine_fspath(l):
     select_hdf5.options = l
-def callback(l):
-    doc.add_next_tick_callback(partial(coroutine, l))
-feeds.fspath.feed(root,ext,callback).start()
+    select_hdf5.value = l[0]
+def callback_fspath(l):
+    doc.add_next_tick_callback(partial(coroutine_fspath, l))
+feeds.fspath.feed(root,ext,callback_fspath).start()
 
 # Add interactivity
+data = {}
+@gen.coroutine
+def coroutine_loadData(path, new_data):
+    data.clear()
+    data.update(new_data)
+    button_load_hdf5.disabled = False
+    button_plot.disabled = False
+    select_hdf5.title = "Data: {}".format(path)
+def callback_loadData(path, new_data):
+    doc.add_next_tick_callback(partial(coroutine_loadData, path, new_data))
+def loadhdf5(new):
+    button_load_hdf5.disabled = True
+    button_plot.disabled = True
+    path = select_hdf5.value
+    bg.loadData.load(path, callback_loadData).start()
+button_load_hdf5.on_click(loadhdf5)
+
+# assamble components
+root = column(figure_plot, select_hdf5, button_load_hdf5, checkboxgroup_event, button_plot)
+doc.add_root(root)

@@ -6,8 +6,12 @@ def feed(root, ext, callback):
 	return Thread(target=target, args=args)
 
 def target(root, ext, callback):
+	old = []
 	while True:
-		callback(list(find_files(root,ext)))
+		new = list(find_files(root,ext))
+		if new != old:
+			callback(new)
+			old = new
 		time.sleep(10)
 
 def find_files(directory, ext):
