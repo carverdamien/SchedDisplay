@@ -1,7 +1,7 @@
 # External imports
 from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
-from bokeh.models.widgets import Select, CheckboxGroup
+from bokeh.models.widgets import Select, CheckboxGroup, Button
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
@@ -38,7 +38,11 @@ for i in range(len(source_event)):
         'y1',
         source=source_event[i],
     )
-root = column(figure_plot, select_hdf5, checkboxgroup_event)
+button_plot = Button(
+    label="Plot",
+    button_type="success",
+)
+root = column(figure_plot, select_hdf5, checkboxgroup_event, button_plot)
 doc.add_root(root)
 
 # Add feeds
@@ -50,3 +54,5 @@ def coroutine(l):
 def callback(l):
     doc.add_next_tick_callback(partial(coroutine, l))
 feeds.fspath.feed(root,ext,callback).start()
+
+# Add interactivity
