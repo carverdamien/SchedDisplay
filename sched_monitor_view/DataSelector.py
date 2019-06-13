@@ -1,5 +1,5 @@
-from functools import partial
 from bokeh.models.widgets import Select
+from functools import partial
 from threading import Thread
 from tornado import gen
 import os

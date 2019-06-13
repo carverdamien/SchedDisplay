@@ -1,16 +1,27 @@
 from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
-from bokeh.models import ColumnDataSource
 from DataSelector import DataSelector
+from Source import Source
 
-plot = figure(x_range=(0, 100), y_range=(0, 100), toolbar_location=None)
-source = ColumnDataSource(data=dict(x=[], y=[]))
-plot.line(
-    'x',
-    'y',
-    source=source,
-    line_width=3,
-)
 doc = curdoc()
-root = column(plot, DataSelector(doc))
+select = DataSelector(doc)
+plot = figure(
+    plot_height=540,
+    plot_width=960,
+    sizing_mode='scale_width',
+    tools="xpan,reset,save,xwheel_zoom",
+    active_scroll='xwheel_zoom',
+)
+source = Source(doc, select, plot)
+for i in range(len(source)):
+    plot.segment(
+        'x0',
+        'y0',
+        'x1',
+        'y1',
+        source=source[i],
+        legend=str(i),
+    )
+plot.legend.click_policy="hide"
+root = column(plot, select)
 doc.add_root(root)
