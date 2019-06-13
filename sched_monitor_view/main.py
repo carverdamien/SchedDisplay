@@ -83,7 +83,7 @@ button_load_hdf5.on_click(on_click_loadhdf5)
 @gen.coroutine
 def coroutine_plot(source_event_data):
     for i in range(len(source_event)):
-        source_event[i].stream(source_event_data[i], rollover=0)
+        source_event[i].data = source_event_data[i]
     button_load_hdf5.disabled = False
     button_plot.disabled = False
     pass
