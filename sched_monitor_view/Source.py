@@ -28,6 +28,7 @@ def blocking_task(doc, select, plot, source):
         # if not os.path.exists(path):
         #    continue
         path = '/mnt/data/damien/git/profiler/raw/hackbench/monitored/output.hdf5'
+        path = '/Users/dc/Git/carverdamien/sched_monitor_view/raw/hackbench/monitored/output.hdf5'
         with h5py.File(path) as f:
             dataset = f['sched_monitor']['tracer-raw']
             for cpu in dataset.keys():

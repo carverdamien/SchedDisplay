@@ -8,6 +8,7 @@ import time
 
 def find_hdf5():
     ROOT = '/mnt/data/damien/git/profiler/raw/hackbench/monitored'
+    ROOT = '/Users/dc/Git/carverdamien/sched_monitor_view/raw/hackbench/monitored'
     for root, dirs, files in os.walk(ROOT, topdown=False):
         for name in files:
             path = os.path.join(root, name)

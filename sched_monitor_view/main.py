@@ -1,35 +1,37 @@
 from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
-from DataSelector import DataSelector
-from Source import Source
+from bokeh.models.widgets import Select, CheckboxGroup
+from bokeh.models import ColumnDataSource
 
-from bokeh.models.widgets import CheckboxGroup
 import EventTypes
 
-m = CheckboxGroup(
+doc = curdoc()
+checkboxgroup_event = CheckboxGroup(
     labels = EventTypes.EVENT
 )
-
-doc = curdoc()
-
-select = DataSelector(doc)
-plot = figure(
+select_hdf5 = Select(
+    title ='Data:'
+)
+figure_plot = figure(
     plot_height=540,
     plot_width=960,
     sizing_mode='scale_width',
     tools="xpan,reset,save,xwheel_zoom",
     active_scroll='xwheel_zoom',
 )
-source = Source(doc, select, plot)
-for i in range(len(source)):
-    plot.segment(
+source_event = [
+    ColumnDataSource(
+        data=dict(x0=[], y0=[], x1=[], y1=[])
+    )
+    for i in range(len(EventTypes.EVENT))
+]
+for i in range(len(source_event)):
+    figure_plot.segment(
         'x0',
         'y0',
         'x1',
         'y1',
-        source=source[i],
-        legend=str(i),
+        source=source_event[i],
     )
-plot.legend.click_policy="hide"
-root = column(plot, select, m)
+root = column(figure_plot, select_hdf5, checkboxgroup_event)
 doc.add_root(root)
