@@ -71,13 +71,21 @@ def coroutine_loadData(path, new_data):
     select_hdf5.title = "Data: {}".format(path)
 def callback_loadData(path, new_data):
     doc.add_next_tick_callback(partial(coroutine_loadData, path, new_data))
-def loadhdf5(new):
+def on_click_loadhdf5(new):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
     path = select_hdf5.value
     bg.loadData.load(path, callback_loadData).start()
-button_load_hdf5.on_click(loadhdf5)
-
+button_load_hdf5.on_click(on_click_loadhdf5)
+def on_click_plot(new):
+    button_load_hdf5.disabled = True
+    button_plot.disabled = True
+    event = checkboxgroup_event.active
+    print(event)
+    button_load_hdf5.disabled = False
+    button_plot.disabled = False
+    pass
+button_plot.on_click(on_click_plot)
 # assamble components
 root = column(figure_plot, select_hdf5, button_load_hdf5, checkboxgroup_event, button_plot)
 doc.add_root(root)
