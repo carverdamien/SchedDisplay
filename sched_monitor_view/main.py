@@ -1,10 +1,15 @@
+# External imports
 from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
 from bokeh.models.widgets import Select, CheckboxGroup
 from bokeh.models import ColumnDataSource
-
+from tornado import gen
+from functools import partial
+# Internal imports
 import EventTypes
+import feeds.fspath
 
+# Build the components
 doc = curdoc()
 checkboxgroup_event = CheckboxGroup(
     labels = EventTypes.EVENT
@@ -35,3 +40,13 @@ for i in range(len(source_event)):
     )
 root = column(figure_plot, select_hdf5, checkboxgroup_event)
 doc.add_root(root)
+
+# Add feeds
+root = './raw/hackbench/monitored'
+ext  = '.hdf5'
+@gen.coroutine
+def coroutine(l):
+    select_hdf5.options = l
+def callback(l):
+    doc.add_next_tick_callback(partial(coroutine, l))
+feeds.fspath.feed(root,ext,callback).start()
