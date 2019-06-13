@@ -3,7 +3,15 @@ from bokeh.plotting import curdoc, figure
 from DataSelector import DataSelector
 from Source import Source
 
+from bokeh.models.widgets import CheckboxGroup
+import EventTypes
+
+m = CheckboxGroup(
+    labels = EventTypes.EVENT
+)
+
 doc = curdoc()
+
 select = DataSelector(doc)
 plot = figure(
     plot_height=540,
@@ -23,5 +31,5 @@ for i in range(len(source)):
         legend=str(i),
     )
 plot.legend.click_policy="hide"
-root = column(plot, select)
+root = column(plot, select, m)
 doc.add_root(root)
