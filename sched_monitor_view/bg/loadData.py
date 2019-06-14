@@ -15,4 +15,7 @@ def target(path, callback):
 				k : np.array(dataset[cpu][k])
 				for k in dataset[cpu].keys()
 			}
+		tmin = min([data[cpu]['timestamp'][0] for cpu in data])
+		for cpu in data:
+			data[cpu]['timestamp']-=tmin
 	callback(path, data)
