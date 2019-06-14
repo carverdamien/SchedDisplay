@@ -49,6 +49,7 @@ rangeslider_t0 = RangeSlider(
     value=(0,100),
     step=1,
     sizing_mode="scale_width",
+    disabled=True,
 )
 button_plot = Button(
     align='end',
@@ -158,6 +159,7 @@ def coroutine_loadData(path, new_data):
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
     button_plot.disabled = False
+    rangeslider_t0.disabled = False
 def callback_loadData(path, new_data):
     doc.add_next_tick_callback(partial(coroutine_loadData, path, new_data))
 def on_click_loadhdf5(new):
@@ -168,12 +170,14 @@ def on_click_loadhdf5(new):
         button_load_hdf5.button_type = 'success'
         if len(data) == 0:
             button_plot.disabled = True
+            rangeslider_t0.disabled = True
         else:
             rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
             rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
     else:
         button_load_hdf5.disabled = True
         button_plot.disabled = True
+        rangeslider_t0.disabled = True
         bg.loadData.load(path, callback_loadData).start()
 button_load_hdf5.on_click(on_click_loadhdf5)
 @gen.coroutine
@@ -185,6 +189,7 @@ def coroutine_plot(source_event_data, source_interval_data, tlim):
         source_interval[i].data = source_interval_data[i]
     button_load_hdf5.disabled = False
     button_plot.disabled = False
+    rangeslider_t0.disabled = False
     pass
 def callback_plot(source_event_data, source_interval_data, tlim):
     doc.add_next_tick_callback(
@@ -198,6 +203,7 @@ def callback_plot(source_event_data, source_interval_data, tlim):
 def on_click_plot(new):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
+    rangeslider_t0.disabled = True
     event    = [i for i in range(len(Types.EVENT))    if color[Types.EVENT[i]]    != '#FFFFFF']
     interval = [i for i in range(len(Types.INTERVAL)) if color[Types.INTERVAL[i]] != '#FFFFFF']
     tlim = rangeslider_t0.value
