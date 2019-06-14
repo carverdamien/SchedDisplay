@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, Slider
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
@@ -43,14 +43,12 @@ colorpicker_types = ColorPicker(
     align='end',
     color='#FFFFFF',
 )
-slider_t0 = Slider(
-    title="t0",
+rangeslider_t0 = RangeSlider(
     start=0,
     end=100,
-    value=0,
+    value=(0,100),
     step=1,
-    width=300,
-    sizing_mode="fixed",
+    sizing_mode="scale_width",
 )
 button_plot = Button(
     align='end',
@@ -154,7 +152,8 @@ def coroutine_loadData(path, new_data):
     if path in data:
         raise Exception()
     data[path]=new_data
-    slider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
+    rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
+    rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
     button_load_hdf5.label = 'rm'
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
@@ -170,14 +169,16 @@ def on_click_loadhdf5(new):
         if len(data) == 0:
             button_plot.disabled = True
         else:
-            slider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
+            rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
+            rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
     else:
         button_load_hdf5.disabled = True
         button_plot.disabled = True
         bg.loadData.load(path, callback_loadData).start()
 button_load_hdf5.on_click(on_click_loadhdf5)
 @gen.coroutine
-def coroutine_plot(source_event_data, source_interval_data):
+def coroutine_plot(source_event_data, source_interval_data, tlim):
+    rangeslider_t0.value = tlim
     for i in range(len(source_event)):
         source_event[i].data = source_event_data[i]
     for i in range(len(source_interval)):
@@ -185,12 +186,13 @@ def coroutine_plot(source_event_data, source_interval_data):
     button_load_hdf5.disabled = False
     button_plot.disabled = False
     pass
-def callback_plot(source_event_data, source_interval_data):
+def callback_plot(source_event_data, source_interval_data, tlim):
     doc.add_next_tick_callback(
         partial(
             coroutine_plot,
             source_event_data,
             source_interval_data,
+            tlim,
         )
     )
 def on_click_plot(new):
@@ -198,7 +200,8 @@ def on_click_plot(new):
     button_plot.disabled = True
     event    = [i for i in range(len(Types.EVENT))    if color[Types.EVENT[i]]    != '#FFFFFF']
     interval = [i for i in range(len(Types.INTERVAL)) if color[Types.INTERVAL[i]] != '#FFFFFF']
-    bg.updateSource.plot(data, event, interval, callback_plot).start()
+    tlim = rangeslider_t0.value
+    bg.updateSource.plot(data, event, interval, tlim, callback_plot).start()
 button_plot.on_click(on_click_plot)
 # assamble components
 root = column(
@@ -207,11 +210,11 @@ root = column(
         button_load_hdf5,
         select_types,
         colorpicker_types,
-        slider_t0,
         button_plot,
         sizing_mode = 'scale_width',
     ),
     figure_plot,
+    rangeslider_t0,
     sizing_mode = 'stretch_both',
 )
 doc.add_root(root)
