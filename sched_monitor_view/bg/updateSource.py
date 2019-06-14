@@ -36,12 +36,12 @@ def target(data, event_selected, interval_selected, tlim, callback):
 			y_offset += len(data[path])
 		source_event_data.append(dict(x0=x0, y0=y0, x1=x0, y1=y1))
 	for i in range(len(Types.INTERVAL)):
-		source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
+		# source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
 		# TODO
-		# if i not in interval_selected or i not in HANDLER:
-		# 	source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
-		# 	continue
-		# source_interval_data.append(HANDLER[i](data, tlim))
+		if i not in interval_selected or i not in HANDLER:
+			source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
+			continue
+		source_interval_data.append(HANDLER[i](data, tlim))
 	callback(source_event_data, source_interval_data, tlim)
 
 def recompute_tlim(data, event_selected, interval_selected, tlim):
@@ -77,11 +77,11 @@ def interval(data, tlim, event_id, measurement, op, value):
 		k : np.array([])
 		for k in ['x0','x1','y0','y1']
 	}
-	# TODO
 	tmax = max([
-		data[path][cpu]['timestamp'][-1]
-		for path in data
-		for cpu in data[path]
+		timestamp[(timestamp >= tlim[0]) & (timestamp <= tlim[1])][-1]
+		for dict_of_cpu in data.values()
+		for dict_of_record in dict_of_cpu.values()
+		for timestamp in [dict_of_record['timestamp']]
 	])
 	y_offset = 0
 	for path in data:
