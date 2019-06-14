@@ -50,7 +50,9 @@ rangeslider_t0 = RangeSlider(
     step=1,
     sizing_mode="scale_width",
     disabled=True,
+    callback_policy="mouseup",
 )
+rangeslider_t0_value = [0,100]
 button_plot = Button(
     align='end',
     label="Plot",
@@ -155,6 +157,8 @@ def coroutine_loadData(path, new_data):
     data[path]=new_data
     rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
     rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
+    rangeslider_t0_value[0] = rangeslider_t0.start
+    rangeslider_t0_value[1] = rangeslider_t0.end
     button_load_hdf5.label = 'rm'
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
@@ -174,6 +178,8 @@ def on_click_loadhdf5(new):
         else:
             rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
             rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
+            rangeslider_t0_value[0] = rangeslider_t0.start
+            rangeslider_t0_value[1] = rangeslider_t0.end
     else:
         button_load_hdf5.disabled = True
         button_plot.disabled = True
@@ -183,6 +189,8 @@ button_load_hdf5.on_click(on_click_loadhdf5)
 @gen.coroutine
 def coroutine_plot(source_event_data, source_interval_data, tlim):
     rangeslider_t0.value = tlim
+    rangeslider_t0_value[0] = tlim[0]
+    rangeslider_t0_value[1] = tlim[1]
     for i in range(len(source_event)):
         source_event[i].data = source_event_data[i]
     for i in range(len(source_interval)):
@@ -200,15 +208,23 @@ def callback_plot(source_event_data, source_interval_data, tlim):
             tlim,
         )
     )
-def on_click_plot(new):
+def go_plot(tlim):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
     rangeslider_t0.disabled = True
     event    = [i for i in range(len(Types.EVENT))    if color[Types.EVENT[i]]    != '#FFFFFF']
     interval = [i for i in range(len(Types.INTERVAL)) if color[Types.INTERVAL[i]] != '#FFFFFF']
-    tlim = rangeslider_t0.value
     bg.updateSource.plot(data, event, interval, tlim, callback_plot).start()
+def on_click_plot(new):
+    tlim = rangeslider_t0.value
+    go_plot(tlim)
 button_plot.on_click(on_click_plot)
+def on_change_rangeslider_t0(attr, old, new):
+    value = tuple(new)
+    if rangeslider_t0_value is not None and new[1] > rangeslider_t0_value[1]:
+        value = (new[0]+new[1]-rangeslider_t0_value[1], new[1])
+    go_plot(value)
+rangeslider_t0.on_change('value_throttled', on_change_rangeslider_t0)
 # assamble components
 root = column(
     row(
