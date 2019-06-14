@@ -23,13 +23,12 @@ select_hdf5 = Select(
     title ='Data:'
 )
 button_load_hdf5 = Button(
-    label="load",
+    label="Load",
     button_type="success",
+    sizing_mode="fixed",
 )
 figure_plot = figure(
-    plot_height=540,
-    plot_width=960,
-    sizing_mode='scale_width',
+    sizing_mode='stretch_both',
     tools="xpan,reset,save,xwheel_zoom",
     active_scroll='xwheel_zoom',
 )
@@ -68,6 +67,7 @@ segment_interval = [
 button_plot = Button(
     label="Plot",
     button_type="success",
+    sizing_mode="fixed",
     disabled=True,
 )
 
@@ -126,9 +126,17 @@ button_plot.on_click(on_click_plot)
 # assamble components
 root = column(
     figure_plot,
-    select_hdf5,
-    button_load_hdf5,
-    row(checkboxgroup_event, checkboxgroup_interval),
+    row(
+        select_hdf5,
+        button_load_hdf5,
+        sizing_mode = 'scale_width',
+    ),
+    row(
+        checkboxgroup_event,
+        checkboxgroup_interval,
+        sizing_mode = 'scale_width',
+    ),
     button_plot,
+    sizing_mode = 'stretch_both',
 )
 doc.add_root(root)
