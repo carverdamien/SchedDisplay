@@ -10,16 +10,16 @@ def plot(data, event_selected, interval_selected, callback):
 def target(data, event_selected, interval_selected, callback):
 	source_event_data = []
 	source_interval_data = []
-	y_offset = 0
-	for path in data:
-		for i in range(len(Types.EVENT)):
-			if i not in event_selected:
-				source_event_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
-				continue
-			x0 = np.array([])
-			x1 = np.array([])
-			y0 = np.array([])
-			y1 = np.array([])
+	for i in range(len(Types.EVENT)):
+		if i not in event_selected:
+			source_event_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
+			continue
+		x0 = np.array([])
+		x1 = np.array([])
+		y0 = np.array([])
+		y1 = np.array([])
+		y_offset = 0
+		for path in data:
 			for cpu in data[path]:
 				timestamp = np.array(data[path][cpu]['timestamp'])
 				event = np.array(data[path][cpu]['event'])
@@ -29,44 +29,48 @@ def target(data, event_selected, interval_selected, callback):
 				x1 = np.append(x1, timestamp[sel])
 				y0 = np.append(y0, (float(cpu)+y_offset) * np.ones(N))
 				y1 = np.append(y1, (float(cpu)+.75+y_offset) * np.ones(N))
-			source_event_data.append(dict(x0=x0, y0=y0, x1=x1, y1=y1))
-		for i in range(len(Types.INTERVAL)):
-			if i not in interval_selected or i not in HANDLER:
-				source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
-				continue
-			source_interval_data.append(HANDLER[i](data[path], y_offset))
-		y_offset += len(data[path])
+			y_offset += len(data[path])
+		source_event_data.append(dict(x0=x0, y0=y0, x1=x1, y1=y1))
+	for i in range(len(Types.INTERVAL)):
+		if i not in interval_selected or i not in HANDLER:
+			source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
+			continue
+		source_interval_data.append(HANDLER[i](data))
 	callback(source_event_data, source_interval_data)
 
-def RQ_SIZE_eq_0(data, y_offset):
-	return interval(data, y_offset, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
+def RQ_SIZE_eq_0(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
 
-def RQ_SIZE_gt_0(data, y_offset):
-	return interval(data, y_offset, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
+def RQ_SIZE_gt_0(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
 
-def RQ_SIZE_eq_1(data, y_offset):
-	return interval(data, y_offset, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
+def RQ_SIZE_eq_1(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
 
-def RQ_SIZE_gt_1(data, y_offset):
-	return interval(data, y_offset, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
+def RQ_SIZE_gt_1(data):
+	return interval(data, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
 
-def interval(data, y_offset, event_id, measurement, op, value):
+def interval(data, event_id, measurement, op, value):
 	r = {
 		k : np.array([])
 		for k in ['x0','x1','y0','y1']
 	}
 	tmax = max([
-		data[cpu]['timestamp'][-1]
-		for cpu in data
+		data[path][cpu]['timestamp'][-1]
+		for path in data
+		for cpu in data[path]
 	])
-	for cpu in data:
-		event = np.array(data[cpu]['event'])
-		sel = event == event_id
-		timestamp = np.array(data[cpu]['timestamp'])[sel]
-		m = np.array(data[cpu][measurement])[sel]
-		_r = interval_per_cpu(float(cpu)+y_offset, timestamp, tmax, m, op, value)
-		for k in r:
-			r[k] = np.append(r[k], _r[k])
+	y_offset = 0
+	for path in data:
+		for cpu in data[path]:
+			event = np.array(data[path][cpu]['event'])
+			sel = event == event_id
+			timestamp = np.array(data[path][cpu]['timestamp'])[sel]
+			m = np.array(data[path][cpu][measurement])[sel]
+			_r = interval_per_cpu(float(cpu)+y_offset, timestamp, tmax, m, op, value)
+			for k in r:
+				r[k] = np.append(r[k], _r[k])
+		y_offset+=len(data[path])
 	return r
 
 def interval_per_cpu(y_offset, timestamp, tmax, measurement, op, value):
