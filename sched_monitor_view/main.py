@@ -13,12 +13,14 @@ import bg.updateSource
 
 # Build the components
 doc = curdoc()
-checkboxgroup_event = CheckboxGroup(
-    labels = Types.EVENT
-)
-checkboxgroup_interval = CheckboxGroup(
-    labels = Types.INTERVAL
-)
+checkgroup_event = [
+    CheckboxGroup(labels=[e], margin=[0,0,0,0])
+    for e in Types.EVENT
+]
+checkgroup_interval = [
+    CheckboxGroup(labels=[e], margin=[0,0,0,0])
+    for e in Types.INTERVAL
+]
 select_hdf5 = Select(
     title ='Data:'
 )
@@ -119,8 +121,8 @@ def callback_plot(source_event_data, source_interval_data):
 def on_click_plot(new):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
-    event = checkboxgroup_event.active
-    interval = checkboxgroup_interval.active
+    event = [i for i in range(len(Types.EVENT)) if checkgroup_event[i].active]
+    interval = [i for i in range(len(Types.INTERVAL)) if checkgroup_interval[i].active]
     bg.updateSource.plot(data, event, interval, callback_plot).start()
 button_plot.on_click(on_click_plot)
 # assamble components
@@ -132,8 +134,8 @@ root = column(
         sizing_mode = 'scale_width',
     ),
     row(
-        checkboxgroup_event,
-        checkboxgroup_interval,
+        column(*checkgroup_event),
+        column(*checkgroup_interval),
         sizing_mode = 'scale_width',
     ),
     button_plot,
