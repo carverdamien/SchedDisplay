@@ -12,6 +12,7 @@ def plot(data, event_selected, interval_selected, tlim, callback):
 def target(data, event_selected, interval_selected, tlim, callback):
 	source_event_data = []
 	source_interval_data = []
+	tlim = recompute_tlim(data, event_selected, interval_selected, tlim)
 	for event_id in range(len(Types.EVENT)):
 		if event_id not in event_selected:
 			source_event_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
@@ -21,16 +22,6 @@ def target(data, event_selected, interval_selected, tlim, callback):
 		y0 = np.array([])
 		y1 = np.array([])
 		y_offset = 0
-		for path in data:
-			for cpu in data[path]:
-				timestamp = data[path][cpu]['timestamp']
-				event = data[path][cpu]['event']
-				# todo: searchsorted
-				sel = (event == event_id) & (timestamp >= tlim[0]) & (timestamp <= tlim[1])
-				if len(timestamp[sel]) <= MAX_ITEM_PER_CORE:
-					continue
-				timestamp = timestamp[sel][:MAX_ITEM_PER_CORE]
-				tlim = (tlim[0], min(max(timestamp), tlim[1]))
 		for path in data:
 			for cpu in data[path]:
 				timestamp = data[path][cpu]['timestamp']
@@ -52,6 +43,22 @@ def target(data, event_selected, interval_selected, tlim, callback):
 		# 	continue
 		# source_interval_data.append(HANDLER[i](data, tlim))
 	callback(source_event_data, source_interval_data, tlim)
+
+def recompute_tlim(data, event_selected, interval_selected, tlim):
+	for event_id in range(len(Types.EVENT)):
+		if event_id not in event_selected:
+			continue
+		for path in data:
+			for cpu in data[path]:
+				timestamp = data[path][cpu]['timestamp']
+				event = data[path][cpu]['event']
+				# todo: searchsorted
+				sel = (event == event_id) & (timestamp >= tlim[0]) & (timestamp <= tlim[1])
+				if len(timestamp[sel]) <= MAX_ITEM_PER_CORE:
+					continue
+				timestamp = timestamp[sel][:MAX_ITEM_PER_CORE]
+				tlim = (tlim[0], min(max(timestamp), tlim[1]))
+	return tlim
 
 def RQ_SIZE_eq_0(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
