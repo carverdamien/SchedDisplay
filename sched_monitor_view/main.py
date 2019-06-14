@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, Slider
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
@@ -42,6 +42,15 @@ colorpicker_types = ColorPicker(
     sizing_mode="fixed",
     align='end',
     color='#FFFFFF',
+)
+slider_t0 = Slider(
+    title="t0",
+    start=0,
+    end=100,
+    value=0,
+    step=1,
+    width=300,
+    sizing_mode="fixed",
 )
 button_plot = Button(
     align='end',
@@ -145,6 +154,7 @@ def coroutine_loadData(path, new_data):
     if path in data:
         raise Exception()
     data[path]=new_data
+    slider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
     button_load_hdf5.label = 'rm'
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
@@ -158,7 +168,9 @@ def on_click_loadhdf5(new):
         button_load_hdf5.label = 'add'
         button_load_hdf5.button_type = 'success'
         if len(data) == 0:
-             button_plot.disabled = True
+            button_plot.disabled = True
+        else:
+            slider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
     else:
         button_load_hdf5.disabled = True
         button_plot.disabled = True
@@ -195,6 +207,7 @@ root = column(
         button_load_hdf5,
         select_types,
         colorpicker_types,
+        slider_t0,
         button_plot,
         sizing_mode = 'scale_width',
     ),
