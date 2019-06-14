@@ -36,8 +36,6 @@ def target(data, event_selected, interval_selected, tlim, callback):
 			y_offset += len(data[path])
 		source_event_data.append(dict(x0=x0, y0=y0, x1=x0, y1=y1))
 	for i in range(len(Types.INTERVAL)):
-		# source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
-		# TODO
 		if i not in interval_selected or i not in HANDLER:
 			source_interval_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
 			continue
@@ -64,42 +62,54 @@ def recompute_tlim(data, event_selected, interval_selected, tlim):
 		tlim = RECOMPUTE_TLIM_HANDLER[i](data, tlim)
 	return tlim
 
-def RQ_SIZE_RECOMPUTE_TLIM(data, tlim):
+def recompute_tlim_interval(data, tlim, event_id, measurement, op, value):
 	tmax = max([
-		timestamp[(timestamp >= tlim[0]) & (timestamp <= tlim[1])][-1]
+		timestamp[-1]
 		for dict_of_cpu in data.values()
 		for dict_of_record in dict_of_cpu.values()
 		for timestamp in [dict_of_record['timestamp']]
-		if len(timestamp[(timestamp >= tlim[0]) & (timestamp <= tlim[1])]) > 0
+		if len(timestamp) > 0
 	]+[0])
 	for path in data:
 		for cpu in data[path]:
 			timestamp = data[path][cpu]['timestamp']
 			event = data[path][cpu]['event']
 			# todo: searchsorted
-			sel = (event == Types.ID_EVENT['RQ_SIZE'])
-			x0 = timestamp[sel]
-			x1 = np.append(timestamp[1:],[tmax])[sel]
-			sel = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
-			x0 = x0[sel]
-			x1 = x1[sel]
+			sel_event = (event == event_id)
+			timestamp = timestamp[sel_event]
+			m = data[path][cpu][measurement][sel_event]
+			sel_x0 = op(m, value)
+			sel_x1 = np.append([False], sel_x0)
+			if np.sum(sel_x0) == 0:
+				continue
+			x0 = timestamp[sel_x0]
+			x1 = np.append(timestamp, [tmax])[sel_x1]
+			sel_tlim = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
+			x0 = x0[sel_tlim]
+			x1 = x1[sel_tlim]
 			while len(x0) > MAX_ITEM_PER_CORE:
 				# TODO: maximize len(x0)
 				tlim = (tlim[0], tlim[1]-(tlim[1]-tlim[0])/2)
-				sel = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
-				x0 = x0[sel]
-				x1 = x1[sel]
+				sel_tlim = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
+				x0 = x0[sel_tlim]
+				x1 = x1[sel_tlim]
 	return tlim
+
+def RQ_SIZE_eq_0_RECOMPUTE_TLIM(data, tlim):
+	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
+def RQ_SIZE_gt_0_RECOMPUTE_TLIM(data, tlim):
+	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
+def RQ_SIZE_eq_1_RECOMPUTE_TLIM(data, tlim):
+	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
+def RQ_SIZE_gt_1_RECOMPUTE_TLIM(data, tlim):
+	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
 
 def RQ_SIZE_eq_0(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
-
 def RQ_SIZE_gt_0(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
-
 def RQ_SIZE_eq_1(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
-
 def RQ_SIZE_gt_1(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
 
@@ -109,11 +119,11 @@ def interval(data, tlim, event_id, measurement, op, value):
 		for k in ['x0','x1','y0','y1']
 	}
 	tmax = max([
-		timestamp[(timestamp >= tlim[0]) & (timestamp <= tlim[1])][-1]
+		timestamp[-1]
 		for dict_of_cpu in data.values()
 		for dict_of_record in dict_of_cpu.values()
 		for timestamp in [dict_of_record['timestamp']]
-		if len(timestamp[(timestamp >= tlim[0]) & (timestamp <= tlim[1])]) > 0
+		if len(timestamp) > 0
 	]+[0])
 	y_offset = 0
 	for path in data:
@@ -121,9 +131,9 @@ def interval(data, tlim, event_id, measurement, op, value):
 			timestamp = data[path][cpu]['timestamp']
 			event = data[path][cpu]['event']			
 			# todo: searchsorted
-			sel = (event == event_id)
-			timestamp = timestamp[sel]
-			m = data[path][cpu][measurement][sel]
+			sel_event = (event == event_id)
+			timestamp = timestamp[sel_event]
+			m = data[path][cpu][measurement][sel_event]
 			_r = interval_per_cpu(float(cpu)+y_offset, timestamp, tlim, tmax, m, op, value)
 			for k in r:
 				r[k] = np.append(r[k], _r[k])
@@ -131,14 +141,15 @@ def interval(data, tlim, event_id, measurement, op, value):
 	return r
 
 def interval_per_cpu(y_offset, timestamp, tlim, tmax, measurement, op, value):
-	sel = op(measurement, value)
-	if np.sum(sel) == 0:
+	sel_x0 = op(measurement, value)
+	sel_x1 = np.append([False], sel_x0)
+	if np.sum(sel_x0) == 0:
 		return dict(x0=[], y0=[], x1=[], y1=[])
-	x0 = timestamp[sel]
-	x1 = np.append(timestamp[1:],[tmax])[sel]
-	sel = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
-	x0 = x0[sel]
-	x1 = x1[sel]
+	x0 = timestamp[sel_x0]
+	x1 = np.append(timestamp, [tmax])[sel_x1]
+	sel_tlim = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
+	x0 = x0[sel_tlim]
+	x1 = x1[sel_tlim]
 	N = len(x0)
 	y0 = y_offset * np.ones(N)
 	y1 = y_offset * np.ones(N)
@@ -151,8 +162,8 @@ HANDLER = {
 	Types.ID_INTERVAL['RQ_SIZE>1'] : RQ_SIZE_gt_1,
 }
 RECOMPUTE_TLIM_HANDLER = {
-	Types.ID_INTERVAL['RQ_SIZE=0'] : RQ_SIZE_RECOMPUTE_TLIM,
-	Types.ID_INTERVAL['RQ_SIZE>0'] : RQ_SIZE_RECOMPUTE_TLIM,
-	Types.ID_INTERVAL['RQ_SIZE=1'] : RQ_SIZE_RECOMPUTE_TLIM,
-	Types.ID_INTERVAL['RQ_SIZE>1'] : RQ_SIZE_RECOMPUTE_TLIM,	
+	Types.ID_INTERVAL['RQ_SIZE=0'] : RQ_SIZE_eq_0_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE>0'] : RQ_SIZE_gt_0_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE=1'] : RQ_SIZE_eq_1_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE>1'] : RQ_SIZE_gt_1_RECOMPUTE_TLIM,
 }
