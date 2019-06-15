@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
@@ -53,6 +53,14 @@ rangeslider_t0 = RangeSlider(
     callback_policy="mouseup",
 )
 rangeslider_t0_value = [0,100]
+slider_truncate = Slider(
+    title='Truncate (<=1000 Recommended)',
+    start=2,
+    end=1000,
+    value=1000,
+    width=300,
+    sizing_mode="fixed",
+)
 button_plot = Button(
     align='end',
     label="Plot",
@@ -163,6 +171,8 @@ def coroutine_loadData(path, new_data):
     figure_plot.x_range.end = rangeslider_t0.end
     figure_plot.y_range.start = 0
     figure_plot.y_range.end = sum([1 for path in data for cpu in data[path]])
+    slider_truncate.value = 1000
+    slider_truncate.end = max([len(data[path][cpu]['timestamp']) for path in data for cpu in data[path]])
     button_load_hdf5.label = 'rm'
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
@@ -218,9 +228,10 @@ def go_plot(tlim):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
     rangeslider_t0.disabled = True
+    truncate = slider_truncate.value
     event    = [i for i in range(len(Types.EVENT))    if color[Types.EVENT[i]]    != '#FFFFFF']
     interval = [i for i in range(len(Types.INTERVAL)) if color[Types.INTERVAL[i]] != '#FFFFFF']
-    bg.updateSource.plot(data, event, interval, tlim, callback_plot).start()
+    bg.updateSource.plot(data, truncate, event, interval, tlim, callback_plot).start()
 def on_click_plot(new):
     tlim = rangeslider_t0.value
     go_plot(tlim)
@@ -238,6 +249,7 @@ root = column(
         button_load_hdf5,
         select_types,
         colorpicker_types,
+        slider_truncate,
         button_plot,
         sizing_mode = 'scale_width',
     ),

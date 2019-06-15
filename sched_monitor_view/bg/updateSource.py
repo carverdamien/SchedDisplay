@@ -3,16 +3,14 @@ import operator
 import numpy as np
 import Types
 
-MAX_ITEM_PER_CORE=1000
-
-def plot(data, event_selected, interval_selected, tlim, callback):
-	args = (data, event_selected, interval_selected, tlim, callback)
+def plot(data, truncate, event_selected, interval_selected, tlim, callback):
+	args = (data, truncate, event_selected, interval_selected, tlim, callback)
 	return Thread(target=target, args=args)
 
-def target(data, event_selected, interval_selected, tlim, callback):
+def target(data, truncate, event_selected, interval_selected, tlim, callback):
 	source_event_data = []
 	source_interval_data = []
-	tlim = recompute_tlim(data, event_selected, interval_selected, tlim)
+	tlim = recompute_tlim(data, truncate, event_selected, interval_selected, tlim)
 	for event_id in range(len(Types.EVENT)):
 		if event_id not in event_selected:
 			source_event_data.append(dict(x0=[], y0=[], x1=[], y1=[]))
@@ -42,7 +40,7 @@ def target(data, event_selected, interval_selected, tlim, callback):
 		source_interval_data.append(HANDLER[i](data, tlim))
 	callback(source_event_data, source_interval_data, tlim)
 
-def recompute_tlim(data, event_selected, interval_selected, tlim):
+def recompute_tlim(data, truncate, event_selected, interval_selected, tlim):
 	for event_id in range(len(Types.EVENT)):
 		if event_id not in event_selected:
 			continue
@@ -52,17 +50,17 @@ def recompute_tlim(data, event_selected, interval_selected, tlim):
 				event = data[path][cpu]['event']
 				# todo: searchsorted
 				sel = (event == event_id) & (timestamp >= tlim[0]) & (timestamp <= tlim[1])
-				if len(timestamp[sel]) <= MAX_ITEM_PER_CORE:
+				if len(timestamp[sel]) <= truncate:
 					continue
-				timestamp = timestamp[sel][:MAX_ITEM_PER_CORE]
+				timestamp = timestamp[sel][:truncate]
 				tlim = (tlim[0], min(max(timestamp), tlim[1]))
 	for i in range(len(Types.INTERVAL)):
 		if i not in interval_selected or i not in HANDLER:
 			continue
-		tlim = RECOMPUTE_TLIM_HANDLER[i](data, tlim)
+		tlim = RECOMPUTE_TLIM_HANDLER[i](data, truncate, tlim)
 	return tlim
 
-def recompute_tlim_interval(data, tlim, event_id, measurement, op, value):
+def recompute_tlim_interval(data, truncate, tlim, event_id, measurement, op, value):
 	tmax = max([
 		timestamp[-1]
 		for dict_of_cpu in data.values()
@@ -87,7 +85,7 @@ def recompute_tlim_interval(data, tlim, event_id, measurement, op, value):
 			sel_tlim = intersection(x0, x1, tlim)
 			x0 = x0[sel_tlim]
 			x1 = x1[sel_tlim]
-			while len(x0) > MAX_ITEM_PER_CORE:
+			while len(x0) > truncate:
 				tlim1 = min([max(x0[((x0 >= tlim[0]) & (x0 <= tlim[1]))]), max(x1[((x1 >= tlim[0]) & (x1 <= tlim[1]))])])
 				tlim = (tlim[0], tlim1-1)
 				# tlim = (tlim[0], tlim[0] + (tlim[1]-tlim[0])/2)
@@ -96,14 +94,14 @@ def recompute_tlim_interval(data, tlim, event_id, measurement, op, value):
 				x1 = x1[sel_tlim]
 	return tlim
 
-def RQ_SIZE_eq_0_RECOMPUTE_TLIM(data, tlim):
-	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
-def RQ_SIZE_gt_0_RECOMPUTE_TLIM(data, tlim):
-	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
-def RQ_SIZE_eq_1_RECOMPUTE_TLIM(data, tlim):
-	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
-def RQ_SIZE_gt_1_RECOMPUTE_TLIM(data, tlim):
-	return recompute_tlim_interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
+def RQ_SIZE_eq_0_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
+def RQ_SIZE_gt_0_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 0)
+def RQ_SIZE_eq_1_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
+def RQ_SIZE_gt_1_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
 
 def RQ_SIZE_eq_0(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
