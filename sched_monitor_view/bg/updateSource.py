@@ -61,14 +61,13 @@ def recompute_tlim(data, truncate, event_selected, interval_selected, tlim):
 	return tlim
 
 def recompute_tlim_interval(data, truncate, tlim, event_id, measurement, op, value):
-	tmax = max([
-		timestamp[-1]
-		for dict_of_cpu in data.values()
-		for dict_of_record in dict_of_cpu.values()
-		for timestamp in [dict_of_record['timestamp']]
-		if len(timestamp) > 0
-	]+[0])
 	for path in data:
+		tmax = max([
+			timestamp[-1]
+			for dict_of_record in data[path].values()
+			for timestamp in [dict_of_record['timestamp']]
+			if len(timestamp) > 0
+		]+[0])
 		for cpu in data[path]:
 			timestamp = data[path][cpu]['timestamp']
 			event = data[path][cpu]['event']
@@ -117,15 +116,14 @@ def interval(data, tlim, event_id, measurement, op, value):
 		k : np.array([])
 		for k in ['x0','x1','y0','y1']
 	}
-	tmax = max([
-		timestamp[-1]
-		for dict_of_cpu in data.values()
-		for dict_of_record in dict_of_cpu.values()
-		for timestamp in [dict_of_record['timestamp']]
-		if len(timestamp) > 0
-	]+[0])
 	y_offset = 0
 	for path in data:
+		tmax = max([
+			timestamp[-1]
+			for dict_of_record in data[path].values()
+			for timestamp in [dict_of_record['timestamp']]
+			if len(timestamp) > 0
+		]+[0])
 		for cpu in data[path]:
 			timestamp = data[path][cpu]['timestamp']
 			event = data[path][cpu]['event']			
