@@ -159,6 +159,10 @@ def coroutine_loadData(path, new_data):
     rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
     rangeslider_t0_value[0] = rangeslider_t0.start
     rangeslider_t0_value[1] = rangeslider_t0.end
+    figure_plot.x_range.start = rangeslider_t0.start
+    figure_plot.x_range.end = rangeslider_t0.end
+    figure_plot.y_range.start = 0
+    figure_plot.y_range.end = sum([1 for path in data for cpu in data[path]])
     button_load_hdf5.label = 'rm'
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
@@ -191,6 +195,8 @@ def coroutine_plot(source_event_data, source_interval_data, tlim):
     rangeslider_t0.value = tlim
     rangeslider_t0_value[0] = tlim[0]
     rangeslider_t0_value[1] = tlim[1]
+    figure_plot.x_range.start = tlim[0]
+    figure_plot.x_range.end = tlim[1]
     for i in range(len(source_event)):
         source_event[i].data = source_event_data[i]
     for i in range(len(source_interval)):
