@@ -84,13 +84,14 @@ def recompute_tlim_interval(data, tlim, event_id, measurement, op, value):
 				continue
 			x0 = timestamp[sel_x0]
 			x1 = np.append(timestamp, [tmax])[sel_x1]
-			sel_tlim = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
+			sel_tlim = intersection(x0, x1, tlim)
 			x0 = x0[sel_tlim]
 			x1 = x1[sel_tlim]
 			while len(x0) > MAX_ITEM_PER_CORE:
-				# TODO: maximize len(x0)
-				tlim = (tlim[0], tlim[1]-(tlim[1]-tlim[0])/2)
-				sel_tlim = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
+				tlim1 = min([max(x0[((x0 >= tlim[0]) & (x0 <= tlim[1]))]), max(x1[((x1 >= tlim[0]) & (x1 <= tlim[1]))])])
+				tlim = (tlim[0], tlim1-1)
+				# tlim = (tlim[0], tlim[0] + (tlim[1]-tlim[0])/2)
+				sel_tlim = intersection(x0, x1, tlim)
 				x0 = x0[sel_tlim]
 				x1 = x1[sel_tlim]
 	return tlim
@@ -147,13 +148,16 @@ def interval_per_cpu(y_offset, timestamp, tlim, tmax, measurement, op, value):
 		return dict(x0=[], y0=[], x1=[], y1=[])
 	x0 = timestamp[sel_x0]
 	x1 = np.append(timestamp, [tmax])[sel_x1]
-	sel_tlim = ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & x1>tlim[1])
+	sel_tlim = intersection(x0, x1, tlim)
 	x0 = x0[sel_tlim]
 	x1 = x1[sel_tlim]
 	N = len(x0)
 	y0 = y_offset * np.ones(N)
 	y1 = y_offset * np.ones(N)
 	return dict(x0=x0, y0=y0, x1=x1, y1=y1)
+
+def intersection(x0, x1, tlim):
+	return ((x0 >= tlim[0]) & (x0 <= tlim[1])) | ((x1 >= tlim[0]) & (x1 <= tlim[1])) | ((x0<tlim[0]) & (x1>tlim[1]))
 
 HANDLER = {
 	Types.ID_INTERVAL['RQ_SIZE=0'] : RQ_SIZE_eq_0,
