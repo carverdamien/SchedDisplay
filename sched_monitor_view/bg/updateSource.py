@@ -85,9 +85,14 @@ def recompute_tlim_interval(data, truncate, tlim, event_id, measurement, op, val
 			x0 = x0[sel_tlim]
 			x1 = x1[sel_tlim]
 			while len(x0) > truncate:
-				tlim1 = min([max(x0[((x0 >= tlim[0]) & (x0 <= tlim[1]))]), max(x1[((x1 >= tlim[0]) & (x1 <= tlim[1]))])])
-				tlim = (tlim[0], tlim1-1)
-				# tlim = (tlim[0], tlim[0] + (tlim[1]-tlim[0])/2)
+				tlim1 = min([
+					max(x[sel])-1
+					for x, sel in [
+					[x0, ((x0 >= tlim[0]) & (x0 <= tlim[1]))],
+					[x1, ((x1 >= tlim[0]) & (x1 <= tlim[1]))]]
+					if len(x[sel]) > 0
+				]+[tlim[0] + (tlim[1]-tlim[0])/2])
+				tlim = (tlim[0], tlim1)
 				sel_tlim = intersection(x0, x1, tlim)
 				x0 = x0[sel_tlim]
 				x1 = x1[sel_tlim]
