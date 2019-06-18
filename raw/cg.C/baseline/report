@@ -1,2 +1,11 @@
 #!/bin/bash
-grep Time output/run.out | awk "{ print \"{\" \"\\\"time\\\":\" \$2 \",\" \"\\\"tasks\\\":\" ${TASKS} \"}\" }" > output/data.json
+TIME=$(sed -n 's/^ Time in seconds *= *\([0-9\.]*\)$/\1/p' output/run.out)
+TASKS=$(sed -n 's/^ Total threads *= *\([0-9\.]*\)$/\1/p' output/run.out)
+cat >output/summary.json <<EOF
+{
+  "name":"cg.C",
+  "ipanema":"${PATH_TO_IPANEMA_MODULE}",
+  "time":${TIME},
+  "tasks":${TASKS}
+}
+EOF
