@@ -1,7 +1,9 @@
 #!/bin/bash
-set -u -e
+set -u -e -x
 source cleanup
 source prepare
-./run > >(tee output/run.out) 2> >(tee output/run.err) &
+/usr/bin/time \
+    -f "%e" \
+    ./run > >(tee output/run.out) 2> >(tee output/run.err) &
 wait
 source report
