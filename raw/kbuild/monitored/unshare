@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e -u
+prog="${1}"
+shift
+exec unshare -pf --mount-proc -- "${prog}" "${@}"

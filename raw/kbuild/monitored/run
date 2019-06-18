@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e -u
+exec perf \
+     record -i -B -T \
+     -e syscalls:sys_enter_write \
+     -o output/perf.data \
+     /home/damien/git/ipanema/benchmarks/scripts/nas/NPB3.4/NPB3.4-OMP/bin/cg.C.x

@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e -u
+exec /home/damien/git/ipanema/benchmarks/scripts/nas/NPB3.4/NPB3.4-OMP/bin/cg.C.x
