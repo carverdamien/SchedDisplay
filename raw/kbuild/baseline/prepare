@@ -1,0 +1,15 @@
+#!/bin/bash
+: ${TASKS}
+mkdir /tmp/kbuild
+tar=/tmp/linux-4.19.tar.xz
+
+if ! [ -f ${tar} ]
+then
+    wget --quiet http://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.19.tar.xz -O ${tar}
+fi
+
+tar -C /tmp/kbuild -xJf ${tar}
+
+make -C /tmp/kbuild/linux* defconfig
+
+mkdir output

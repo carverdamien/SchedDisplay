@@ -1,0 +1,10 @@
+#!/bin/bash
+TIME=$(cat output/run.out)
+cat >output/summary.json <<EOF
+{
+  "name":"kbuild",
+  "ipanema":"${PATH_TO_IPANEMA_MODULE}",
+  "time":${TIME},
+  "tasks":${TASKS}
+}
+EOF
