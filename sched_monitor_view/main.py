@@ -72,6 +72,7 @@ figure_plot = figure(
     sizing_mode='stretch_both',
     tools="xpan,reset,save,xwheel_zoom",
     active_scroll='xwheel_zoom',
+    output_backend="webgl",
 )
 source_event = [
     ColumnDataSource(
@@ -119,7 +120,7 @@ for i in range(len(source_interval)):
 legend = Legend(items=items)
 figure_plot.add_layout(legend)
 # Add feeds
-root = './raw/hackbench/monitored'
+root = './raw'
 ext  = '.hdf5'
 @gen.coroutine
 def coroutine_fspath(l):
