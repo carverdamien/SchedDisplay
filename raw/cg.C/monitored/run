@@ -2,6 +2,6 @@
 set -e -u
 exec perf \
      record -i -B -T \
-     -e syscalls:sys_enter_clock_gettime \
+     -e syscalls:sys_enter_write \
      -o output/perf.data \
-     hackbench -g ${GROUP}
+     /home/damien/git/ipanema/benchmarks/scripts/nas/NPB3.4/NPB3.4-OMP/bin/cg.C.x

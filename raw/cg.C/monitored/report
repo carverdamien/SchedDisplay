@@ -1,15 +1,12 @@
 #!/bin/bash
-CLOCK_START=$(perf report -i output/perf.data -D | grep PERF_RECORD_SAMPLE | awk '{print $2}' | head -n 1)
-CLOCK_END=$(perf report -i output/perf.data -D | grep PERF_RECORD_SAMPLE | awk '{print $2}' | tail -n 1)
-TIME=$(grep Time output/run.out | awk '{print $2}')
+TIME=$(sed -n 's/^ Time in seconds *= *\([0-9\.]*\)$/\1/p' output/run.out)
+TASKS=$(sed -n 's/^ Total threads *= *\([0-9\.]*\)$/\1/p' output/run.out)
 cat > output/summary.json <<EOF
 {
   "name":"hackbench",
   "ipanema":"${PATH_TO_IPANEMA_MODULE}",
   "time":${TIME},
-  "tasks":${TASKS},
-  "clock_start":${CLOCK_START},
-  "clock_end":${CLOCK_END}
+  "tasks":${TASKS}
 }
 EOF
 ./report.py output.hdf5 output
