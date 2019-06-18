@@ -1,5 +1,5 @@
 #!/bin/bash
-set -u -e
+set -u -e -x
 source cleanup
 source prepare
 source monitoring_start
