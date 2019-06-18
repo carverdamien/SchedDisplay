@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e -u
+exec perf \
+     record -i -B -T \
+     -e syscalls:sys_enter_clock_gettime \
+     -o output/perf.data \
+     hackbench -g ${GROUP}

@@ -1,0 +1,7 @@
+#!/bin/bash
+for f in /proc/{schedstat,sched_debug,stat}
+do
+    cp ${f} output/$(basename ${f}).start
+done
+sched_monitor start idle sched fair ipanema tracer || true
+sched_monitor reset idle sched fair ipanema tracer || true
