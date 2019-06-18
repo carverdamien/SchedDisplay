@@ -8,8 +8,7 @@ cat > output/summary.json <<EOF
   "ipanema":"${PATH_TO_IPANEMA_MODULE}",
   "time":${TIME},
   "tasks":${TASKS},
-  "clock_start":${CLOCK_START},
-  "clock_end":${CLOCK_END}
+  "markers":[${CLOCK_START}, ${CLOCK_END}]
 }
 EOF
 ./report.py output.hdf5 output
