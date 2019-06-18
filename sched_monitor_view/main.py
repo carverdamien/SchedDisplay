@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
@@ -42,6 +42,24 @@ colorpicker_types = ColorPicker(
     sizing_mode="fixed",
     align='end',
     color='#FFFFFF',
+)
+rangeslider_t0 = RangeSlider(
+    start=0,
+    end=100,
+    value=(0,100),
+    step=1,
+    sizing_mode="scale_width",
+    disabled=True,
+    callback_policy="mouseup",
+)
+rangeslider_t0_value = [0,100]
+slider_truncate = Slider(
+    title='Truncate (<=1000 Recommended)',
+    start=2,
+    end=1000,
+    value=1000,
+    width=300,
+    sizing_mode="fixed",
 )
 button_plot = Button(
     align='end',
@@ -145,10 +163,21 @@ def coroutine_loadData(path, new_data):
     if path in data:
         raise Exception()
     data[path]=new_data
+    rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
+    rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
+    rangeslider_t0_value[0] = rangeslider_t0.start
+    rangeslider_t0_value[1] = rangeslider_t0.end
+    figure_plot.x_range.start = rangeslider_t0.start
+    figure_plot.x_range.end = rangeslider_t0.end
+    figure_plot.y_range.start = 0
+    figure_plot.y_range.end = sum([1 for path in data for cpu in data[path]])
+    slider_truncate.value = 1000
+    slider_truncate.end = max([len(data[path][cpu]['timestamp']) for path in data for cpu in data[path]])
     button_load_hdf5.label = 'rm'
     button_load_hdf5.button_type = 'warning'
     button_load_hdf5.disabled = False
     button_plot.disabled = False
+    rangeslider_t0.disabled = False
 def callback_loadData(path, new_data):
     doc.add_next_tick_callback(partial(coroutine_loadData, path, new_data))
 def on_click_loadhdf5(new):
@@ -158,36 +187,61 @@ def on_click_loadhdf5(new):
         button_load_hdf5.label = 'add'
         button_load_hdf5.button_type = 'success'
         if len(data) == 0:
-             button_plot.disabled = True
+            button_plot.disabled = True
+            rangeslider_t0.disabled = True
+        else:
+            rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
+            rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
+            rangeslider_t0_value[0] = rangeslider_t0.start
+            rangeslider_t0_value[1] = rangeslider_t0.end
     else:
         button_load_hdf5.disabled = True
         button_plot.disabled = True
+        rangeslider_t0.disabled = True
         bg.loadData.load(path, callback_loadData).start()
 button_load_hdf5.on_click(on_click_loadhdf5)
 @gen.coroutine
-def coroutine_plot(source_event_data, source_interval_data):
+def coroutine_plot(source_event_data, source_interval_data, tlim):
+    rangeslider_t0.value = tlim
+    rangeslider_t0_value[0] = tlim[0]
+    rangeslider_t0_value[1] = tlim[1]
+    figure_plot.x_range.start = tlim[0]
+    figure_plot.x_range.end = tlim[1]
     for i in range(len(source_event)):
         source_event[i].data = source_event_data[i]
     for i in range(len(source_interval)):
         source_interval[i].data = source_interval_data[i]
     button_load_hdf5.disabled = False
     button_plot.disabled = False
+    rangeslider_t0.disabled = False
     pass
-def callback_plot(source_event_data, source_interval_data):
+def callback_plot(source_event_data, source_interval_data, tlim):
     doc.add_next_tick_callback(
         partial(
             coroutine_plot,
             source_event_data,
             source_interval_data,
+            tlim,
         )
     )
-def on_click_plot(new):
+def go_plot(tlim):
     button_load_hdf5.disabled = True
     button_plot.disabled = True
+    rangeslider_t0.disabled = True
+    truncate = slider_truncate.value
     event    = [i for i in range(len(Types.EVENT))    if color[Types.EVENT[i]]    != '#FFFFFF']
     interval = [i for i in range(len(Types.INTERVAL)) if color[Types.INTERVAL[i]] != '#FFFFFF']
-    bg.updateSource.plot(data, event, interval, callback_plot).start()
+    bg.updateSource.plot(data, truncate, event, interval, tlim, callback_plot).start()
+def on_click_plot(new):
+    tlim = rangeslider_t0.value
+    go_plot(tlim)
 button_plot.on_click(on_click_plot)
+def on_change_rangeslider_t0(attr, old, new):
+    value = tuple(new)
+    if rangeslider_t0_value is not None and new[1] > rangeslider_t0_value[1]:
+        value = (new[0]+new[1]-rangeslider_t0_value[1], new[1])
+    go_plot(value)
+rangeslider_t0.on_change('value_throttled', on_change_rangeslider_t0)
 # assamble components
 root = column(
     row(
@@ -195,10 +249,12 @@ root = column(
         button_load_hdf5,
         select_types,
         colorpicker_types,
+        slider_truncate,
         button_plot,
         sizing_mode = 'scale_width',
     ),
     figure_plot,
+    rangeslider_t0,
     sizing_mode = 'stretch_both',
 )
 doc.add_root(root)
