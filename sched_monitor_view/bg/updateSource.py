@@ -106,6 +106,14 @@ def RQ_SIZE_eq_1_RECOMPUTE_TLIM(data, truncate, tlim):
 	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
 def RQ_SIZE_gt_1_RECOMPUTE_TLIM(data, truncate, tlim):
 	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
+def RQ_SIZE_eq_2_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 2)
+def RQ_SIZE_eq_3_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 3)
+def RQ_SIZE_eq_4_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 4)
+def RQ_SIZE_eq_5_RECOMPUTE_TLIM(data, truncate, tlim):
+	return recompute_tlim_interval(data, truncate, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 5)
 
 def RQ_SIZE_eq_0(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 0)
@@ -115,6 +123,14 @@ def RQ_SIZE_eq_1(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 1)
 def RQ_SIZE_gt_1(data, tlim):
 	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.gt, 1)
+def RQ_SIZE_eq_2(data, tlim):
+	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 2)
+def RQ_SIZE_eq_3(data, tlim):
+	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 3)
+def RQ_SIZE_eq_4(data, tlim):
+	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 4)
+def RQ_SIZE_eq_5(data, tlim):
+	return interval(data, tlim, Types.ID_EVENT['RQ_SIZE'], 'arg0', operator.eq, 5)
 
 def interval(data, tlim, event_id, measurement, op, value):
 	r = {
@@ -165,10 +181,18 @@ HANDLER = {
 	Types.ID_INTERVAL['RQ_SIZE>0'] : RQ_SIZE_gt_0,
 	Types.ID_INTERVAL['RQ_SIZE=1'] : RQ_SIZE_eq_1,
 	Types.ID_INTERVAL['RQ_SIZE>1'] : RQ_SIZE_gt_1,
+	Types.ID_INTERVAL['RQ_SIZE=2'] : RQ_SIZE_eq_2,
+	Types.ID_INTERVAL['RQ_SIZE=3'] : RQ_SIZE_eq_3,
+	Types.ID_INTERVAL['RQ_SIZE=4'] : RQ_SIZE_eq_4,
+	Types.ID_INTERVAL['RQ_SIZE=5'] : RQ_SIZE_eq_5,
 }
 RECOMPUTE_TLIM_HANDLER = {
 	Types.ID_INTERVAL['RQ_SIZE=0'] : RQ_SIZE_eq_0_RECOMPUTE_TLIM,
 	Types.ID_INTERVAL['RQ_SIZE>0'] : RQ_SIZE_gt_0_RECOMPUTE_TLIM,
 	Types.ID_INTERVAL['RQ_SIZE=1'] : RQ_SIZE_eq_1_RECOMPUTE_TLIM,
 	Types.ID_INTERVAL['RQ_SIZE>1'] : RQ_SIZE_gt_1_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE=2'] : RQ_SIZE_eq_2_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE=3'] : RQ_SIZE_eq_3_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE=4'] : RQ_SIZE_eq_4_RECOMPUTE_TLIM,
+	Types.ID_INTERVAL['RQ_SIZE=5'] : RQ_SIZE_eq_5_RECOMPUTE_TLIM,
 }

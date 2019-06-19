@@ -27,6 +27,10 @@ INTERVAL = [
     'RQ_SIZE>0',
     'RQ_SIZE=1',
     'RQ_SIZE>1',
+    'RQ_SIZE=2',
+    'RQ_SIZE=3',
+    'RQ_SIZE=4',
+    'RQ_SIZE=5',
 ]
 ID_INTERVAL = {
     INTERVAL[i] : i
