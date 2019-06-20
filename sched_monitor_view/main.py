@@ -68,9 +68,18 @@ button_plot = Button(
     width_policy="min",
     disabled=True,
 )
+TOOLTIPS = [
+    ("type","@t"),
+    ("timestamp","@x0"),
+    ("pid","@pid"),
+    ("addr","@addr"),
+    ("arg0","@arg0"),
+    ("arg1","@arg1"),
+]
 figure_plot = figure(
     sizing_mode='stretch_both',
-    tools="xpan,reset,save,xwheel_zoom",
+    tools="xpan,reset,save,xwheel_zoom,hover",
+    tooltips=TOOLTIPS,
     active_scroll='xwheel_zoom',
     output_backend="webgl",
 )
