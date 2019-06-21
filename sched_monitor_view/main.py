@@ -9,10 +9,13 @@ from tornado import gen
 from functools import partial
 # Internal imports
 import feeds.fspath
+import state
 
+######################################################
 ################ Build the components ################
+######################################################
 doc = curdoc()
-################ TABS ################
+################ TABS View ################
 radiobuttongroup_tab = RadioButtonGroup(
 	labels=["User View", "JSON View", "Data View", "Plot View"],
 )
@@ -22,14 +25,13 @@ select_hdf5 = Select(
     sizing_mode="fixed",
     visible=False,
 )
-button_load_hdf5 = Button(
-    label="Load",
+button_add_or_rm_hdf5 = Button(
     align="end",
     button_type="success",
     width_policy="min",
     visible=False,
 )
-USER_VIEW = [select_hdf5,button_load_hdf5]
+USER_VIEW = [select_hdf5,button_add_or_rm_hdf5]
 ################ JSON View ################
 textareainput_json = TextAreaInput(visible=False)
 button_import_json = Button(
@@ -61,7 +63,9 @@ VIEWS = [
 	DATA_VIEW,
 	PLOT_VIEW,
 ]
+###########################################
 ################ Add feeds ################
+###########################################
 @gen.coroutine
 def coroutine_fspath(l):
     select_hdf5.options = l
@@ -69,7 +73,10 @@ def coroutine_fspath(l):
 def callback_fspath(l):
     doc.add_next_tick_callback(partial(coroutine_fspath, l))
 feeds.fspath.feed('./raw', '.hdf5',callback_fspath).start()
+###################################################
 ################ Add interactivity ################
+###################################################
+################ TABS View ################
 def on_click_radiobuttongroup_tab(new):
 	selected = radiobuttongroup_tab.active
 	for i in range(len(VIEWS)):
@@ -80,7 +87,29 @@ def on_click_radiobuttongroup_tab(new):
 				e.visible = False
 	pass
 radiobuttongroup_tab.on_click(on_click_radiobuttongroup_tab)
+################ User View ################
+def label_button_add_or_rm_hdf5():
+	path = select_hdf5.value
+	if state.hdf5_is_loaded(path):
+		button_add_or_rm_hdf5.label = 'rm'
+		button_add_or_rm_hdf5.button_type = 'warning'
+	else:
+		button_add_or_rm_hdf5.label = 'add'
+		button_add_or_rm_hdf5.button_type = 'success'
+def on_change_select_hdf5(attr, old, new):
+    label_button_add_or_rm_hdf5()
+select_hdf5.on_change('value', on_change_select_hdf5)
+def on_click_loadhdf5(new):
+	path = select_hdf5.value
+	if state.hdf5_is_loaded(path):
+		state.unload_hdf5(path)
+	else:
+		state.load_hdf5(path)
+	label_button_add_or_rm_hdf5()
+button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
+#####################################################
 ################ Assamble components ################
+#####################################################
 root = column(
     row(
         radiobuttongroup_tab,
@@ -88,7 +117,7 @@ root = column(
     ),
     row(
 		select_hdf5,
-		button_load_hdf5,
+		button_add_or_rm_hdf5,
 		button_import_json,
 		sizing_mode = 'scale_width',
     ),
