@@ -9,12 +9,13 @@ from tornado import gen
 from functools import partial
 # Internal imports
 import feeds.fspath
-import state
+from state import State
 
 ######################################################
 ################ Build the components ################
 ######################################################
 doc = curdoc()
+state = State(doc)
 USER_VIEW = 0
 JSON_VIEW = 1
 DATA_VIEW = 2
