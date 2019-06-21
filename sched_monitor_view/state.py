@@ -1,18 +1,20 @@
 from bokeh.plotting import curdoc
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, IndexFilter
 from bokeh.models.widgets import TableColumn
 from tornado import gen
 from functools import partial
 import json
 import pandas as pd
+import numpy as np
 import bg.loadDataFrame
 
 class State(object):
 	"""docstring for State"""
-	def __init__(self, doc, source, table, plot):
+	def __init__(self, doc, source, view, table, plot):
 		super(State, self).__init__()
 		self.doc = doc
 		self.source = source
+		self.view = view
 		self.table = table
 		self.plot = plot
 		self.STATE = {
@@ -43,9 +45,10 @@ class State(object):
 
 	@gen.coroutine
 	def coroutine_load_hdf5(self, path, df, done):
-		self.DF = self.DF.append(df)
+		self.DF = self.DF.append(df, ignore_index=True)
 		self.STATE['hdf5'].append(path)
 		self.update_source()
+		self.update_view()
 		self.update_table()
 		done()
 
@@ -70,10 +73,17 @@ class State(object):
 		self.DF = self.DF[sel]
 		self.STATE['hdf5'].remove(path)
 		self.update_source()
+		self.update_view()
 		self.update_table()
 	def update_source(self):
 		self.source.data = ColumnDataSource.from_df(self.DF)
 		pass
+	def update_view(self):
+		# Example: load first 10% data
+		index = self.DF.index
+		sel = self.DF['timestamp'] < np.percentile(self.DF['timestamp'], .1)
+		index = index[sel]
+		self.view.filters = [IndexFilter(index)]
 	def update_table(self):
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
 		pass

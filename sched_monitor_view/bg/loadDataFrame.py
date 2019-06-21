@@ -6,6 +6,7 @@ import pandas as pd
 def bg(*args):
 	return Thread(target=fg, args=args)
 
+# TODO: modify report.py to match the DataFrame format
 def fg(path, path_id, callback, done):
 	data = {}
 	with h5py.File(path) as f:
