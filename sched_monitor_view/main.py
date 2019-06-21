@@ -15,7 +15,6 @@ from state import State
 ################ Build the components ################
 ######################################################
 doc = curdoc()
-state = State(doc)
 USER_VIEW = 0
 JSON_VIEW = 1
 DATA_VIEW = 2
@@ -70,6 +69,8 @@ figure_plot = figure(
     visible=False,
 )
 OBJECTS[PLOT_VIEW].extend([figure_plot])
+################ State ################
+state = State(doc, source, datatable, figure_plot)
 ###########################################
 ################ Add feeds ################
 ###########################################
@@ -148,10 +149,6 @@ UPDATES[JSON_VIEW].extend([
 	update_button_import_json,
 ])
 ################ Data View ################
-def update_dataview():
-	state.update_source(source)
-	state.update_table(datatable)
-UPDATES[DATA_VIEW].extend([update_dataview])
 #####################################################
 ################ Assamble components ################
 #####################################################

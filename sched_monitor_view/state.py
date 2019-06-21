@@ -9,9 +9,12 @@ import bg.loadDataFrame
 
 class State(object):
 	"""docstring for State"""
-	def __init__(self, doc):
+	def __init__(self, doc, source, table, plot):
 		super(State, self).__init__()
 		self.doc = doc
+		self.source = source
+		self.table = table
+		self.plot = plot
 		self.STATE = {
 			'hdf5' : [],
 		}
