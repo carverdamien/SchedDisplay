@@ -33,6 +33,16 @@ UPDATES = {
 radiobuttongroup_tab = RadioButtonGroup(
 	labels=labels_TABS,
 )
+rangeslider_tlim = RangeSlider(
+	align="center",
+    start=0,
+    end=1,
+    value=(0,1),
+    step=1,
+    sizing_mode="scale_width",
+    callback_policy="mouseup",
+    visible=False,
+)
 ################ User View ################
 select_hdf5 = Select(
     title ='Path:',
@@ -60,7 +70,7 @@ OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
 source = ColumnDataSource()
 view = CDSView(source=source, filters=[IndexFilter([])])
 datatable = DataTable(source=source, view=view, visible=False)
-OBJECTS[DATA_VIEW].extend([datatable])
+OBJECTS[DATA_VIEW].extend([datatable, rangeslider_tlim])
 ################ Plot View ################
 figure_plot = figure(
     sizing_mode='stretch_both',
@@ -69,7 +79,7 @@ figure_plot = figure(
     output_backend="webgl",
     visible=False,
 )
-OBJECTS[PLOT_VIEW].extend([figure_plot])
+OBJECTS[PLOT_VIEW].extend([figure_plot, rangeslider_tlim])
 ################ State ################
 state = State(doc, source, view, datatable, figure_plot)
 ###########################################
@@ -117,8 +127,12 @@ def load_done():
 def on_click_loadhdf5(new):
 	path = select_hdf5.value
 	if state.hdf5_is_loaded(path):
+		select_hdf5.disabled = True
+		button_add_or_rm_hdf5.disabled = True
 		state.unload_hdf5(path)
 		update_button_add_or_rm_hdf5()
+		select_hdf5.disabled = False
+		button_add_or_rm_hdf5.disabled = False
 	else:
 		select_hdf5.disabled = True
 		button_add_or_rm_hdf5.disabled = True
@@ -167,6 +181,7 @@ root = column(
     textareainput_json,
     datatable,
     figure_plot,
+    rangeslider_tlim,
     sizing_mode = 'stretch_both',
 )
 doc.add_root(root)
