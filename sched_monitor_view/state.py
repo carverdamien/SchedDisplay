@@ -5,7 +5,7 @@ import pandas as pd
 STATE = {
 	'hdf5' : [],
 }
-DF = pd.DataFrame([{'a':0, 'b':'bar'},{'a':1,'b':'foo'}])
+DF = pd.DataFrame()
 def from_json(new_state):
 	new_state = json.loads(new_state)
 	STATE.clear()

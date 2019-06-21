@@ -57,9 +57,8 @@ button_import_json = Button(
 )
 OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
 ################ Data View ################
-source_datatable = ColumnDataSource({'empty_data':[]})
-columns_datatable = [ TableColumn(field="empty_data", title="empty data") ]
-datatable = DataTable(source=source_datatable, columns=columns_datatable, visible=False)
+source = ColumnDataSource()
+datatable = DataTable(source=source, visible=False)
 OBJECTS[DATA_VIEW].extend([datatable])
 ################ Plot View ################
 figure_plot = figure(
@@ -141,7 +140,7 @@ UPDATES[JSON_VIEW].extend([
 ])
 ################ Data View ################
 def update_dataview():
-	state.update_source(source_datatable)
+	state.update_source(source)
 	state.update_table(datatable)
 UPDATES[DATA_VIEW].extend([update_dataview])
 #####################################################
