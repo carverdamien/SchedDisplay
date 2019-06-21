@@ -70,7 +70,10 @@ class State(object):
 	def unload_hdf5(self, path):
 		path_id = self.path_id[path]
 		sel = self.DF['path_id'] != path_id
-		self.DF = self.DF[sel]
+		df = pd.DataFrame()
+		if np.sum(sel) > 0:
+			df = self.DF[sel]
+		self.DF = pd.DataFrame().append(df, ignore_index=True)
 		self.STATE['hdf5'].remove(path)
 		self.update_source()
 		self.update_view()
@@ -81,8 +84,9 @@ class State(object):
 	def update_view(self):
 		# Example: load first 10% data
 		index = self.DF.index
-		sel = self.DF['timestamp'] < np.percentile(self.DF['timestamp'], .1)
-		index = index[sel]
+		if len(index) > 0:
+			sel = self.DF['timestamp'] < np.percentile(self.DF['timestamp'], .1)
+			index = index[sel]
 		self.view.filters = [IndexFilter(index)]
 	def update_table(self):
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
