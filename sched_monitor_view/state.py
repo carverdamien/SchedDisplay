@@ -18,12 +18,14 @@ class State(object):
 		self.STATE = {
 			'hdf5' : [],
 		}
-		self.DF = {}
+		self.DF = pd.DataFrame()
+		self.path_id = {}
+		self.path_id_next = 0
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
 		self.STATE['hdf5'].clear()
-		self.DF.clear()
+		self.DF = pd.DataFrame()
 		self.load_many_hdf5(new_state['hdf5'], done)
 
 	def to_json(self):
@@ -41,14 +43,20 @@ class State(object):
 
 	@gen.coroutine
 	def coroutine_load_hdf5(self, path, df, done):
-		self.DF[path] = df
+		self.DF = self.DF.append(df)
 		self.STATE['hdf5'].append(path)
+		self.update_source()
+		self.update_table()
 		done()
 
 	def callback_load_hdf5(self, path, df, done):
 	    self.doc.add_next_tick_callback(partial(self.coroutine_load_hdf5, path, df, done))
 	def load_hdf5(self, path, done):
-		bg.loadDataFrame.bg(path, self.callback_load_hdf5, done).start()
+		if path not in self.path_id:
+			self.path_id[path] = self.path_id_next
+			self.path_id_next += 1
+		path_id = self.path_id[path]
+		bg.loadDataFrame.bg(path, path_id, self.callback_load_hdf5, done).start()
 	def load_many_hdf5(self, paths, done):
 		if len(paths) == 0:
 			done()
@@ -57,11 +65,15 @@ class State(object):
 				self.load_many_hdf5(paths[1:], done)
 			self.load_hdf5(paths[0], my_done)
 	def unload_hdf5(self, path):
-		del self.DF[path]
+		path_id = self.path_id[path]
+		sel = self.DF['path_id'] != path_id
+		self.DF = self.DF[sel]
 		self.STATE['hdf5'].remove(path)
-	def update_source(self, src):
-		# src.data = ColumnDataSource.from_df(DF[0])
+		self.update_source()
+		self.update_table()
+	def update_source(self):
+		self.source.data = ColumnDataSource.from_df(self.DF)
 		pass
-	def update_table(self, table):
-		# table.columns = [TableColumn(field=c, title=c) for c in DF[0].columns]
+	def update_table(self):
+		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
 		pass
