@@ -139,6 +139,11 @@ UPDATES[JSON_VIEW].extend([
 	update_textareainput_json,
 	update_button_import_json,
 ])
+################ Data View ################
+def update_dataview():
+	state.update_source(source_datatable)
+	state.update_table(datatable)
+UPDATES[DATA_VIEW].extend([update_dataview])
 #####################################################
 ################ Assamble components ################
 #####################################################
