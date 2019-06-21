@@ -107,20 +107,28 @@ def update_button_add_or_rm_hdf5():
 def on_change_select_hdf5(attr, old, new):
     update_button_add_or_rm_hdf5()
 select_hdf5.on_change('value', on_change_select_hdf5)
+def load_done():
+	select_hdf5.disabled = False
+	button_add_or_rm_hdf5.disabled = False
+	update_button_add_or_rm_hdf5()
 def on_click_loadhdf5(new):
 	path = select_hdf5.value
 	if state.hdf5_is_loaded(path):
 		state.unload_hdf5(path)
+		update_button_add_or_rm_hdf5()
 	else:
-		state.load_hdf5(path)
-	update_button_add_or_rm_hdf5()
+		select_hdf5.disabled = True
+		button_add_or_rm_hdf5.disabled = True
+		state.load_hdf5(path, load_done)
 button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
 UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5])
 ################ JSON View ################
+def from_json_done():
+	update_button_import_json()
 def on_click_button_import_json(new):
 	new_state = textareainput_json.value
-	state.from_json(new_state)
-	update_button_import_json()
+	button_import_json.disabled = True
+	state.from_json(new_state, from_json_done)
 button_import_json.on_click(on_click_button_import_json)
 def update_button_import_json():
 	new_state = textareainput_json.value
