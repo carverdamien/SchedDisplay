@@ -19,6 +19,7 @@ class State(object):
 		self.plot = plot
 		self.STATE = {
 			'hdf5' : [],
+			'truncate' : {'mode':'index', 'cursor': 0, 'width': 1},
 		}
 		self.DF = pd.DataFrame()
 		self.path_id = {}
@@ -46,6 +47,8 @@ class State(object):
 	@gen.coroutine
 	def coroutine_load_hdf5(self, path, df, done):
 		self.DF = self.DF.append(df, ignore_index=True)
+		self.DF.sort_values(by='timestamp', inplace=True)
+		self.DF.index = np.arange(len(self.DF))
 		self.STATE['hdf5'].append(path)
 		self.update_source()
 		self.update_view()
@@ -74,6 +77,8 @@ class State(object):
 		if np.sum(sel) > 0:
 			df = self.DF[sel]
 		self.DF = pd.DataFrame().append(df, ignore_index=True)
+		self.DF.sort_values(by='timestamp', inplace=True)
+		self.DF.index = np.arange(len(self.DF))
 		self.STATE['hdf5'].remove(path)
 		self.update_source()
 		self.update_view()
