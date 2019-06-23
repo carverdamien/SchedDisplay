@@ -88,15 +88,17 @@ class State(object):
 	def update_source(self):
 		self.source.data = ColumnDataSource.from_df(self.DF)
 		pass
-	def get_truncate_maximum(self):
+	def get_truncate(self):
 		mode = self.STATE['truncate']['mode']
+		cursor = self.STATE['truncate']['cursor']
+		width = self.STATE['truncate']['width']
 		if mode == 'index':
 			end = len(self.DF)
 		elif mode == 'time':
 			end = self.DF['timestamp'].iloc[-1]
 		else:
 			raise Exception('Unknown truncate mode')
-		return end
+		return mode, cursor, width, end
 	def truncate(self, mode, cursor, width):
 		if mode != self.STATE['truncate']['mode']:
 			# TODO: dont reset, try to stay at the same place

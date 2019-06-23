@@ -113,6 +113,13 @@ feeds.fspath.feed('./raw', '.hdf5',callback_fspath).start()
 ################ Add interactivity ################
 ###################################################
 ################ lim bar ################
+def update_lim_bar():
+	mode, cursor, width, end = state.get_truncate()
+	select_lim_mode.value = mode
+	slider_lim_cursor.value = 0
+	slider_lim_cursor.end = end
+	slider_lim_cursor.value = cursor
+	textinput_lim_witdh.value = str(width)
 def on_change_lim(attr, old, new):
 	mode = select_lim_mode.value
 	cursor = slider_lim_cursor.value
@@ -162,7 +169,7 @@ def on_change_select_hdf5(attr, old, new):
     update_button_add_or_rm_hdf5()
 select_hdf5.on_change('value', on_change_select_hdf5)
 def load_done():
-	slider_lim_cursor.end = state.get_truncate_maximum()
+	update_lim_bar()
 	select_hdf5.disabled = False
 	button_add_or_rm_hdf5.disabled = False
 	update_button_add_or_rm_hdf5()
@@ -172,7 +179,7 @@ def on_click_loadhdf5(new):
 		select_hdf5.disabled = True
 		button_add_or_rm_hdf5.disabled = True
 		state.unload_hdf5(path)
-		slider_lim_cursor.end = state.get_truncate_maximum()
+		update_lim_bar()
 		update_button_add_or_rm_hdf5()
 		select_hdf5.disabled = False
 		button_add_or_rm_hdf5.disabled = False
@@ -185,6 +192,7 @@ UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5])
 ################ JSON View ################
 def from_json_done():
 	update_button_import_json()
+	update_lim_bar()
 def on_click_button_import_json(new):
 	new_state = textareainput_json.value
 	button_import_json.disabled = True
