@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.plotting import curdoc, figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput
 from bokeh.models import ColumnDataSource, CDSView, IndexFilter
 from tornado import gen
 from functools import partial
@@ -33,12 +33,27 @@ UPDATES = {
 radiobuttongroup_tab = RadioButtonGroup(
 	labels=labels_TABS,
 )
-rangeslider_tlim = RangeSlider(
+select_lim_mode = Select(
+	title="Mode",
+	options=["index","time"],
+	value="index",
+	width=60,
+	sizing_mode="fixed",
+	visible=False,
+)
+textinput_lim_witdh = TextInput(
+	title="Width",
+	sizing_mode="fixed",
+	width=100,
+	visible=False,
+)
+slider_lim_min = Slider(
 	align="center",
     start=0,
     end=1,
-    value=(0,1),
+    value=0,
     step=1,
+    width_policy="max",
     sizing_mode="scale_width",
     callback_policy="mouseup",
     visible=False,
@@ -70,7 +85,7 @@ OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
 source = ColumnDataSource()
 view = CDSView(source=source, filters=[IndexFilter([])])
 datatable = DataTable(source=source, view=view, visible=False)
-OBJECTS[DATA_VIEW].extend([datatable, rangeslider_tlim])
+OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_min, textinput_lim_witdh])
 ################ Plot View ################
 figure_plot = figure(
     sizing_mode='stretch_both',
@@ -79,7 +94,7 @@ figure_plot = figure(
     output_backend="webgl",
     visible=False,
 )
-OBJECTS[PLOT_VIEW].extend([figure_plot, rangeslider_tlim])
+OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_min, textinput_lim_witdh])
 ################ State ################
 state = State(doc, source, view, datatable, figure_plot)
 ###########################################
@@ -98,14 +113,13 @@ feeds.fspath.feed('./raw', '.hdf5',callback_fspath).start()
 ################ TABS View ################
 def on_click_radiobuttongroup_tab(new):
 	selected = radiobuttongroup_tab.active
-	for f in UPDATES[selected]:
-		f()
 	for view in TABS:
 		for o in OBJECTS[view]:
-			if view == selected:
-				o.visible = True
-			else:
-				o.visible = False
+			o.visible = False
+	for o in OBJECTS[selected]:
+		o.visible = True
+	for f in UPDATES[selected]:
+		f()
 	pass
 radiobuttongroup_tab.on_click(on_click_radiobuttongroup_tab)
 ################ User View ################
@@ -181,7 +195,7 @@ root = column(
     textareainput_json,
     datatable,
     figure_plot,
-    rangeslider_tlim,
+    row(select_lim_mode, slider_lim_min, textinput_lim_witdh, sizing_mode='scale_width'),
     sizing_mode = 'stretch_both',
 )
 doc.add_root(root)
