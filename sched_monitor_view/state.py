@@ -30,6 +30,8 @@ class State(object):
 		self.STATE['hdf5'].clear()
 		self.DF = pd.DataFrame()
 		self.load_many_hdf5(new_state['hdf5'], done)
+		self.STATE['truncate'] = new_state['truncate']
+		self.truncate(**new_state['truncate'])
 
 	def to_json(self):
 		return json.dumps(self.STATE)
@@ -86,13 +88,38 @@ class State(object):
 	def update_source(self):
 		self.source.data = ColumnDataSource.from_df(self.DF)
 		pass
+	def get_truncate_maximum(self):
+		mode = self.STATE['truncate']['mode']
+		if mode == 'index':
+			end = len(self.DF)
+		elif mode == 'time':
+			end = self.DF['timestamp'].iloc[-1]
+		else:
+			raise Exception('Unknown truncate mode')
+		return end
+	def truncate(self, mode, cursor, width):
+		if mode != self.STATE['truncate']['mode']:
+			# TODO: dont reset, try to stay at the same place
+			cursor = 0
+			width = 1
+		self.STATE['truncate'] = {'mode':mode, 'cursor': cursor, 'width':width}
+		self.update_view()
+		self.update_table()
+		return cursor, width
 	def update_view(self):
-		# Example: load first 10% data
 		index = self.DF.index
-		if len(index) > 0:
-			sel = self.DF['timestamp'] < np.percentile(self.DF['timestamp'], .1)
-			index = index[sel]
-		self.view.filters = [IndexFilter(index)]
+		if len(index) == 0:
+			return
+		cursor = self.STATE['truncate']['cursor']
+		width  = self.STATE['truncate']['width']
+		if self.STATE['truncate']['mode'] == 'index':
+			indexfilter = IndexFilter(index[cursor:cursor+width])
+		elif self.STATE['truncate']['mode'] == 'time':
+			sel = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
+			indexfilter = IndexFilter(index[sel])
+		else:
+			raise Exception('Unknown truncate mode')
+		self.view.filters = [indexfilter]
 	def update_table(self):
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
 		pass

@@ -33,6 +33,7 @@ UPDATES = {
 radiobuttongroup_tab = RadioButtonGroup(
 	labels=labels_TABS,
 )
+################ lim bar ################
 select_lim_mode = Select(
 	title="Mode",
 	options=["index","time"],
@@ -44,10 +45,11 @@ select_lim_mode = Select(
 textinput_lim_witdh = TextInput(
 	title="Width",
 	sizing_mode="fixed",
+	value='1',
 	width=100,
 	visible=False,
 )
-slider_lim_min = Slider(
+slider_lim_cursor = Slider(
 	align="center",
     start=0,
     end=1,
@@ -85,7 +87,7 @@ OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
 source = ColumnDataSource()
 view = CDSView(source=source, filters=[IndexFilter([])])
 datatable = DataTable(source=source, view=view, visible=False)
-OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_min, textinput_lim_witdh])
+OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 ################ Plot View ################
 figure_plot = figure(
     sizing_mode='stretch_both',
@@ -94,7 +96,7 @@ figure_plot = figure(
     output_backend="webgl",
     visible=False,
 )
-OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_min, textinput_lim_witdh])
+OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 ################ State ################
 state = State(doc, source, view, datatable, figure_plot)
 ###########################################
@@ -110,6 +112,31 @@ feeds.fspath.feed('./raw', '.hdf5',callback_fspath).start()
 ###################################################
 ################ Add interactivity ################
 ###################################################
+################ lim bar ################
+def on_change_lim(attr, old, new):
+	mode = select_lim_mode.value
+	cursor = slider_lim_cursor.value
+	try:
+		width = int(textinput_lim_witdh.value)
+		cursor, width = state.truncate(mode, cursor, width)
+	except Exception as e:
+		print(e)
+def on_change_select_lim_mode(attr, old, new):
+	mode = select_lim_mode.value
+	cursor = slider_lim_cursor.value
+	try:
+		width = int(textinput_lim_witdh.value)
+		cursor, width = state.truncate(mode, cursor, width)
+		end = state.get_truncate_maximum()
+		slider_lim_cursor.value = 0
+		slider_lim_cursor.end = end
+		slider_lim_cursor.value = cursor
+		textinput_lim_witdh.value = str(width)
+	except Exception as e:
+		print(e)
+select_lim_mode.on_change('value', on_change_select_lim_mode)
+slider_lim_cursor.on_change('value', on_change_lim)
+textinput_lim_witdh.on_change('value', on_change_lim)
 ################ TABS View ################
 def on_click_radiobuttongroup_tab(new):
 	selected = radiobuttongroup_tab.active
@@ -135,6 +162,7 @@ def on_change_select_hdf5(attr, old, new):
     update_button_add_or_rm_hdf5()
 select_hdf5.on_change('value', on_change_select_hdf5)
 def load_done():
+	slider_lim_cursor.end = state.get_truncate_maximum()
 	select_hdf5.disabled = False
 	button_add_or_rm_hdf5.disabled = False
 	update_button_add_or_rm_hdf5()
@@ -144,6 +172,7 @@ def on_click_loadhdf5(new):
 		select_hdf5.disabled = True
 		button_add_or_rm_hdf5.disabled = True
 		state.unload_hdf5(path)
+		slider_lim_cursor.end = state.get_truncate_maximum()
 		update_button_add_or_rm_hdf5()
 		select_hdf5.disabled = False
 		button_add_or_rm_hdf5.disabled = False
@@ -195,7 +224,7 @@ root = column(
     textareainput_json,
     datatable,
     figure_plot,
-    row(select_lim_mode, slider_lim_min, textinput_lim_witdh, sizing_mode='scale_width'),
+    row(select_lim_mode, slider_lim_cursor, textinput_lim_witdh, sizing_mode='scale_width'),
     sizing_mode = 'stretch_both',
 )
 doc.add_root(root)
