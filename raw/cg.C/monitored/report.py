@@ -40,14 +40,21 @@ def load_tracer_raw(path):
     }
     df['cpu'] = np.concatenate([np.array([int(cpu)]*len(data[cpu][keys[0]])) for cpu in cpus])
     df = pd.DataFrame(df)
-    df['comm'] = np.chararray(np.shape((len(df))), itemsize=8)
+    df.sort_values(by='timestamp', inplace=True)
+    df.index = np.arange(len(df))
+    df['comm'] = np.chararray(np.shape((len(df))), itemsize=9)
     df['comm'] = ''
     sel = df['event'] == EXEC_EVT
-    for pid, addr in itertools.zip_longest(df['pid'][sel], df['addr'][sel]):
-        sel = df['pid'] == pid
+    it = itertools.zip_longest(
+        df['pid'][sel],
+        df['addr'][sel],
+        df['timestamp'][sel],
+    )
+    for pid, addr, timestamp in it:
+        sel = (df['pid'] == pid) & (df['timestamp'] >= timestamp)
         b = addr.to_bytes(8, byteorder="little")
         i = 0
-        while i < 7 and b[i] > 0:
+        while i < 8 and b[i] > 0:
             i+=1
         comm = b[:i].decode()
         df.loc[sel, 'comm'] = comm
