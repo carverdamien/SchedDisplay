@@ -9,6 +9,7 @@ import json
 import pandas as pd
 import numpy as np
 import bg.loadDataFrame
+import lang.filter
 
 class State(object):
 	"""docstring for State"""
@@ -16,7 +17,6 @@ class State(object):
 		super(State, self).__init__()
 		self.doc = doc
 		self.source = source
-		self.view = CDSView(source=source, filters=[IndexFilter([])])
 		self.table = table
 		self.plot = plot
 		self.STATE = {
@@ -57,8 +57,8 @@ class State(object):
 					'line_color' : '#00FF00',
 				},
 				{
-					'label':'all events of make',
-					'filter' : ['==','comm','make'],
+					'label':'all events of perf',
+					'filter' : ['==','comm','perf'],
 					'x0':'x0',
 					'x1':'x1',
 					'y0':'y0',
@@ -70,6 +70,7 @@ class State(object):
 		self.DF = pd.DataFrame()
 		self.path_id = {}
 		self.path_id_next = 0
+		self.view = []
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
@@ -163,22 +164,29 @@ class State(object):
 		self.update_view()
 		self.update_table()
 		return cursor, width
-	def update_view(self):
-		index = self.DF.index
-		if len(index) == 0:
-			return
+	def sellim(self):
+		sellim = np.zeros(len(self.DF), dtype=bool)
 		cursor = self.STATE['truncate']['cursor']
 		width  = self.STATE['truncate']['width']
 		if self.STATE['truncate']['mode'] == 'index':
-			indexfilter = IndexFilter(index[cursor:cursor+width])
+			end = min(len(sellim), cursor+width)
+			sellim[cursor:cursor+width] = True
 		elif self.STATE['truncate']['mode'] == 'time':
-			sel = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
-			indexfilter = IndexFilter(index[sel])
-		else:
-			raise Exception('Unknown truncate mode')
-		self.view.filters = [indexfilter]
+			sellim = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
+		return sellim
+	def update_view(self):
+		sellim = self.sellim()
+		for view, filter in self.view:
+			sel = sellim & lang.filter.sel(self.DF, filter)
+			indexfilter = IndexFilter(self.DF.index[sel])
+			view.filters = [indexfilter]
+		pass
 	def update_table(self):
-		self.table.view = self.view
+		index = self.DF.index
+		if len(index) == 0:
+			return
+		sellim = self.sellim()
+		self.table.view.filters = [IndexFilter(index[sellim])]
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
 		pass
 	def compute_columns(self):
@@ -190,9 +198,14 @@ class State(object):
 		pass
 	def update_plot(self):
 		self.plot.renderers.clear()
+		self.view.clear()
 		items = []
 		index = 0
+		sellim = self.sellim()
 		for r in self.STATE['renderers']:
+			sel = sellim & lang.filter.sel(self.DF, r['filter'])
+			indexfilter = IndexFilter(self.DF.index[sel])
+			view = CDSView(source=self.source, filters=[indexfilter])
 			glyph = Segment(
 				x0=r['x0'],
 				x1=r['x1'],
@@ -200,8 +213,9 @@ class State(object):
 				y1=r['y1'],
 				line_color=r['line_color'],
 			)
-			_r = self.plot.add_glyph(self.source, glyph, view=self.view)
+			_r = self.plot.add_glyph(self.source, glyph, view=view)
 			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
+			self.view.append((view, r['filter']))
 			index+=1
 		self.plot.legend.items = items
 		pass
