@@ -206,7 +206,7 @@ def update_button_import_json():
 	else:
 		button_import_json.disabled = True
 def update_textareainput_json():
-	value = state.to_json()
+	value = state.to_pretty_json()
 	textareainput_json.value = value
 def on_change_textareainput_json(attr, old, new):
 	update_button_import_json()

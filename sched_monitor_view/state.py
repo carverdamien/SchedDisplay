@@ -84,6 +84,9 @@ class State(object):
 	def to_json(self):
 		return json.dumps(self.STATE)
 
+	def to_pretty_json(self):
+		return json.dumps(self.STATE, indent=4, sort_keys=True)
+
 	def is_valid(self, new_state):
 		try:
 			return not self.to_json() == json.dumps(json.loads(new_state))
