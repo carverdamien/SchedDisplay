@@ -4,7 +4,7 @@ from bokeh.plotting import curdoc, figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
 from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput
-from bokeh.models import ColumnDataSource, CDSView, IndexFilter
+from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
 # Internal imports
@@ -85,8 +85,7 @@ button_import_json = Button(
 OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
 ################ Data View ################
 source = ColumnDataSource()
-view = CDSView(source=source, filters=[IndexFilter([])])
-datatable = DataTable(source=source, view=view, visible=False)
+datatable = DataTable(source=source, visible=False)
 OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 ################ Plot View ################
 figure_plot = figure(
@@ -99,7 +98,7 @@ figure_plot = figure(
 figure_plot.add_layout(Legend(click_policy='hide'))
 OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 ################ State ################
-state = State(doc, source, view, datatable, figure_plot)
+state = State(doc, source, datatable, figure_plot)
 ###########################################
 ################ Add feeds ################
 ###########################################
@@ -135,11 +134,7 @@ def on_change_select_lim_mode(attr, old, new):
 	try:
 		width = int(textinput_lim_witdh.value)
 		cursor, width = state.truncate(mode, cursor, width)
-		end = state.get_truncate_maximum()
-		slider_lim_cursor.value = 0
-		slider_lim_cursor.end = end
-		slider_lim_cursor.value = cursor
-		textinput_lim_witdh.value = str(width)
+		update_lim_bar()
 	except Exception as e:
 		print(e)
 select_lim_mode.on_change('value', on_change_select_lim_mode)

@@ -1,5 +1,5 @@
 from bokeh.plotting import curdoc
-from bokeh.models import ColumnDataSource, IndexFilter
+from bokeh.models import ColumnDataSource, CDSView, IndexFilter
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
@@ -12,11 +12,11 @@ import bg.loadDataFrame
 
 class State(object):
 	"""docstring for State"""
-	def __init__(self, doc, source, view, table, plot):
+	def __init__(self, doc, source, table, plot):
 		super(State, self).__init__()
 		self.doc = doc
 		self.source = source
-		self.view = view
+		self.view = CDSView(source=source, filters=[IndexFilter([])])
 		self.table = table
 		self.plot = plot
 		self.STATE = {
@@ -178,6 +178,7 @@ class State(object):
 			raise Exception('Unknown truncate mode')
 		self.view.filters = [indexfilter]
 	def update_table(self):
+		self.table.view = self.view
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
 		pass
 	def compute_columns(self):
