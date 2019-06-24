@@ -47,8 +47,8 @@ def load_tracer_raw_per_cpu(path):
             head = entry[:16]
             tail = entry[16:]
             timestamp, pid, event = struct.unpack('<Qii',head)
-            addr, = struct.unpack('<Q',tail)
             arg0, arg1 = struct.unpack('<ii',tail)
+            addr = (arg0<<32|arg1)
             entry = {
                 'timestamp' : timestamp,
                 'pid' : pid,
