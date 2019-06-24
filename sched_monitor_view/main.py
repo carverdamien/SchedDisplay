@@ -74,7 +74,10 @@ button_add_or_rm_hdf5 = Button(
 )
 OBJECTS[USER_VIEW].extend([select_hdf5,button_add_or_rm_hdf5])
 ################ JSON View ################
-textareainput_json = TextAreaInput(visible=False)
+textareainput_json = TextAreaInput(
+	visible=False,
+	max_length=2**20,
+)
 button_import_json = Button(
 	label="Import",
 	align="end",
