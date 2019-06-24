@@ -96,6 +96,7 @@ figure_plot = figure(
     output_backend="webgl",
     visible=False,
 )
+figure_plot.add_layout(Legend(click_policy='hide'))
 OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 ################ State ################
 state = State(doc, source, view, datatable, figure_plot)
@@ -142,7 +143,7 @@ def on_change_select_lim_mode(attr, old, new):
 	except Exception as e:
 		print(e)
 select_lim_mode.on_change('value', on_change_select_lim_mode)
-slider_lim_cursor.on_change('value', on_change_lim)
+slider_lim_cursor.on_change('value_throttled', on_change_lim)
 textinput_lim_witdh.on_change('value', on_change_lim)
 ################ TABS View ################
 def on_click_radiobuttongroup_tab(new):

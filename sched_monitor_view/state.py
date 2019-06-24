@@ -1,6 +1,8 @@
 from bokeh.plotting import curdoc
 from bokeh.models import ColumnDataSource, IndexFilter
 from bokeh.models.widgets import TableColumn
+from bokeh.models.glyphs import Segment
+from bokeh.models import Legend, LegendItem
 from tornado import gen
 from functools import partial
 import json
@@ -20,6 +22,50 @@ class State(object):
 		self.STATE = {
 			'hdf5' : [],
 			'truncate' : {'mode':'index', 'cursor': 0, 'width': 1},
+			'columns' : {
+				'x0':['copy','timestamp'],
+				'x1':['copy', 'timestamp'],
+				'y0':['copy', 'cpu'],
+				'y1':['+',['copy', 'cpu'],0.75],
+			},
+			'renderers' : [
+				{
+					'label':'all_events',
+					'filter' : [],
+					'x0':'x0',
+					'x1':'x1',
+					'y0':'y0',
+					'y1':'y1',
+					'line_color' : '#0000FF',
+				},
+				{
+					'label':'event0',
+					'filter' : ['==','event',0],
+					'x0':'x0',
+					'x1':'x1',
+					'y0':'y0',
+					'y1':'y1',
+					'line_color' : '#FF0000',
+				},
+				{
+					'label':'all event13 of pid0',
+					'filter' : ['&',['==','pid',0],['==','event',13]],
+					'x0':'x0',
+					'x1':'x1',
+					'y0':'y0',
+					'y1':'y1',
+					'line_color' : '#00FF00',
+				},
+				{
+					'label':'all events of make',
+					'filter' : ['==','comm','make'],
+					'x0':'x0',
+					'x1':'x1',
+					'y0':'y0',
+					'y1':'y1',
+					'line_color' : '#000000',
+				},
+			],
 		}
 		self.DF = pd.DataFrame()
 		self.path_id = {}
@@ -27,6 +73,8 @@ class State(object):
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
+		self.STATE['renderers'].clear()
+		self.STATE['renderers'] = new_state['renderers']
 		self.STATE['hdf5'].clear()
 		self.DF = pd.DataFrame()
 		self.load_many_hdf5(new_state['hdf5'], done)
@@ -51,10 +99,12 @@ class State(object):
 		self.DF = self.DF.append(df, ignore_index=True)
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))
+		self.compute_columns()
 		self.STATE['hdf5'].append(path)
 		self.update_source()
 		self.update_view()
 		self.update_table()
+		self.update_plot()
 		done()
 
 	def callback_load_hdf5(self, path, df, done):
@@ -81,10 +131,12 @@ class State(object):
 		self.DF = pd.DataFrame().append(df, ignore_index=True)
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))
+		self.compute_columns()
 		self.STATE['hdf5'].remove(path)
 		self.update_source()
 		self.update_view()
 		self.update_table()
+		self.update_plot()
 	def update_source(self):
 		self.source.data = ColumnDataSource.from_df(self.DF)
 		pass
@@ -124,4 +176,29 @@ class State(object):
 		self.view.filters = [indexfilter]
 	def update_table(self):
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
+		pass
+	def compute_columns(self):
+		# TODO: read and exec STATE['columns']
+		self.DF['x0'] = self.DF['timestamp']
+		self.DF['x1'] = self.DF['x0']
+		self.DF['y0'] = self.DF['cpu']
+		self.DF['y1'] = self.DF['y0'] + .75
+		pass
+	def update_plot(self):
+		# self.plot.renderers.clear()
+		items = []
+		index = 0
+		for r in self.STATE['renderers']:
+			print(r)
+			glyph = Segment(
+				x0=r['x0'],
+				x1=r['x1'],
+				y0=r['y0'],
+				y1=r['y1'],
+				line_color=r['line_color'],
+			)
+			_r = self.plot.add_glyph(self.source, glyph, view=self.view)
+			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
+			index+=1
+		self.plot.legend.items = items
 		pass
