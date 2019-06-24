@@ -185,11 +185,10 @@ class State(object):
 		self.DF['y1'] = self.DF['y0'] + .75
 		pass
 	def update_plot(self):
-		# self.plot.renderers.clear()
+		self.plot.renderers.clear()
 		items = []
 		index = 0
 		for r in self.STATE['renderers']:
-			print(r)
 			glyph = Segment(
 				x0=r['x0'],
 				x1=r['x1'],
