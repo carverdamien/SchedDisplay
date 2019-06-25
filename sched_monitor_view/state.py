@@ -144,12 +144,14 @@ class State(object):
 		return sellim
 	def update_table(self):
 		logging.debug('update_table starts')
-		index = self.DF.index
-		if len(index) == 0:
+		if len(self.source) == 0:
 			return
-		# sellim = self.sellim()
-		# self.table.view.filters = [IndexFilter(index[sellim])]
-		# self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
+		sellim = self.sellim()
+		s,f = self.source[0]
+		sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, f)
+		df = self.DF[sel]
+		self.table.source.data = ColumnDataSource.from_df(df)
+		self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
 		logging.debug('update_table ends')
 		pass
 	def compute_columns(self):
