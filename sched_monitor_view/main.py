@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput, Paragraph
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
@@ -72,7 +72,8 @@ def modify_doc(doc):
 	    width_policy="min",
 	    visible=False,
 	)
-	OBJECTS[USER_VIEW].extend([select_hdf5,button_add_or_rm_hdf5])
+	paragraph_info = Paragraph()
+	OBJECTS[USER_VIEW].extend([select_hdf5,button_add_or_rm_hdf5,paragraph_info])
 	################ JSON View ################
 	textareainput_json = TextAreaInput(
 		visible=False,
@@ -186,7 +187,10 @@ def modify_doc(doc):
 			button_add_or_rm_hdf5.disabled = True
 			state.load_hdf5(path, load_done)
 	button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
-	UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5])
+	def update_paragraph_info():
+		paragraph_info.text = "{}".format(state.comm)
+		pass
+	UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5, update_paragraph_info])
 	################ JSON View ################
 	def from_json_done():
 		update_button_import_json()
@@ -227,6 +231,7 @@ def modify_doc(doc):
 			button_import_json,
 			sizing_mode = 'scale_width',
 	    ),
+	    paragraph_info,
 	    textareainput_json,
 	    datatable,
 	    figure_plot,
