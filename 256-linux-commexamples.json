@@ -1,0 +1,60 @@
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "label": "all events",
+            "filter": [],
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1",
+            "line_color": "#0000FF"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 1000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "label": "EXEC",
+            "filter": ["==","event",0],
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1",
+            "line_color": "#0000FF"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 1000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "label": "RQSIZE of pid0",
+            "filter": ["&",["==","pid",0],["==","event",13]],
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1",
+            "line_color": "#0000FF"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 1000
+    }
+}

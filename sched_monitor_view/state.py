@@ -1,3 +1,4 @@
+import logging
 from bokeh.plotting import curdoc
 from bokeh.models import ColumnDataSource, CDSView, IndexFilter
 from bokeh.models.widgets import TableColumn
@@ -22,46 +23,8 @@ class State(object):
 		self.STATE = {
 			'hdf5' : [],
 			'truncate' : {'mode':'index', 'cursor': 0, 'width': 1},
-			'columns' : {
-				'y1':['+',['copy', 'cpu'],0.75],
-			},
+			'columns' : {'y1':['+',['copy', 'cpu'],0.75],},
 			'renderers' : [
-				{
-					'label':'all events',
-					'filter' : [],
-					'x0':'timestamp',
-					'x1':'timestamp',
-					'y0':'cpu',
-					'y1':'y1',
-					'line_color' : '#0000FF',
-				},
-				{
-					'label':'EXEC',
-					'filter' : ['==','event',0],
-					'x0':'timestamp',
-					'x1':'timestamp',
-					'y0':'cpu',
-					'y1':'y1',
-					'line_color' : '#FF0000',
-				},
-				{
-					'label':'RSIZE of pid0',
-					'filter' : ['&',['==','pid',0],['==','event',13]],
-					'x0':'timestamp',
-					'x1':'timestamp',
-					'y0':'cpu',
-					'y1':'y1',
-					'line_color' : '#00FF00',
-				},
-				{
-					'label':'all events of perf',
-					'filter' : ['==','comm','perf'],
-					'x0':'timestamp',
-					'x1':'timestamp',
-					'y0':'cpu',
-					'y1':'y1',
-					'line_color' : '#000000',
-				},
 			],
 		}
 		self.DF = pd.DataFrame()
@@ -97,6 +60,7 @@ class State(object):
 
 	@gen.coroutine
 	def coroutine_load_hdf5(self, path, df, done):
+		logging.debug('coroutine_load_hdf5 starts')
 		self.DF = self.DF.append(df, ignore_index=True)
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))
@@ -107,6 +71,7 @@ class State(object):
 		self.update_table()
 		self.update_plot()
 		done()
+		logging.debug('coroutine_load_hdf5 ends')
 
 	def callback_load_hdf5(self, path, df, done):
 	    self.doc.add_next_tick_callback(partial(self.coroutine_load_hdf5, path, df, done))
@@ -139,7 +104,9 @@ class State(object):
 		self.update_table()
 		self.update_plot()
 	def update_source(self):
+		logging.debug('update_source starts')
 		self.source.data = ColumnDataSource.from_df(self.DF)
+		logging.debug('update_source ends')
 		pass
 	def get_truncate(self):
 		mode = self.STATE['truncate']['mode']
@@ -172,19 +139,23 @@ class State(object):
 			sellim = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
 		return sellim
 	def update_view(self):
+		logging.debug('update_view starts')
 		sellim = self.sellim()
 		for view, filter in self.view:
 			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, filter)
 			indexfilter = IndexFilter(self.DF.index[sel])
 			view.filters = [indexfilter]
+		logging.debug('update_view ends')
 		pass
 	def update_table(self):
+		logging.debug('update_table starts')
 		index = self.DF.index
 		if len(index) == 0:
 			return
 		sellim = self.sellim()
 		self.table.view.filters = [IndexFilter(index[sellim])]
 		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
+		logging.debug('update_table ends')
 		pass
 	def compute_columns(self):
 		# TODO: read and exec STATE['columns']
@@ -194,6 +165,7 @@ class State(object):
 		self.DF['y1'] = self.DF['cpu'] + .75
 		pass
 	def update_plot(self):
+		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
 		self.view.clear()
 		items = []
@@ -215,4 +187,5 @@ class State(object):
 			self.view.append((view, r['filter']))
 			index+=1
 		self.plot.legend.items = items
+		logging.debug('update_plot ends')
 		pass
