@@ -1,5 +1,6 @@
+import logging
 from bokeh.plotting import curdoc
-from bokeh.models import ColumnDataSource, IndexFilter
+from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
@@ -8,71 +9,35 @@ from functools import partial
 import json
 import pandas as pd
 import numpy as np
-import bg.loadDataFrame
+import sched_monitor_view.bg.loadDataFrame
+import sched_monitor_view.lang.filter
+import sched_monitor_view.lang.columns
 
 class State(object):
 	"""docstring for State"""
-	def __init__(self, doc, source, view, table, plot):
+	def __init__(self, doc, table, plot):
 		super(State, self).__init__()
 		self.doc = doc
-		self.source = source
-		self.view = view
 		self.table = table
 		self.plot = plot
 		self.STATE = {
 			'hdf5' : [],
 			'truncate' : {'mode':'index', 'cursor': 0, 'width': 1},
-			'columns' : {
-				'x0':['copy','timestamp'],
-				'x1':['copy', 'timestamp'],
-				'y0':['copy', 'cpu'],
-				'y1':['+',['copy', 'cpu'],0.75],
-			},
+			'columns' : {},
 			'renderers' : [
-				{
-					'label':'all_events',
-					'filter' : [],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
-					'y1':'y1',
-					'line_color' : '#0000FF',
-				},
-				{
-					'label':'event0',
-					'filter' : ['==','event',0],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
-					'y1':'y1',
-					'line_color' : '#FF0000',
-				},
-				{
-					'label':'all event13 of pid0',
-					'filter' : ['&',['==','pid',0],['==','event',13]],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
-					'y1':'y1',
-					'line_color' : '#00FF00',
-				},
-				{
-					'label':'all events of make',
-					'filter' : ['==','comm','make'],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
-					'y1':'y1',
-					'line_color' : '#000000',
-				},
 			],
 		}
 		self.DF = pd.DataFrame()
+		self.comm = {}
 		self.path_id = {}
 		self.path_id_next = 0
+		self.source = []
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
+		self.STATE['columns'] = new_state['columns']
+		self.plot.renderers.clear()
+		self.source.clear()
 		self.STATE['renderers'].clear()
 		self.STATE['renderers'] = new_state['renderers']
 		self.STATE['hdf5'].clear()
@@ -98,26 +63,30 @@ class State(object):
 		return path in self.STATE['hdf5']
 
 	@gen.coroutine
-	def coroutine_load_hdf5(self, path, df, done):
+	def coroutine_load_hdf5(self, path, data, done):
+		logging.debug('coroutine_load_hdf5 starts')
+		df = data['df']
+		self.comm.clear()
+		self.comm.update(data['comm'])
 		self.DF = self.DF.append(df, ignore_index=True)
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
 		self.STATE['hdf5'].append(path)
-		self.update_source()
-		self.update_view()
-		self.update_table()
 		self.update_plot()
+		self.update_source()
+		self.update_table()
 		done()
+		logging.debug('coroutine_load_hdf5 ends')
 
-	def callback_load_hdf5(self, path, df, done):
-	    self.doc.add_next_tick_callback(partial(self.coroutine_load_hdf5, path, df, done))
+	def callback_load_hdf5(self, path, data, done):
+	    self.doc.add_next_tick_callback(partial(self.coroutine_load_hdf5, path, data, done))
 	def load_hdf5(self, path, done):
 		if path not in self.path_id:
 			self.path_id[path] = self.path_id_next
 			self.path_id_next += 1
 		path_id = self.path_id[path]
-		bg.loadDataFrame.bg(path, path_id, self.callback_load_hdf5, done).start()
+		sched_monitor_view.bg.loadDataFrame.bg(path, path_id, self.callback_load_hdf5, done).start()
 	def load_many_hdf5(self, paths, done):
 		if len(paths) == 0:
 			done()
@@ -136,12 +105,17 @@ class State(object):
 		self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
 		self.STATE['hdf5'].remove(path)
-		self.update_source()
-		self.update_view()
-		self.update_table()
 		self.update_plot()
+		self.update_source()
+		self.update_table()
 	def update_source(self):
-		self.source.data = ColumnDataSource.from_df(self.DF)
+		logging.debug('update_source starts')
+		sellim = self.sellim()
+		for s,f in self.source:
+			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, f)
+			df = self.DF[sel]
+			s.data = ColumnDataSource.from_df(df)
+		logging.debug('update_source ends')
 		pass
 	def get_truncate(self):
 		mode = self.STATE['truncate']['mode']
@@ -160,38 +134,46 @@ class State(object):
 			cursor = 0
 			width = 1
 		self.STATE['truncate'] = {'mode':mode, 'cursor': cursor, 'width':width}
-		self.update_view()
+		self.update_source()
 		self.update_table()
 		return cursor, width
-	def update_view(self):
-		index = self.DF.index
-		if len(index) == 0:
-			return
+	def sellim(self):
+		sellim = np.zeros(len(self.DF), dtype=bool)
 		cursor = self.STATE['truncate']['cursor']
 		width  = self.STATE['truncate']['width']
 		if self.STATE['truncate']['mode'] == 'index':
-			indexfilter = IndexFilter(index[cursor:cursor+width])
+			end = min(len(sellim), cursor+width)
+			sellim[cursor:cursor+width] = True
 		elif self.STATE['truncate']['mode'] == 'time':
-			sel = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
-			indexfilter = IndexFilter(index[sel])
-		else:
-			raise Exception('Unknown truncate mode')
-		self.view.filters = [indexfilter]
+			# TODO: use np.searchsorted
+			sellim = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
+		return sellim
 	def update_table(self):
-		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
+		logging.debug('update_table starts')
+		if len(self.source) == 0:
+			return
+		sellim = self.sellim()
+		s,f = self.source[0]
+		sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, f)
+		df = self.DF[sel]
+		self.table.source.data = ColumnDataSource.from_df(df)
+		self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
+		logging.debug('update_table ends')
 		pass
 	def compute_columns(self):
-		# TODO: read and exec STATE['columns']
-		self.DF['x0'] = self.DF['timestamp']
-		self.DF['x1'] = self.DF['x0']
-		self.DF['y0'] = self.DF['cpu']
-		self.DF['y1'] = self.DF['y0'] + .75
-		pass
+		for column in self.STATE['columns']:
+			self.DF[column] = sched_monitor_view.lang.columns.compute(
+				self.DF,
+				self.STATE['columns'][column],
+			)
 	def update_plot(self):
+		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
+		self.source.clear()
 		items = []
 		index = 0
 		for r in self.STATE['renderers']:
+			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
 			glyph = Segment(
 				x0=r['x0'],
 				x1=r['x1'],
@@ -199,8 +181,10 @@ class State(object):
 				y1=r['y1'],
 				line_color=r['line_color'],
 			)
-			_r = self.plot.add_glyph(self.source, glyph, view=self.view)
+			_r = self.plot.add_glyph(source, glyph)
 			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
+			self.source.append((source, r['filter']))
 			index+=1
 		self.plot.legend.items = items
+		logging.debug('update_plot ends')
 		pass
