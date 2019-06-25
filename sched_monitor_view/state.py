@@ -8,8 +8,8 @@ from functools import partial
 import json
 import pandas as pd
 import numpy as np
-import bg.loadDataFrame
-import lang.filter
+import sched_monitor_view.bg.loadDataFrame
+import sched_monitor_view.lang.filter
 
 class State(object):
 	"""docstring for State"""
@@ -115,7 +115,7 @@ class State(object):
 			self.path_id[path] = self.path_id_next
 			self.path_id_next += 1
 		path_id = self.path_id[path]
-		bg.loadDataFrame.bg(path, path_id, self.callback_load_hdf5, done).start()
+		sched_monitor_view.bg.loadDataFrame.bg(path, path_id, self.callback_load_hdf5, done).start()
 	def load_many_hdf5(self, paths, done):
 		if len(paths) == 0:
 			done()
@@ -174,7 +174,7 @@ class State(object):
 	def update_view(self):
 		sellim = self.sellim()
 		for view, filter in self.view:
-			sel = sellim & lang.filter.sel(self.DF, filter)
+			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, filter)
 			indexfilter = IndexFilter(self.DF.index[sel])
 			view.filters = [indexfilter]
 		pass
@@ -200,7 +200,7 @@ class State(object):
 		index = 0
 		sellim = self.sellim()
 		for r in self.STATE['renderers']:
-			sel = sellim & lang.filter.sel(self.DF, r['filter'])
+			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, r['filter'])
 			indexfilter = IndexFilter(self.DF.index[sel])
 			view = CDSView(source=self.source, filters=[indexfilter])
 			glyph = Segment(
