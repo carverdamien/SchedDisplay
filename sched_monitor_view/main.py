@@ -10,6 +10,7 @@ from functools import partial
 # Internal imports
 import sched_monitor_view.feeds.fspath as fspath
 from sched_monitor_view.state import State
+import sched_monitor_view.Types as Types
 
 def modify_doc(doc):
 	######################################################
@@ -188,7 +189,10 @@ def modify_doc(doc):
 			state.load_hdf5(path, load_done)
 	button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
 	def update_paragraph_info():
-		paragraph_info.text = "{}".format(state.comm)
+		paragraph_info.text = "{}\n{}".format(
+			state.comm,
+			[(i,Types.EVENT[i]) for i in range(len(Types.EVENT))],
+		)
 		pass
 	UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5, update_paragraph_info])
 	################ JSON View ################
