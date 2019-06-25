@@ -23,45 +23,42 @@ class State(object):
 			'hdf5' : [],
 			'truncate' : {'mode':'index', 'cursor': 0, 'width': 1},
 			'columns' : {
-				'x0':['copy','timestamp'],
-				'x1':['copy', 'timestamp'],
-				'y0':['copy', 'cpu'],
 				'y1':['+',['copy', 'cpu'],0.75],
 			},
 			'renderers' : [
 				{
-					'label':'all_events',
+					'label':'all events',
 					'filter' : [],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
+					'x0':'timestamp',
+					'x1':'timestamp',
+					'y0':'cpu',
 					'y1':'y1',
 					'line_color' : '#0000FF',
 				},
 				{
-					'label':'event0',
+					'label':'EXEC',
 					'filter' : ['==','event',0],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
+					'x0':'timestamp',
+					'x1':'timestamp',
+					'y0':'cpu',
 					'y1':'y1',
 					'line_color' : '#FF0000',
 				},
 				{
-					'label':'all event13 of pid0',
+					'label':'RSIZE of pid0',
 					'filter' : ['&',['==','pid',0],['==','event',13]],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
+					'x0':'timestamp',
+					'x1':'timestamp',
+					'y0':'cpu',
 					'y1':'y1',
 					'line_color' : '#00FF00',
 				},
 				{
 					'label':'all events of perf',
 					'filter' : ['==','comm','perf'],
-					'x0':'x0',
-					'x1':'x1',
-					'y0':'y0',
+					'x0':'timestamp',
+					'x1':'timestamp',
+					'y0':'cpu',
 					'y1':'y1',
 					'line_color' : '#000000',
 				},
@@ -191,10 +188,10 @@ class State(object):
 		pass
 	def compute_columns(self):
 		# TODO: read and exec STATE['columns']
-		self.DF['x0'] = self.DF['timestamp']
-		self.DF['x1'] = self.DF['x0']
-		self.DF['y0'] = self.DF['cpu']
-		self.DF['y1'] = self.DF['y0'] + .75
+		# self.DF['x0'] = self.DF['timestamp']
+		# self.DF['x1'] = self.DF['x0']
+		# self.DF['y0'] = self.DF['cpu']
+		self.DF['y1'] = self.DF['cpu'] + .75
 		pass
 	def update_plot(self):
 		self.plot.renderers.clear()
