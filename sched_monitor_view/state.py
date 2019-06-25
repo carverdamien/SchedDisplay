@@ -27,6 +27,7 @@ class State(object):
 			],
 		}
 		self.DF = pd.DataFrame()
+		self.comm = {}
 		self.path_id = {}
 		self.path_id_next = 0
 		self.source = []
@@ -60,8 +61,11 @@ class State(object):
 		return path in self.STATE['hdf5']
 
 	@gen.coroutine
-	def coroutine_load_hdf5(self, path, df, done):
+	def coroutine_load_hdf5(self, path, data, done):
 		logging.debug('coroutine_load_hdf5 starts')
+		df = data['df']
+		self.comm.clear()
+		self.comm.update(data['comm'])
 		self.DF = self.DF.append(df, ignore_index=True)
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))
@@ -73,8 +77,8 @@ class State(object):
 		done()
 		logging.debug('coroutine_load_hdf5 ends')
 
-	def callback_load_hdf5(self, path, df, done):
-	    self.doc.add_next_tick_callback(partial(self.coroutine_load_hdf5, path, df, done))
+	def callback_load_hdf5(self, path, data, done):
+	    self.doc.add_next_tick_callback(partial(self.coroutine_load_hdf5, path, data, done))
 	def load_hdf5(self, path, done):
 		if path not in self.path_id:
 			self.path_id[path] = self.path_id_next

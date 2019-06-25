@@ -23,5 +23,8 @@ def fg(path, path_id, callback, done):
 		df['timestamp']-=min(df['timestamp'])
 		df['path_id'] = np.array([path_id]*len(df['timestamp']))
 		df = pd.DataFrame(df)
-		# TODO pass comm
-		callback(path, df, done)
+		data = {
+			'df' : df,
+			'comm' : comm,
+		}
+		callback(path, data, done)
