@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import sched_monitor_view.bg.loadDataFrame
 import sched_monitor_view.lang.filter
+import sched_monitor_view.lang.columns
 
 class State(object):
 	"""docstring for State"""
@@ -159,12 +160,11 @@ class State(object):
 		logging.debug('update_table ends')
 		pass
 	def compute_columns(self):
-		# TODO: read and exec STATE['columns']
-		# self.DF['x0'] = self.DF['timestamp']
-		# self.DF['x1'] = self.DF['x0']
-		# self.DF['y0'] = self.DF['cpu']
-		self.DF['y1'] = self.DF['cpu'] + .75
-		pass
+		for column in self.STATE['columns']:
+			self.DF[column] = sched_monitor_view.lang.columns.compute(
+				self.DF,
+				self.STATE['columns'][column],
+			)
 	def update_plot(self):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
