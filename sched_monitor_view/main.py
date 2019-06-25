@@ -4,7 +4,7 @@ from bokeh.plotting import figure
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
 from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput
-from bokeh.models import ColumnDataSource, CDSView, IndexFilter
+from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
 # Internal imports
@@ -87,8 +87,7 @@ def modify_doc(doc):
 	)
 	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
 	################ Data View ################
-	source = ColumnDataSource()
-	datatable = DataTable(source=source, visible=False, view=CDSView(source=source, filters=[IndexFilter([])]))
+	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
 	figure_plot = figure(
@@ -101,7 +100,7 @@ def modify_doc(doc):
 	figure_plot.add_layout(Legend(click_policy='hide'))
 	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ State ################
-	state = State(doc, source, datatable, figure_plot)
+	state = State(doc, datatable, figure_plot)
 	###########################################
 	################ Add feeds ################
 	###########################################

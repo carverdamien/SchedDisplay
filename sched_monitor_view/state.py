@@ -1,6 +1,6 @@
 import logging
 from bokeh.plotting import curdoc
-from bokeh.models import ColumnDataSource, CDSView, IndexFilter
+from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
@@ -14,10 +14,9 @@ import sched_monitor_view.lang.filter
 
 class State(object):
 	"""docstring for State"""
-	def __init__(self, doc, source, table, plot):
+	def __init__(self, doc, table, plot):
 		super(State, self).__init__()
 		self.doc = doc
-		self.source = source
 		self.table = table
 		self.plot = plot
 		self.STATE = {
@@ -30,10 +29,12 @@ class State(object):
 		self.DF = pd.DataFrame()
 		self.path_id = {}
 		self.path_id_next = 0
-		self.view = []
+		self.source = []
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
+		self.plot.renderers.clear()
+		self.source.clear()
 		self.STATE['renderers'].clear()
 		self.STATE['renderers'] = new_state['renderers']
 		self.STATE['hdf5'].clear()
@@ -66,10 +67,9 @@ class State(object):
 		self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
 		self.STATE['hdf5'].append(path)
-		self.update_source()
-		self.update_view()
-		self.update_table()
 		self.update_plot()
+		self.update_source()
+		self.update_table()
 		done()
 		logging.debug('coroutine_load_hdf5 ends')
 
@@ -99,13 +99,16 @@ class State(object):
 		self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
 		self.STATE['hdf5'].remove(path)
-		self.update_source()
-		self.update_view()
-		self.update_table()
 		self.update_plot()
+		self.update_source()
+		self.update_table()
 	def update_source(self):
 		logging.debug('update_source starts')
-		self.source.data = ColumnDataSource.from_df(self.DF)
+		sellim = self.sellim()
+		for s,f in self.source:
+			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, f)
+			df = self.DF[sel]
+			s.data = ColumnDataSource.from_df(df)
 		logging.debug('update_source ends')
 		pass
 	def get_truncate(self):
@@ -125,7 +128,7 @@ class State(object):
 			cursor = 0
 			width = 1
 		self.STATE['truncate'] = {'mode':mode, 'cursor': cursor, 'width':width}
-		self.update_view()
+		self.update_source()
 		self.update_table()
 		return cursor, width
 	def sellim(self):
@@ -136,25 +139,17 @@ class State(object):
 			end = min(len(sellim), cursor+width)
 			sellim[cursor:cursor+width] = True
 		elif self.STATE['truncate']['mode'] == 'time':
+			# TODO: use np.searchsorted
 			sellim = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
 		return sellim
-	def update_view(self):
-		logging.debug('update_view starts')
-		sellim = self.sellim()
-		for view, filter in self.view:
-			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, filter)
-			indexfilter = IndexFilter(self.DF.index[sel])
-			view.filters = [indexfilter]
-		logging.debug('update_view ends')
-		pass
 	def update_table(self):
 		logging.debug('update_table starts')
 		index = self.DF.index
 		if len(index) == 0:
 			return
-		sellim = self.sellim()
-		self.table.view.filters = [IndexFilter(index[sellim])]
-		self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
+		# sellim = self.sellim()
+		# self.table.view.filters = [IndexFilter(index[sellim])]
+		# self.table.columns = [TableColumn(field=c, title=c) for c in self.DF.columns]
 		logging.debug('update_table ends')
 		pass
 	def compute_columns(self):
@@ -167,14 +162,11 @@ class State(object):
 	def update_plot(self):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
-		self.view.clear()
+		self.source.clear()
 		items = []
 		index = 0
-		sellim = self.sellim()
 		for r in self.STATE['renderers']:
-			sel = sellim & sched_monitor_view.lang.filter.sel(self.DF, r['filter'])
-			indexfilter = IndexFilter(self.DF.index[sel])
-			view = CDSView(source=self.source, filters=[indexfilter])
+			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
 			glyph = Segment(
 				x0=r['x0'],
 				x1=r['x1'],
@@ -182,9 +174,9 @@ class State(object):
 				y1=r['y1'],
 				line_color=r['line_color'],
 			)
-			_r = self.plot.add_glyph(self.source, glyph, view=view)
+			_r = self.plot.add_glyph(source, glyph)
 			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
-			self.view.append((view, r['filter']))
+			self.source.append((source, r['filter']))
 			index+=1
 		self.plot.legend.items = items
 		logging.debug('update_plot ends')
