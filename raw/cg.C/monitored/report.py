@@ -22,8 +22,9 @@ def load_json(path):
         return json.load(f)
 
 def load_sched_monitor(path):
+    df, comm = load_tracer_raw(os.path.join(path, 'tracer-raw'))
     return {
-        'tracer-raw' : load_tracer_raw(os.path.join(path, 'tracer-raw')),
+        'tracer-raw' : { 'df' : df, 'comm':comm }
     }
 
 def load_tracer_raw(path):
@@ -42,8 +43,9 @@ def load_tracer_raw(path):
     df = pd.DataFrame(df)
     df.sort_values(by='timestamp', inplace=True)
     df.index = np.arange(len(df))
-    df['comm'] = np.chararray(np.shape((len(df))), itemsize=9)
-    df['comm'] = ''
+    comm = {'':0}
+    comm_id = 1
+    df['comm'] = np.zeros(len(df))
     sel = df['event'] == EXEC_EVT
     it = itertools.zip_longest(
         df['pid'][sel],
@@ -56,9 +58,15 @@ def load_tracer_raw(path):
         i = 0
         while i < 8 and b[i] > 0:
             i+=1
-        comm = b[:i].decode()
-        df.loc[sel, 'comm'] = comm
-    return df
+        c = b[:i].decode()
+        print(pid, c)
+        if c not in comm:
+            comm[c] = comm_id
+            comm_id += 1
+        df.loc[sel, 'comm'] = comm[c]
+    comm['N/A'] = comm['']
+    del comm['']
+    return df, comm
 
 def load_tracer_raw_per_cpu(path):
     data = {
