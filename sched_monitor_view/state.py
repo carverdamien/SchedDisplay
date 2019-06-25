@@ -23,7 +23,7 @@ class State(object):
 		self.STATE = {
 			'hdf5' : [],
 			'truncate' : {'mode':'index', 'cursor': 0, 'width': 1},
-			'columns' : {'y1':['+',['copy', 'cpu'],0.75],},
+			'columns' : {},
 			'renderers' : [
 			],
 		}
@@ -35,6 +35,7 @@ class State(object):
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
+		self.STATE['columns'] = new_state['columns']
 		self.plot.renderers.clear()
 		self.source.clear()
 		self.STATE['renderers'].clear()
