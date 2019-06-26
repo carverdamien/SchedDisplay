@@ -94,7 +94,7 @@ def modify_doc(doc):
 	################ Plot View ################
 	figure_plot = figure(
 	    sizing_mode='stretch_both',
-	    tools="xpan,reset,save,xwheel_zoom,hover",
+	    tools="xpan,reset,save,xwheel_zoom",
 	    active_scroll='xwheel_zoom',
 	    output_backend="webgl",
 	    visible=False,
