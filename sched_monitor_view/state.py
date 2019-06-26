@@ -3,6 +3,7 @@ from bokeh.plotting import curdoc
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
+from bokeh.models.tools import HoverTool
 from bokeh.models import Legend, LegendItem
 from tornado import gen
 from functools import partial
@@ -186,5 +187,18 @@ class State(object):
 			self.source.append((source, r['filter']))
 			index+=1
 		self.plot.legend.items = items
+		# TODO: add this in STATE
+		TOOLTIPS = [
+			("index","$index"),
+			("timestamp","@timestamp"),
+			("event","@event"),
+			("comm","@comm"),
+			("pid","@pid"),
+			("addr","@addr"),
+			("arg0","@arg0"),
+		    ("arg1","@arg1"),
+		]
+		self.plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+		# TODO: eventually rm tool?
 		logging.debug('update_plot ends')
 		pass
