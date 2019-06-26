@@ -30,6 +30,7 @@ class State(object):
 		}
 		self.DF = pd.DataFrame()
 		self.comm = {}
+		self.perf_event = {}
 		self.path_id = {}
 		self.path_id_next = 0
 		self.source = []
@@ -69,6 +70,8 @@ class State(object):
 		df = data['df']
 		self.comm.clear()
 		self.comm.update(data['comm'])
+		self.perf_event.clear()
+		self.perf_event.update(data['perf_event'])
 		self.DF = self.DF.append(df, ignore_index=True)
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))

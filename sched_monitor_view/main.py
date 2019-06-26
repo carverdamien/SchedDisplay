@@ -189,9 +189,14 @@ def modify_doc(doc):
 			state.load_hdf5(path, load_done)
 	button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
 	def update_paragraph_info():
-		paragraph_info.text = "{}\n{}".format(
+		paragraph_info.text = "{}{}{}{}".format(
 			state.comm,
 			[(i,Types.EVENT[i]) for i in range(len(Types.EVENT))],
+			[(state.perf_event[k]["id"],hex(state.perf_event[k]["config1"])) for k in state.perf_event],
+			[
+				("0x063bc0","LLC_MISS.REMOTE_DRAM"),
+				("0x060400","LLC_MISS.LOCAL_DRAM"),
+			]
 		)
 		pass
 	UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5, update_paragraph_info])
