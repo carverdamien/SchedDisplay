@@ -1,5 +1,15 @@
 #!/bin/bash
 TIME=$(cat output/run.out)
+cat >output/perf_event.json <<EOF
+{
+$(
+sed -n 's/.*SCHED_MONITOR_PERF\(.*\)/\1,/p' output/dmesg |
+sed '$ s/,$//'  |
+nl -v0 -w1 -nln -s: |
+sed -n 's/\([0-9]*\)/"\1"/p'
+)
+}
+EOF
 cat >output/summary.json <<EOF
 {
   "name":"kbuild",

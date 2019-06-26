@@ -1,4 +1,5 @@
 #!/bin/bash
+dmesg -C
 insmod /mnt/data/damien/git/ipanema/ipanema-kernel/kernel/sched/monitor/sched_monitor_perf.ko
 for f in /proc/{schedstat,sched_debug,stat}
 do

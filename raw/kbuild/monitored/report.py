@@ -13,6 +13,7 @@ def main():
 
 def load_data(path):
     return {
+        'perf_event' : load_json(os.path.join(path, 'perf_event.json')),
         'summary' : load_json(os.path.join(path, 'summary.json')),
         'sched_monitor' : load_sched_monitor(os.path.join(path,'sched_monitor')),
     }
