@@ -5,3 +5,5 @@ for f in /proc/{schedstat,sched_debug,stat}
 do
     cp ${f} output/$(basename ${f}).stop
 done
+rmmod /mnt/data/damien/git/ipanema/ipanema-kernel/kernel/sched/monitor/sched_monitor_perf.ko
+dmesg > output/dmesg
