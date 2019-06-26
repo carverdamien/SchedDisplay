@@ -191,6 +191,7 @@ class State(object):
 		TOOLTIPS = [
 			("index","$index"),
 			("timestamp","@timestamp"),
+			("cpu","@cpu"),
 			("event","@event"),
 			("comm","@comm"),
 			("pid","@pid"),
