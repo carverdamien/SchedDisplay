@@ -18,8 +18,14 @@ def head(df, a, i, val):
 	t[:] = val
 	t[0:i] = a[0:i]
 	return t
+def tail(df, a, i, val):
+	t = np.empty(np.shape(a))
+	t[:] = val
+	t[-1:-i-1:-1] = a[-1:-i-1:-1]
+	return t
 OPERATOR = {
 	'copy' : copy,
 	'+'    :  add,
 	'head' : head,
+	'tail' : tail,
 }
