@@ -67,6 +67,6 @@
     "truncate": {
         "cursor": 1394576,
         "mode": "index",
-        "width": 10000
+        "width": 40000
     }
 }
