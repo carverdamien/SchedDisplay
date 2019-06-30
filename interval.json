@@ -41,3 +41,32 @@
         "width": 10000
     }
 }
+
+{
+    "columns": {
+        "y1":["+",["copy","cpu"],0.75],
+        "x1":["nxt_of_same_evt_on_same_cpu","timestamp"]
+    },
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["&",["==","event",13],["==","arg0",0]],
+            "label": "RQSIZE==0",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "x1",
+            "y0": "cpu", "y1": "cpu"
+        },
+        {
+            "filter": ["&",["==","event",13],[">","arg0",0]],
+            "label": "RQSIZE>0",
+            "line_color": "#FF0000",
+            "x0": "timestamp", "x1": "x1",
+            "y0": "cpu", "y1": "cpu"
+        }
+    ],
+    "truncate": {
+        "cursor": 1394576,
+        "mode": "index",
+        "width": 10000
+    }
+}
