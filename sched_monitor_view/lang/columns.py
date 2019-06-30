@@ -10,7 +10,7 @@ def compute(df, expression):
 			args[i] = compute(df, args[i])
 	return OPERATOR[op](df, *args)
 def copy(df, key):
-	return df[key]
+	return np.array(df[key])
 def add(df, a, b):
 	return a + b
 def last(df, sel, i):
@@ -27,12 +27,19 @@ def first(df, sel, i):
 	# Keeps first elements to True
 	t[idx[-1:-i-1:-1]] = False
 	return t
-def sel_equals(df, a, b):
-	return a == b
+def key_equals_value(df, key, val):
+	return df[key] == val
+def a_and_b(df, a, b):
+	return a & b
+def move(df, a, dst, src):
+	a[dst] = a[src]
+	return a
 OPERATOR = {
 	'copy' : copy,
 	'+'    :  add,
 	'first' : first,
 	'last' : last,
-	'=='   : sel_equals,
+	'=='   : key_equals_value,
+	'mv'  : move,
+	'&'  : a_and_b,
 }
