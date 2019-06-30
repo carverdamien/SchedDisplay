@@ -13,7 +13,13 @@ def copy(df, key):
 	return df[key]
 def add(df, a, b):
 	return a + b
+def head(df, a, i, val):
+	t = np.empty(np.shape(a))
+	t[:] = val
+	t[0:i] = a[0:i]
+	return t
 OPERATOR = {
 	'copy' : copy,
 	'+'    :  add,
+	'head' : head,
 }
