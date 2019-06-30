@@ -13,19 +13,26 @@ def copy(df, key):
 	return df[key]
 def add(df, a, b):
 	return a + b
-def head(df, a, i, val):
-	t = np.empty(np.shape(a))
-	t[:] = val
-	t[0:i] = a[0:i]
+def last(df, sel, i):
+	t = np.array(sel)
+	idx = np.arange(len(t))[sel]
+	# Sets first elements to False
+	# Keeps last elements to True
+	t[idx[0:i]] = False
 	return t
-def tail(df, a, i, val):
-	t = np.empty(np.shape(a))
-	t[:] = val
-	t[-1:-i-1:-1] = a[-1:-i-1:-1]
+def first(df, sel, i):
+	t = np.array(sel)
+	idx = np.arange(len(t))[sel]
+	# Sets last elements to False
+	# Keeps first elements to True
+	t[idx[-1:-i-1:-1]] = False
 	return t
+def sel_equals(df, a, b):
+	return a == b
 OPERATOR = {
 	'copy' : copy,
 	'+'    :  add,
-	'head' : head,
-	'tail' : tail,
+	'first' : first,
+	'last' : last,
+	'=='   : sel_equals,
 }
