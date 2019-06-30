@@ -1,0 +1,21 @@
+{
+    "columns": {
+        "y1":["+",["copy","cpu"],0.75],
+        "x1":["mv",["copy","timestamp"],["last",["&",["==","event",13],["==","cpu",1]],1],["first",["&",["==","event",13],["==","cpu",1]],1]]
+    },
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["==","event",13],
+            "label": "RQSIZE",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "x1",
+            "y0": "cpu", "y1": "cpu"
+        }
+    ],
+    "truncate": {
+        "cursor": 1394576,
+        "mode": "index",
+        "width": 10000
+    }
+}
