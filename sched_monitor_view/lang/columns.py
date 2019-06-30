@@ -34,6 +34,28 @@ def a_and_b(df, a, b):
 def move(df, a, dst, src):
 	a[dst] = a[src]
 	return a
+def nxt_of_same_evt_on_same_cpu(df, key):
+	nxt = copy(df, key)
+	events = np.unique(df['event'])
+	cpus = np.unique(df['cpu'])
+	for evt in events:
+		sel_evt = df['event'] == evt
+		for cpu in cpus:
+			sel_cpu = df['cpu'] == cpu
+			sel = (sel_evt) & (sel_cpu)
+			# nxt = move(
+			# 	df,
+			# 	nxt,
+			# 	last(df, sel, 1),
+			# 	first(df, sel, 1),
+			# )
+			nxt = move(
+				df,
+				nxt,
+				first(df, sel, 1),
+				last(df, sel, 1),
+			)
+	return nxt
 OPERATOR = {
 	'copy' : copy,
 	'+'    :  add,
@@ -42,4 +64,5 @@ OPERATOR = {
 	'=='   : key_equals_value,
 	'mv'  : move,
 	'&'  : a_and_b,
+	'nxt_of_same_evt_on_same_cpu' : nxt_of_same_evt_on_same_cpu,
 }
