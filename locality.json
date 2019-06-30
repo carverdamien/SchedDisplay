@@ -1,0 +1,53 @@
+{
+    "columns": {},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["==","event",18],
+            "label": "REMOTE_DRAM",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "addr", "y1": "path_id"
+        },
+        {
+            "filter": ["==","event",19],
+            "label": "LOCAL_DRAM",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "addr", "y1": "path_id"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 100000000000
+    }
+}
+
+{
+    "columns": {
+        "y0": ["diff_of_same_evt","addr"]
+    },
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["==","event",18],
+            "label": "REMOTE_DRAM",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "y0", "y1": "path_id"
+        },
+        {
+            "filter": ["==","event",19],
+            "label": "LOCAL_DRAM",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "y0", "y1": "path_id"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 100000000000
+    }
+}
