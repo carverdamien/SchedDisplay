@@ -9,6 +9,8 @@ def compute(df, expression):
 		if isinstance(args[i], list):
 			args[i] = compute(df, args[i])
 	return OPERATOR[op](df, *args)
+def zeros(df):
+	return np.zeros(len(df))
 def copy(df, key):
 	return np.array(df[key])
 def add(df, a, b):
@@ -43,12 +45,6 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 		for cpu in cpus:
 			sel_cpu = df['cpu'] == cpu
 			sel = (sel_evt) & (sel_cpu)
-			# nxt = move(
-			# 	df,
-			# 	nxt,
-			# 	last(df, sel, 1),
-			# 	first(df, sel, 1),
-			# )
 			nxt = move(
 				df,
 				nxt,
@@ -56,6 +52,16 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 				last(df, sel, 1),
 			)
 	return nxt
+def diff_of_same_evt(df, key):
+	val = np.array(df[key])
+	diff = zeros(df)
+	events = np.unique(df['event'])
+	for evt in events:
+		sel = df['event'] == evt
+		f = first(df, sel, 1)
+		l = last(df, sel, 1)
+		diff[f] = val[l] - val[f]
+	return diff
 OPERATOR = {
 	'copy' : copy,
 	'+'    :  add,
@@ -65,4 +71,5 @@ OPERATOR = {
 	'mv'  : move,
 	'&'  : a_and_b,
 	'nxt_of_same_evt_on_same_cpu' : nxt_of_same_evt_on_same_cpu,
+	'diff_of_same_evt' : diff_of_same_evt,
 }
