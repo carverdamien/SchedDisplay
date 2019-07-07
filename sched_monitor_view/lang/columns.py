@@ -45,12 +45,9 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 		for cpu in cpus:
 			sel_cpu = df['cpu'] == cpu
 			sel = (sel_evt) & (sel_cpu)
-			nxt = move(
-				df,
-				nxt,
-				first(df, sel, 1),
-				last(df, sel, 1),
-			)
+			f   = first(df, sel, 1)
+			l   = last(df, sel, 1)
+			nxt = move(df, nxt, f, l)
 	return nxt
 def diff_of_same_evt(df, key):
 	val = np.array(df[key])
