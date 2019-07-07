@@ -40,11 +40,12 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 	nxt = copy(df, key)
 	events = np.unique(df['event'])
 	cpus = np.unique(df['cpu'])
+	# Compute == once only
+	sel_evt = { evt : df['event'] == evt for evt in events}
+	sel_cpu = { cpu :   df['cpu'] == cpu for cpu in cpus}
 	for evt in events:
-		sel_evt = df['event'] == evt
 		for cpu in cpus:
-			sel_cpu = df['cpu'] == cpu
-			sel = (sel_evt) & (sel_cpu)
+			sel = (sel_evt[evt]) & (sel_cpu[cpu])
 			f   = first(df, sel, 1)
 			l   = last(df, sel, 1)
 			nxt = move(df, nxt, f, l)
