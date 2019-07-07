@@ -48,13 +48,15 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 	def target(evt, cpu):
 		sel = (sel_evt[evt]) & (sel_cpu[cpu])
 		nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	def spawn(evt, cpu):
+		t = Thread(target=target, args=(evt,cpu))
+		t.start()
+		return t
 	threads = [
-		Thread(target=target, args=(evt,cpu))
+		spawn(evt,cpu)
 		for evt in events
 		for cpu in cpus
 	]
-	for t in threads:
-		t.start()
 	for t in threads:
 		t.join()
 	return nxt
