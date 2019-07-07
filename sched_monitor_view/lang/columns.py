@@ -1,4 +1,5 @@
 import numpy as np
+from threading import Thread
 
 def compute(df, expression):
 	if len(expression) == 0:
@@ -44,10 +45,18 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 	# Compute == once only
 	sel_evt = { evt : np.array(df['event'] == evt) for evt in events}
 	sel_cpu = { cpu :   np.array(df['cpu'] == cpu) for cpu in cpus}
-	for evt in events:
-		for cpu in cpus:
-			sel = (sel_evt[evt]) & (sel_cpu[cpu])
-			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	def target(evt, cpu):
+		sel = (sel_evt[evt]) & (sel_cpu[cpu])
+		nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	threads = [
+		Thread(target=target, args=(evt,cpu))
+		for evt in events
+		for cpu in cpus
+	]
+	for t in threads:
+		t.start()
+	for t in threads:
+		t.join()
 	return nxt
 def diff_of_same_evt(df, key):
 	val = np.array(df[key])
