@@ -39,25 +39,15 @@ def move(df, a, dst, src):
 def nxt_of_same_evt_on_same_cpu(df, key):
 	nxt = copy(df, key)
 	idx = np.arange(len(nxt))
-	f = np.ones(len(nxt), dtype=bool)
-	l = np.ones(len(nxt), dtype=bool)
 	events = np.unique(df['event'])
 	cpus = np.unique(df['cpu'])
 	# Compute == once only
-	sel_evt = { evt : df['event'] == evt for evt in events}
-	sel_cpu = { cpu :   df['cpu'] == cpu for cpu in cpus}
+	sel_evt = { evt : np.array(df['event'] == evt) for evt in events}
+	sel_cpu = { cpu :   np.array(df['cpu'] == cpu) for cpu in cpus}
 	for evt in events:
 		for cpu in cpus:
 			sel = (sel_evt[evt]) & (sel_cpu[cpu])
-			# first and last are too slow
-			i = 1
-			# f = first(df, sel, 1)
-			f[:] = sel
-			f[idx[sel][-1:-i-1:-1]] = False
-			# l = last(df, sel, 1)
-			l[:] = sel
-			l[idx[sel][0:i]] = False
-			nxt = move(df, nxt, f, l)
+			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
 	return nxt
 def diff_of_same_evt(df, key):
 	val = np.array(df[key])
