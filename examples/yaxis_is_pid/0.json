@@ -6,28 +6,28 @@
     "hdf5": ["./raw/kbuild/monitored/256-linux.hdf5"],
     "renderers": [
         {
-            "filter": ["&", ["!=", "comm", 0], ["==", "comm", 9]],
+            "filter": ["==", "comm", 9],
             "label": "comm==9 (bash)",
             "line_color": "#000000",
             "x0": "timestamp", "x1": "timestamp",
             "y0": "y0", "y1": "y1"
         },
         {
-            "filter": ["&", ["!=", "comm", 0], ["==", "comm", 8]],
+            "filter": ["==", "comm", 8],
             "label": "comm==8 (gcc)",
             "line_color": "#000000",
             "x0": "timestamp", "x1": "timestamp",
             "y0": "y0", "y1": "y1"
         },
         {
-            "filter": ["&", ["!=", "comm", 0], ["==", "comm", 6]],
+            "filter": ["==", "comm", 6],
             "label": "comm==6 (make)",
             "line_color": "#000000",
             "x0": "timestamp", "x1": "timestamp",
             "y0": "y0", "y1": "y1"
         },
         {
-            "filter": ["&", ["!=", "comm", 0], ["==", "comm", 7]],
+            "filter": ["==", "comm", 7],
             "label": "comm==7 (sh)",
             "line_color": "#000000",
             "x0": "timestamp", "x1": "timestamp",
