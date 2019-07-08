@@ -60,6 +60,23 @@ def nxt_of_same_evt_on_same_cpu(df, key):
 	for t in threads:
 		t.join()
 	return nxt
+def rank(df, key):
+	val = copy(df, key)
+	unique = np.unique(val)
+	def target(r, v):
+		sel = df[key] == v
+		val[sel] = r
+	def spawn(r, v):
+		t = Thread(target=target, args=(r,v))
+		t.start()
+		return t
+	threads = [
+		spawn(i, unique[i])
+		for i in range(len(unique))
+	]
+	for t in threads:
+		t.join()
+	return val
 def diff_of_same_evt(df, key):
 	val = np.array(df[key])
 	diff = zeros(df)
@@ -80,4 +97,5 @@ OPERATOR = {
 	'&'  : a_and_b,
 	'nxt_of_same_evt_on_same_cpu' : nxt_of_same_evt_on_same_cpu,
 	'diff_of_same_evt' : diff_of_same_evt,
+	'rank' : rank,
 }
