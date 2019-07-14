@@ -1,5 +1,6 @@
 # External imports
 import holoviews as hv
+from holoviews.operation.datashader import datashade
 import numpy as np
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
@@ -96,10 +97,8 @@ def modify_doc(doc):
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
 	renderer = hv.renderer('bokeh').instance(mode='server')
-	def data_example(x):
+	def data_example(N):
 		nr_cpu = 160
-		N = 10000 # slow
-		# N = 100000 # too slow
 		idx = np.arange(N)
 		x = np.random.random(3*N)
 		y = np.random.randint(0,nr_cpu,3*N).astype(float)
@@ -108,8 +107,9 @@ def modify_doc(doc):
 		x[0+3*idx] = x[1+3*idx]
 		y[0+3*idx] = y[1+3*idx] + 0.75
 		return hv.Path([{'x':x,'y':y}])
-	stream = hv.streams.Stream.define('x', x=0.)()
-	dmap = hv.DynamicMap(data_example, streams=[stream])
+	stream = hv.streams.Stream.define('N', N=10000)() # N = 100000 # too slow
+	# dmap = hv.DynamicMap(data_example, streams=[stream])
+	dmap = datashade(data_example(10000000)).opts(responsive=True)
 	hvplot = renderer.get_plot(dmap, doc)
 	figure_plot = hvplot.state
 	figure_plot.sizing_mode='stretch_both'
