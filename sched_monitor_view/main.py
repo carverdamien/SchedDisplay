@@ -1,6 +1,9 @@
 # External imports
+import holoviews as hv
+import numpy as np
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
+from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
 from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput, Paragraph
@@ -92,13 +95,27 @@ def modify_doc(doc):
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
-	figure_plot = figure(
-	    sizing_mode='stretch_both',
-	    tools="xpan,reset,save,xwheel_zoom",
-	    active_scroll='xwheel_zoom',
-	    output_backend="webgl",
-	    visible=False,
-	)
+	renderer = hv.renderer('bokeh').instance(mode='server')
+	def data_example(x):
+		t = np.linspace(0,1)
+		y = t**2
+		return hv.Curve((t, y)).opts(width=800)
+	stream = hv.streams.Stream.define('x', x=0.)()
+	dmap = hv.DynamicMap(data_example, streams=[stream])
+	hvplot = renderer.get_plot(dmap, doc)
+	figure_plot = hvplot.state
+	figure_plot.sizing_mode='stretch_both'
+	active_scroll = WheelZoomTool(dimensions="width")
+	tools = [
+		PanTool(dimensions="width"),
+		ResetTool(),
+		SaveTool(),
+		active_scroll,
+	]
+	figure_plot.tools = tools
+	figure_plot.toolbar.active_scroll = active_scroll
+	figure_plot.output_backend="webgl"
+	figure_plot.visible=False
 	figure_plot.add_layout(Legend(click_policy='hide'))
 	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ State ################
