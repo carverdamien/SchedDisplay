@@ -97,9 +97,17 @@ def modify_doc(doc):
 	################ Plot View ################
 	renderer = hv.renderer('bokeh').instance(mode='server')
 	def data_example(x):
-		t = np.linspace(0,1)
-		y = t**2
-		return hv.Curve((t, y)).opts(width=800)
+		nr_cpu = 160
+		N = 10000 # slow
+		# N = 100000 # too slow
+		idx = np.arange(N)
+		x = np.random.random(3*N)
+		y = np.random.randint(0,nr_cpu,3*N).astype(float)
+		x[2+3*idx] = np.nan
+		y[2+3*idx] = np.nan
+		x[0+3*idx] = x[1+3*idx]
+		y[0+3*idx] = y[1+3*idx] + 0.75
+		return hv.Path([{'x':x,'y':y}])
 	stream = hv.streams.Stream.define('x', x=0.)()
 	dmap = hv.DynamicMap(data_example, streams=[stream])
 	hvplot = renderer.get_plot(dmap, doc)
