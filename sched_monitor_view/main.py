@@ -139,22 +139,22 @@ def modify_doc(doc):
 	# figure_plot = hvplot.state
 	df = pd.DataFrame({'timestamp':np.random.random(3*N),'cpu':np.random.randint(0,nr_cpu,3*N).astype(float),})
 	df['cpu_shift'] = df['cpu'] + 0.75
-	def image_callback(x_range, y_range, w, h, name=None):
-		print(x_range)
-		print(y_range)
-		print(w,h)
+	sel0 = df['cpu']%2==0
+	sel1 = df['cpu']%2==1
+	def img0_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
-		# agg = cvs.points(df, 'x', 'y', ds.count_cat('cat'))
-		# agg = cvs.points(df, 'timestamp', 'cpu', ds.count())
-		agg = cvs.line(df, x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
+		agg = cvs.line(df[sel0], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
 		img = tf.shade(agg)
 		return img
-		# return tf.spread(img, shape='square')
-		# return tf.dynspread(img, threshold=0.50, name=name)
+	def img1_callback(x_range, y_range, w, h, name=None):
+		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
+		agg = cvs.line(df[sel1], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
+		img = tf.shade(agg)
+		return img
 	figure_plot = figure( x_range=(0,1), y_range=(-1,nr_cpu+1), plot_width=500, plot_height=500)
-	img = InteractiveImage(figure_plot, image_callback)
+	img0 = InteractiveImage(figure_plot, img0_callback)
+	img1 = InteractiveImage(figure_plot, img1_callback)
 	def callback_LODEnd(e):
-		print('foo')
 		ranges={
 			'xmin':figure_plot.x_range.start,
 			'xmax':figure_plot.x_range.end,
@@ -163,18 +163,17 @@ def modify_doc(doc):
 			'w':figure_plot.plot_width,
 			'h':figure_plot.plot_height,
 		}
-		print(ranges)
 		try:
-			img.update_image(ranges)
+			img0.update_image(ranges)
+			img1.update_image(ranges)
 		except Exception as e:
 			print('Exception: {}'.format(type(e)))
 			print(e)
-		print('done')
 	figure_plot.on_event(LODEnd, callback_LODEnd)	
 	figure_plot.sizing_mode='stretch_both'
-	active_scroll = WheelZoomTool(dimensions="both")
+	active_scroll = WheelZoomTool(dimensions="width")
 	tools = [
-		PanTool(dimensions="both"),
+		PanTool(dimensions="width"),
 		ResetTool(),
 		SaveTool(),
 		active_scroll,
