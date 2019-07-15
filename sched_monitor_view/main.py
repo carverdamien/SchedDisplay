@@ -2,6 +2,7 @@
 import holoviews as hv
 from holoviews.operation.datashader import datashade
 import numpy as np
+import dask.array as da
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
 from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
@@ -97,20 +98,35 @@ def modify_doc(doc):
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
 	renderer = hv.renderer('bokeh').instance(mode='server')
-	def data_example(N):
-		nr_cpu = 160
-		idx = np.arange(N)
+	def _data_example(N,cpu):
 		x = np.random.random(3*N)
-		y = np.random.randint(0,nr_cpu,3*N).astype(float)
-		x[2+3*idx] = np.nan
-		y[2+3*idx] = np.nan
-		x[0+3*idx] = x[1+3*idx]
-		y[0+3*idx] = y[1+3*idx] + 0.75
-		return hv.Path([{'x':x,'y':y}])
-	stream = hv.streams.Stream.define('N', N=10000)() # N = 100000 # too slow
-	# dmap = hv.DynamicMap(data_example, streams=[stream])
-	dmap = datashade(data_example(10000000)).opts(responsive=True)
-	hvplot = renderer.get_plot(dmap, doc)
+		y = cpu * np.ones(3*N)
+		s0 = slice(0,3*N,3)
+		s1 = slice(1,3*N,3)
+		s2 = slice(2,3*N,3)
+		x[s2] = np.nan
+		y[s2] = np.nan
+		x[s0] = x[s1]
+		y[s0] = y[s1] + 0.75
+		return {'x':da.from_array(x),'y':da.from_array(y)}
+	def data_example(N,cpu):
+		return hv.Path([_data_example(N,cpu)])
+	N = 10000000
+	nr_cpu = 160
+	# ISSUE:
+	# Single datashade creates graphical artifacts between lines
+	# dmap = datashade(hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(nr_cpu)]))
+	# SOLVED:
+	# Use 2 steps datashade to make interference on the yaxis disapear after some zoom/pan interactions.
+	# This solution causes warnings:
+	# Parameter name clashes for keys {'height', 'width', 'scale'}
+	# Parameter name clashes for keys {'x_range', 'y_range'}
+	dmap = datashade(
+		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)])
+	) * datashade(
+		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(1,nr_cpu,2)])
+	)
+	hvplot = renderer.get_plot(dmap.opts(ylim=(-1,nr_cpu+1),responsive=True), doc)
 	figure_plot = hvplot.state
 	figure_plot.sizing_mode='stretch_both'
 	active_scroll = WheelZoomTool(dimensions="width")
