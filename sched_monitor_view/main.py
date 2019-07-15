@@ -137,18 +137,21 @@ def modify_doc(doc):
 	# )
 	# hvplot = renderer.get_plot(dmap.opts(ylim=(-1,nr_cpu+1),responsive=True), doc)
 	# figure_plot = hvplot.state
-	df = pd.DataFrame({'x':np.random.random(3*N),'y':np.random.random(3*N),})
+	df = pd.DataFrame({'timestamp':np.random.random(3*N),'cpu':np.random.randint(0,nr_cpu,3*N).astype(float),})
+	df['cpu_shift'] = df['cpu'] + 0.75
 	def image_callback(x_range, y_range, w, h, name=None):
 		print(x_range)
 		print(y_range)
 		print(w,h)
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
 		# agg = cvs.points(df, 'x', 'y', ds.count_cat('cat'))
-		agg = cvs.points(df, 'x', 'y', ds.count())
+		# agg = cvs.points(df, 'timestamp', 'cpu', ds.count())
+		agg = cvs.line(df, x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
 		img = tf.shade(agg)
 		return img
+		# return tf.spread(img, shape='square')
 		# return tf.dynspread(img, threshold=0.50, name=name)
-	figure_plot = figure( x_range=(-5,5), y_range=(-5,5), plot_width=500, plot_height=500)
+	figure_plot = figure( x_range=(0,1), y_range=(-1,nr_cpu+1), plot_width=500, plot_height=500)
 	img = InteractiveImage(figure_plot, image_callback)
 	def callback_LODEnd(e):
 		print('foo')
@@ -169,9 +172,9 @@ def modify_doc(doc):
 		print('done')
 	figure_plot.on_event(LODEnd, callback_LODEnd)	
 	figure_plot.sizing_mode='stretch_both'
-	active_scroll = WheelZoomTool(dimensions="width")
+	active_scroll = WheelZoomTool(dimensions="both")
 	tools = [
-		PanTool(dimensions="width"),
+		PanTool(dimensions="both"),
 		ResetTool(),
 		SaveTool(),
 		active_scroll,
