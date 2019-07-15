@@ -1,8 +1,13 @@
 # External imports
+import pandas as pd
+import datashader as ds
+import datashader.transfer_functions as tf
+from datashader.bokeh_ext import InteractiveImage
 import holoviews as hv
 from holoviews.operation.datashader import datashade
 import numpy as np
 import dask.array as da
+from bokeh.events import LODEnd
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
 from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
@@ -97,7 +102,7 @@ def modify_doc(doc):
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
-	renderer = hv.renderer('bokeh').instance(mode='server')
+	# renderer = hv.renderer('bokeh').instance(mode='server')
 	def _data_example(N,cpu):
 		x = np.random.random(3*N)
 		y = cpu * np.ones(3*N)
@@ -112,6 +117,7 @@ def modify_doc(doc):
 	def data_example(N,cpu):
 		return hv.Path([_data_example(N,cpu)])
 	N = 10000000
+	# N = 1000
 	nr_cpu = 160
 	# ISSUE:
 	# Single datashade creates graphical artifacts between lines
@@ -121,16 +127,47 @@ def modify_doc(doc):
 	# This solution causes warnings:
 	# Parameter name clashes for keys {'height', 'width', 'scale'}
 	# Parameter name clashes for keys {'x_range', 'y_range'}
-	cmap=['#ffffff','#000000']
-	dmap = datashade(
-		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)]),
-		cmap=cmap,
-	) * datashade(
-		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(1,nr_cpu,2)]),
-		cmap=cmap,
-	)
-	hvplot = renderer.get_plot(dmap.opts(ylim=(-1,nr_cpu+1),responsive=True), doc)
-	figure_plot = hvplot.state
+	# cmap=['#ffffff','#000000']
+	# dmap = datashade(
+	# 	hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)]),
+	# 	cmap=cmap,
+	# ) * datashade(
+	# 	hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(1,nr_cpu,2)]),
+	# 	cmap=cmap,
+	# )
+	# hvplot = renderer.get_plot(dmap.opts(ylim=(-1,nr_cpu+1),responsive=True), doc)
+	# figure_plot = hvplot.state
+	df = pd.DataFrame({'x':np.random.random(3*N),'y':np.random.random(3*N),})
+	def image_callback(x_range, y_range, w, h, name=None):
+		print(x_range)
+		print(y_range)
+		print(w,h)
+		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
+		# agg = cvs.points(df, 'x', 'y', ds.count_cat('cat'))
+		agg = cvs.points(df, 'x', 'y', ds.count())
+		img = tf.shade(agg)
+		return img
+		# return tf.dynspread(img, threshold=0.50, name=name)
+	figure_plot = figure( x_range=(-5,5), y_range=(-5,5), plot_width=500, plot_height=500)
+	img = InteractiveImage(figure_plot, image_callback)
+	def callback_LODEnd(e):
+		print('foo')
+		ranges={
+			'xmin':figure_plot.x_range.start,
+			'xmax':figure_plot.x_range.end,
+			'ymin':figure_plot.y_range.start,
+			'ymax':figure_plot.y_range.end,
+			'w':figure_plot.plot_width,
+			'h':figure_plot.plot_height,
+		}
+		print(ranges)
+		try:
+			img.update_image(ranges)
+		except Exception as e:
+			print('Exception: {}'.format(type(e)))
+			print(e)
+		print('done')
+	figure_plot.on_event(LODEnd, callback_LODEnd)	
 	figure_plot.sizing_mode='stretch_both'
 	active_scroll = WheelZoomTool(dimensions="width")
 	tools = [
