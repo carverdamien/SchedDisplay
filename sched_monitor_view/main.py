@@ -3,10 +3,7 @@ import pandas as pd
 import datashader as ds
 import datashader.transfer_functions as tf
 from datashader.bokeh_ext import InteractiveImage
-import holoviews as hv
-from holoviews.operation.datashader import datashade
 import numpy as np
-import dask.array as da
 from bokeh.events import LODEnd
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
@@ -102,42 +99,13 @@ def modify_doc(doc):
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
-	# renderer = hv.renderer('bokeh').instance(mode='server')
-	def _data_example(N,cpu):
-		x = np.random.random(3*N)
-		y = cpu * np.ones(3*N)
-		s0 = slice(0,3*N,3)
-		s1 = slice(1,3*N,3)
-		s2 = slice(2,3*N,3)
-		x[s2] = np.nan
-		y[s2] = np.nan
-		x[s0] = x[s1]
-		y[s0] = y[s1] + 0.75
-		return {'x':da.from_array(x),'y':da.from_array(y)}
-	def data_example(N,cpu):
-		return hv.Path([_data_example(N,cpu)])
 	N = 10000000
-	# N = 1000
 	nr_cpu = 160
-	# ISSUE:
-	# Single datashade creates graphical artifacts between lines
-	# dmap = datashade(hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(nr_cpu)]))
-	# SOLVED:
-	# Use 2 steps datashade to make interference on the yaxis disapear after some zoom/pan interactions.
-	# This solution causes warnings:
-	# Parameter name clashes for keys {'height', 'width', 'scale'}
-	# Parameter name clashes for keys {'x_range', 'y_range'}
 	cmap=['#ffffff','#000000']
-	# dmap = datashade(
-	# 	hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)]),
-	# 	cmap=cmap,
-	# ) * datashade(
-	# 	hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(1,nr_cpu,2)]),
-	# 	cmap=cmap,
-	# )
-	# hvplot = renderer.get_plot(dmap.opts(ylim=(-1,nr_cpu+1),responsive=True), doc)
-	# figure_plot = hvplot.state
-	df = pd.DataFrame({'timestamp':np.random.random(3*N),'cpu':np.random.randint(0,nr_cpu,3*N).astype(float),})
+	df = pd.DataFrame({
+		'timestamp':np.random.random(3*N),
+		'cpu':np.random.randint(0,nr_cpu,3*N).astype(float),
+	})
 	df['cpu_shift'] = df['cpu'] + 0.75
 	sel0 = df['cpu']%2==0
 	sel1 = df['cpu']%2==1
