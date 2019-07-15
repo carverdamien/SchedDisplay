@@ -127,7 +127,7 @@ def modify_doc(doc):
 	# This solution causes warnings:
 	# Parameter name clashes for keys {'height', 'width', 'scale'}
 	# Parameter name clashes for keys {'x_range', 'y_range'}
-	# cmap=['#ffffff','#000000']
+	cmap=['#ffffff','#000000']
 	# dmap = datashade(
 	# 	hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)]),
 	# 	cmap=cmap,
@@ -144,12 +144,12 @@ def modify_doc(doc):
 	def img0_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
 		agg = cvs.line(df[sel0], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
-		img = tf.shade(agg)
+		img = tf.shade(agg, cmap=cmap)
 		return img
 	def img1_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
 		agg = cvs.line(df[sel1], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
-		img = tf.shade(agg)
+		img = tf.shade(agg, cmap=cmap)
 		return img
 	figure_plot = figure( x_range=(0,1), y_range=(-1,nr_cpu+1), plot_width=500, plot_height=500)
 	img0 = InteractiveImage(figure_plot, img0_callback)
