@@ -121,10 +121,13 @@ def modify_doc(doc):
 	# This solution causes warnings:
 	# Parameter name clashes for keys {'height', 'width', 'scale'}
 	# Parameter name clashes for keys {'x_range', 'y_range'}
+	cmap=['#ffffff','#000000']
 	dmap = datashade(
-		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)])
+		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(0,nr_cpu,2)]),
+		cmap=cmap,
 	) * datashade(
-		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(1,nr_cpu,2)])
+		hv.Path([_data_example(N//nr_cpu,cpu) for cpu in range(1,nr_cpu,2)]),
+		cmap=cmap,
 	)
 	hvplot = renderer.get_plot(dmap.opts(ylim=(-1,nr_cpu+1),responsive=True), doc)
 	figure_plot = hvplot.state
