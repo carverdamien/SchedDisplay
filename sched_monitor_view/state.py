@@ -246,6 +246,8 @@ class State(object):
 		self.img = InteractiveImage(figure_plot, img_callback)
 
 	def callback_LODEnd(self, e):
+		if not self.datashader:
+			return
 		logging.debug('callback_LODEnd start')
 		try:
 			nr_cpu = 160
