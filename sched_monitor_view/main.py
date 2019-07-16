@@ -99,28 +99,52 @@ def modify_doc(doc):
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
+	tmax = 1000000000
 	N = 10000000
+	# N = 100000
+	# N = 1000
 	nr_cpu = 160
 	ymin = -1
 	ymax = nr_cpu+1
-	px_shift  = 2
 	px_height = 4
-	assert(px_height>=px_shift)
 	img_height = (nr_cpu+2)*px_height
-	y_shift = float(px_shift)/float(px_height)
+	y0_shift = 0. / float(px_height)
+	y1_shift = 2. / float(px_height)
 	cmap=['#ffffff','#000000']
 	df = pd.DataFrame({
-		'timestamp':np.random.random(3*N),
-		'cpu':np.random.randint(0,nr_cpu,3*N).astype(float),
-		'event_id':np.random.randint(0,10,3*N),
+		'timestamp':np.random.randint(0,tmax,N).astype(float),
+		'cpu':np.random.randint(0,nr_cpu,N).astype(float),
+		'event':np.random.randint(0,10,N),
+		'arg0':np.random.randint(0,2,N),
 	})
-	df['event_id'] = df['event_id'].astype('category')
-	df['cpu_shift'] = df['cpu'] + y_shift
-	figure_plot = figure( x_range=(0,1), y_range=(ymin,ymax), plot_width=500, plot_height=img_height)
+	df.sort_values(by='timestamp', inplace=True)
+	df.index = np.arange(len(df))
+	sel = (df['event'] == 0) & (df['arg0'] == 0)
+	import sched_monitor_view.lang.columns as columns
+	dfevt = pd.DataFrame({
+		'x0':df['timestamp'],
+		'x1':df['timestamp'],
+		'y0':df['cpu']+y0_shift,
+		'y1':df['cpu']+y1_shift,
+		'category':df['event'],
+	})
+	dfint = pd.DataFrame({
+		'x0':df['timestamp'],
+		'x1':columns.compute(df, ['nxt_of_same_evt_on_same_cpu','timestamp']),
+		'y0':df['cpu'],
+		'y1':df['cpu'],
+		'category':df['event'],
+	})
+	dfimg = pd.concat([dfevt, dfint[sel]],ignore_index=True)
+	# dfimg = dfevt
+	dfimg['category'] = dfimg['category'].astype('category')
+	del dfevt
+	del dfint
+	figure_plot = figure(x_range=(0,tmax), y_range=(ymin,ymax), plot_width=500, plot_height=img_height)
 	def img_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
-		agg = cvs.line(df, x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count_cat('event_id'), axis=1)
-		img = tf.shade(agg)
+		agg = cvs.line(dfimg, x=['x0','x1'], y=['y0','y1'], agg=ds.count_cat('category'), axis=1)
+		img = tf.shade(agg,min_alpha=255)
 		return img
 	img = InteractiveImage(figure_plot, img_callback)
 	def callback_LODEnd(e):
