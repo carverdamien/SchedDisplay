@@ -201,15 +201,16 @@ class State(object):
 		img_height = (nr_cpu+2)*px_height
 		y0_shift = 0. / float(px_height)
 		y1_shift = 2. / float(px_height)
-		df = pd.DataFrame({
-			'timestamp':np.random.randint(0,tmax,N).astype(float),
-			'cpu':np.random.randint(0,nr_cpu,N).astype(float),
-			'event':np.random.randint(0,10,N),
-			'arg0':np.random.randint(0,2,N),
-		})
-		df.sort_values(by='timestamp', inplace=True)
-		df.index = np.arange(len(df))
-		sel = (df['event'] == 0) & (df['arg0'] == 0)
+		df = self.DF
+		# df = pd.DataFrame({
+		# 	'timestamp':np.random.randint(0,tmax,N).astype(float),
+		# 	'cpu':np.random.randint(0,nr_cpu,N).astype(float),
+		# 	'event':np.random.randint(0,10,N),
+		# 	'arg0':np.random.randint(0,2,N),
+		# })
+		# df.sort_values(by='timestamp', inplace=True)
+		# df.index = np.arange(len(df))
+		# sel = (df['event'] == 0) & (df['arg0'] == 0)
 		dfevt = pd.DataFrame({
 			'x0':df['timestamp'],
 			'x1':df['timestamp'],
@@ -217,17 +218,18 @@ class State(object):
 			'y1':df['cpu']+y1_shift,
 			'category':df['event'],
 		})
-		dfint = pd.DataFrame({
-			'x0':df['timestamp'],
-			'x1':sched_monitor_view.lang.columns.compute(df, ['nxt_of_same_evt_on_same_cpu','timestamp']),
-			'y0':df['cpu'],
-			'y1':df['cpu'],
-			'category':df['event'],
-		})
-		dfimg = pd.concat([dfevt, dfint[sel]],ignore_index=True)
+		# dfint = pd.DataFrame({
+		# 	'x0':df['timestamp'],
+		# 	'x1':sched_monitor_view.lang.columns.compute(df, ['nxt_of_same_evt_on_same_cpu','timestamp']),
+		# 	'y0':df['cpu'],
+		# 	'y1':df['cpu'],
+		# 	'category':df['event'],
+		# })
+		dfimg = dfevt
+		# dfimg = pd.concat([dfevt, dfint[sel]],ignore_index=True)
 		dfimg['category'] = dfimg['category'].astype('category')
 		del dfevt
-		del dfint
+		# del dfint
 		figure_plot = self.plot
 		figure_plot.x_range.start = 0
 		figure_plot.x_range.end = tmax
