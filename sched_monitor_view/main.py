@@ -105,19 +105,27 @@ def modify_doc(doc):
 	df = pd.DataFrame({
 		'timestamp':np.random.random(3*N),
 		'cpu':np.random.randint(0,nr_cpu,3*N).astype(float),
+		'event_id':np.random.randint(0,10,3*N),
 	})
+	df['event_id'] = df['event_id'].astype('category')
 	df['cpu_shift'] = df['cpu'] + 0.75
 	sel0 = df['cpu']%2==0
 	sel1 = df['cpu']%2==1
 	def img0_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
-		agg = cvs.line(df[sel0], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
-		img = tf.shade(agg, cmap=cmap)
+		agg = cvs.line(df[sel0], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count_cat('event_id'), axis=1)
+		img = tf.shade(
+			agg,
+			# cmap=cmap,
+		)
 		return img
 	def img1_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
 		agg = cvs.line(df[sel1], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
-		img = tf.shade(agg, cmap=cmap)
+		img = tf.shade(
+			agg,
+			# cmap=cmap,
+		)
 		return img
 	figure_plot = figure( x_range=(0,1), y_range=(-1,nr_cpu+1), plot_width=500, plot_height=500)
 	img0 = InteractiveImage(figure_plot, img0_callback)
