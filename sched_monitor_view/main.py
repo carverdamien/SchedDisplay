@@ -103,8 +103,11 @@ def modify_doc(doc):
 	nr_cpu = 160
 	ymin = -1
 	ymax = nr_cpu+1
-	img_height = (nr_cpu+2)*3
-	y_shift = 0.75
+	px_shift  = 2
+	px_height = 4
+	assert(px_height>=px_shift)
+	img_height = (nr_cpu+2)*px_height
+	y_shift = float(px_shift)/float(px_height)
 	cmap=['#ffffff','#000000']
 	df = pd.DataFrame({
 		'timestamp':np.random.random(3*N),
