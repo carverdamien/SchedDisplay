@@ -101,6 +101,10 @@ def modify_doc(doc):
 	################ Plot View ################
 	N = 10000000
 	nr_cpu = 160
+	ymin = -1
+	ymax = nr_cpu+1
+	img_height = (nr_cpu+2)*3
+	y_shift = 0.75
 	cmap=['#ffffff','#000000']
 	df = pd.DataFrame({
 		'timestamp':np.random.random(3*N),
@@ -108,43 +112,24 @@ def modify_doc(doc):
 		'event_id':np.random.randint(0,10,3*N),
 	})
 	df['event_id'] = df['event_id'].astype('category')
-	df['cpu_shift'] = df['cpu'] + 0.75
-	sel0 = df['cpu']%2==0
-	sel1 = df['cpu']%2==1
-	def img0_callback(x_range, y_range, w, h, name=None):
+	df['cpu_shift'] = df['cpu'] + y_shift
+	figure_plot = figure( x_range=(0,1), y_range=(ymin,ymax), plot_width=500, plot_height=img_height)
+	def img_callback(x_range, y_range, w, h, name=None):
 		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
-		agg = cvs.line(df[sel0], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count_cat('event_id'), axis=1)
-		img = tf.shade(
-			agg,
-			# cmap=cmap,
-		)
+		agg = cvs.line(df, x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count_cat('event_id'), axis=1)
+		img = tf.shade(agg)
 		return img
-	def img1_callback(x_range, y_range, w, h, name=None):
-		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
-		agg = cvs.line(df[sel1], x=['timestamp','timestamp'], y=['cpu','cpu_shift'], agg=ds.count(), axis=1)
-		img = tf.shade(
-			agg,
-			# cmap=cmap,
-		)
-		return img
-	figure_plot = figure( x_range=(0,1), y_range=(-1,nr_cpu+1), plot_width=500, plot_height=500)
-	img0 = InteractiveImage(figure_plot, img0_callback)
-	img1 = InteractiveImage(figure_plot, img1_callback)
+	img = InteractiveImage(figure_plot, img_callback)
 	def callback_LODEnd(e):
 		ranges={
 			'xmin':figure_plot.x_range.start,
 			'xmax':figure_plot.x_range.end,
-			'ymin':figure_plot.y_range.start,
-			'ymax':figure_plot.y_range.end,
+			'ymin':ymin, # do not use figure_plot.y_range.start
+			'ymax':ymax, # do not use figure_plot.y_range.end
 			'w':figure_plot.plot_width,
-			'h':figure_plot.plot_height,
+			'h':img_height, # do not use figure_plot.plot_height
 		}
-		try:
-			img0.update_image(ranges)
-			img1.update_image(ranges)
-		except Exception as e:
-			print('Exception: {}'.format(type(e)))
-			print(e)
+		img.update_image(ranges)
 	figure_plot.on_event(LODEnd, callback_LODEnd)	
 	figure_plot.sizing_mode='stretch_both'
 	active_scroll = WheelZoomTool(dimensions="width")
