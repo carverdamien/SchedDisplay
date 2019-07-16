@@ -1,10 +1,4 @@
 # External imports
-import pandas as pd
-import datashader as ds
-import datashader.transfer_functions as tf
-from datashader.bokeh_ext import InteractiveImage
-import numpy as np
-from bokeh.events import LODEnd
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
 from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
@@ -99,65 +93,7 @@ def modify_doc(doc):
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
-	tmax = 1000000000
-	N = 10000000
-	# N = 100000
-	# N = 1000
-	nr_cpu = 160
-	ymin = -1
-	ymax = nr_cpu+1
-	px_height = 4
-	img_height = (nr_cpu+2)*px_height
-	y0_shift = 0. / float(px_height)
-	y1_shift = 2. / float(px_height)
-	cmap=['#ffffff','#000000']
-	df = pd.DataFrame({
-		'timestamp':np.random.randint(0,tmax,N).astype(float),
-		'cpu':np.random.randint(0,nr_cpu,N).astype(float),
-		'event':np.random.randint(0,10,N),
-		'arg0':np.random.randint(0,2,N),
-	})
-	df.sort_values(by='timestamp', inplace=True)
-	df.index = np.arange(len(df))
-	sel = (df['event'] == 0) & (df['arg0'] == 0)
-	import sched_monitor_view.lang.columns as columns
-	dfevt = pd.DataFrame({
-		'x0':df['timestamp'],
-		'x1':df['timestamp'],
-		'y0':df['cpu']+y0_shift,
-		'y1':df['cpu']+y1_shift,
-		'category':df['event'],
-	})
-	dfint = pd.DataFrame({
-		'x0':df['timestamp'],
-		'x1':columns.compute(df, ['nxt_of_same_evt_on_same_cpu','timestamp']),
-		'y0':df['cpu'],
-		'y1':df['cpu'],
-		'category':df['event'],
-	})
-	dfimg = pd.concat([dfevt, dfint[sel]],ignore_index=True)
-	# dfimg = dfevt
-	dfimg['category'] = dfimg['category'].astype('category')
-	del dfevt
-	del dfint
-	figure_plot = figure(x_range=(0,tmax), y_range=(ymin,ymax), plot_width=500, plot_height=img_height)
-	def img_callback(x_range, y_range, w, h, name=None):
-		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
-		agg = cvs.line(dfimg, x=['x0','x1'], y=['y0','y1'], agg=ds.count_cat('category'), axis=1)
-		img = tf.shade(agg,min_alpha=255)
-		return img
-	img = InteractiveImage(figure_plot, img_callback)
-	def callback_LODEnd(e):
-		ranges={
-			'xmin':figure_plot.x_range.start,
-			'xmax':figure_plot.x_range.end,
-			'ymin':ymin, # do not use figure_plot.y_range.start
-			'ymax':ymax, # do not use figure_plot.y_range.end
-			'w':figure_plot.plot_width,
-			'h':img_height, # do not use figure_plot.plot_height
-		}
-		img.update_image(ranges)
-	figure_plot.on_event(LODEnd, callback_LODEnd)	
+	figure_plot = figure()
 	figure_plot.sizing_mode='stretch_both'
 	active_scroll = WheelZoomTool(dimensions="width")
 	tools = [

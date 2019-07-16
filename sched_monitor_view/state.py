@@ -1,3 +1,10 @@
+import pandas as pd
+import datashader as ds
+import datashader.transfer_functions as tf
+from datashader.bokeh_ext import InteractiveImage
+import numpy as np
+from bokeh.events import LODEnd
+
 import logging
 from bokeh.plotting import curdoc
 from bokeh.models import ColumnDataSource
@@ -34,6 +41,9 @@ class State(object):
 		self.path_id = {}
 		self.path_id_next = 0
 		self.source = []
+		self.img = None
+		self.datashader = True
+		self.plot.on_event(LODEnd, self.callback_LODEnd)
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
@@ -174,6 +184,89 @@ class State(object):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
 		self.source.clear()
+		if self.datashader:
+			self.update_datashader()
+		else:
+			self.update_renderers()
+
+	def update_datashader(self):
+		tmax = 1000000000
+		N = 10000000
+		# N = 100000
+		# N = 1000
+		nr_cpu = 160
+		ymin = -1
+		ymax = nr_cpu+1
+		px_height = 4
+		img_height = (nr_cpu+2)*px_height
+		y0_shift = 0. / float(px_height)
+		y1_shift = 2. / float(px_height)
+		df = pd.DataFrame({
+			'timestamp':np.random.randint(0,tmax,N).astype(float),
+			'cpu':np.random.randint(0,nr_cpu,N).astype(float),
+			'event':np.random.randint(0,10,N),
+			'arg0':np.random.randint(0,2,N),
+		})
+		df.sort_values(by='timestamp', inplace=True)
+		df.index = np.arange(len(df))
+		sel = (df['event'] == 0) & (df['arg0'] == 0)
+		dfevt = pd.DataFrame({
+			'x0':df['timestamp'],
+			'x1':df['timestamp'],
+			'y0':df['cpu']+y0_shift,
+			'y1':df['cpu']+y1_shift,
+			'category':df['event'],
+		})
+		dfint = pd.DataFrame({
+			'x0':df['timestamp'],
+			'x1':sched_monitor_view.lang.columns.compute(df, ['nxt_of_same_evt_on_same_cpu','timestamp']),
+			'y0':df['cpu'],
+			'y1':df['cpu'],
+			'category':df['event'],
+		})
+		dfimg = pd.concat([dfevt, dfint[sel]],ignore_index=True)
+		dfimg['category'] = dfimg['category'].astype('category')
+		del dfevt
+		del dfint
+		figure_plot = self.plot
+		figure_plot.x_range.start = 0
+		figure_plot.x_range.end = tmax
+		figure_plot.y_range.start = ymin
+		figure_plot.y_range.end = ymax
+		figure_plot.plot_width = 500
+		figure_plot.plot_height = img_height
+		# figure_plot = figure(x_range=(0,tmax), y_range=(ymin,ymax), plot_width=500, plot_height=img_height)
+		def img_callback(x_range, y_range, w, h, name=None):
+			cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
+			agg = cvs.line(dfimg, x=['x0','x1'], y=['y0','y1'], agg=ds.count_cat('category'), axis=1)
+			img = tf.shade(agg,min_alpha=255)
+			return img
+		self.img = InteractiveImage(figure_plot, img_callback)
+
+	def callback_LODEnd(self, e):
+		logging.debug('callback_LODEnd start')
+		try:
+			nr_cpu = 160
+			ymin = -1
+			ymax = nr_cpu+1
+			px_height = 4
+			img_height = (nr_cpu+2)*px_height
+			figure_plot = self.plot
+			ranges={
+				'xmin':figure_plot.x_range.start,
+				'xmax':figure_plot.x_range.end,
+				'ymin':ymin, # do not use figure_plot.y_range.start
+				'ymax':ymax, # do not use figure_plot.y_range.end
+				'w':figure_plot.plot_width,
+				'h':img_height, # do not use figure_plot.plot_height
+			}
+			self.img.update_image(ranges)
+		except Exception as e:
+			print(e)
+		logging.debug('callback_LODEnd end')
+		pass
+
+	def update_renderers(self):
 		items = []
 		index = 0
 		for r in self.STATE['renderers']:
