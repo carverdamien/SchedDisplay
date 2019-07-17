@@ -147,19 +147,24 @@ class State(object):
 		width = self.STATE['truncate']['width']
 		if mode == 'index':
 			end = len(self.DF)
-		elif mode == 'time':
+		elif mode in ['time','datashader']:
 			end = self.DF['timestamp'].iloc[-1]
 		else:
 			raise Exception('Unknown truncate mode')
 		return mode, cursor, width, end
 	def truncate(self, mode, cursor, width):
+		update_plot = False
 		if mode != self.STATE['truncate']['mode']:
 			# TODO: dont reset, try to stay at the same place
 			cursor = 0
 			width = 1
+			update_plot = 'datashader' in [mode, self.STATE['truncate']['mode']]
 		self.STATE['truncate'] = {'mode':mode, 'cursor': cursor, 'width':width}
 		self.update_source()
 		self.update_table()
+		if update_plot:
+			self.update_plot()
+		self.update_datashader()
 		return cursor, width
 	def sellim(self):
 		sellim = np.zeros(len(self.DF), dtype=bool)
@@ -252,8 +257,7 @@ class State(object):
 		self.update_datashader()
 
 	def update_datashader(self):
-		# TODO rm 'False and'
-		if False and self.STATE['truncate']['mode'] != 'datashader':
+		if self.STATE['truncate']['mode'] != 'datashader':
 			return
 		try:
 			nr_cpu = 160
@@ -272,16 +276,17 @@ class State(object):
 			}
 			last_ranges = self.last_ranges
 			if hash(frozenset(last_ranges.items())) != hash(frozenset(ranges.items())):
+				logging.debug('update_datashader starts')
 				self.img.update_image(ranges)
 				self.last_ranges = ranges
+				logging.debug('update_datashader ends')
 		except Exception as e:
 			logging.debug('Exception({}):{}'.format(type(e),e))
 
 	def update_plot(self):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
-		# TODO rm 'True or'
-		if True or self.STATE['truncate']['mode'] == 'datashader':
+		if self.STATE['truncate']['mode'] == 'datashader':
 			self.plot.renderers.append(self.datashader)
 			return
 		self.source.clear()

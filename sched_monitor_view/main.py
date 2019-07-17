@@ -38,7 +38,7 @@ def modify_doc(doc):
 	################ lim bar ################
 	select_lim_mode = Select(
 		title="Mode",
-		options=["index","time"],
+		options=["index","time","datashader"],
 		value="index",
 		width=60,
 		sizing_mode="fixed",
