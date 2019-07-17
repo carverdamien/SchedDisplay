@@ -285,11 +285,12 @@ class State(object):
 	def update_plot(self):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
+		self.plot.legend.items = []
 		self.source.clear()
 		items = []
 		index = 0
-		items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
-		index+=1
+		# items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
+		# index+=1
 		if self.STATE['truncate']['mode'] == 'datashader':
 			tooltips = [("","($x, $y)")]
 			self.plot.renderers.append(self.datashader)

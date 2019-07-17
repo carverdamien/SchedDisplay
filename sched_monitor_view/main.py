@@ -101,7 +101,7 @@ def modify_doc(doc):
 	active_scroll = WheelZoomTool(dimensions="width")
 	tools = [
 		PanTool(dimensions="width"),
-		ResetTool(),
+		# ResetTool(),
 		SaveTool(),
 		active_scroll,
 		HoverTool()
