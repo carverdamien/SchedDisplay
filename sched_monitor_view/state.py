@@ -1,8 +1,6 @@
-import pandas as pd
 import datashader as ds
 import datashader.transfer_functions as tf
 from datashader.bokeh_ext import InteractiveImage
-import numpy as np
 from bokeh.events import LODEnd
 
 import logging
