@@ -93,7 +93,10 @@ def modify_doc(doc):
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
-	figure_plot = figure()
+	figure_plot = figure(
+		x_range=(0,1), # datashader cannot handle 0-sized range
+		y_range=(0,1), # datashader cannot handle 0-sized range
+	)
 	figure_plot.sizing_mode='stretch_both'
 	active_scroll = WheelZoomTool(dimensions="width")
 	tools = [
@@ -233,6 +236,8 @@ def modify_doc(doc):
 		update_button_import_json,
 	])
 	################ Data View ################
+	################ Plot View ################
+	UPDATES[PLOT_VIEW].extend([state.update_datashader])
 	#####################################################
 	################ Assamble components ################
 	#####################################################
