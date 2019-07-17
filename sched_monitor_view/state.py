@@ -288,6 +288,8 @@ class State(object):
 		self.source.clear()
 		items = []
 		index = 0
+		items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
+		index+=1
 		if self.STATE['truncate']['mode'] == 'datashader':
 			tooltips = [("","($x, $y)")]
 			self.plot.renderers.append(self.datashader)
