@@ -36,13 +36,6 @@ def modify_doc(doc):
 		labels=labels_TABS,
 	)
 	################ lim bar ################
-	enable_datashader = Button(
-		label="Datashader",
-		align="end",
-	    button_type="success",
-	    width_policy="min",
-	    visible=False,
-	)
 	select_lim_mode = Select(
 		title="Mode",
 		options=["index","time"],
@@ -114,7 +107,7 @@ def modify_doc(doc):
 	figure_plot.output_backend="webgl"
 	figure_plot.visible=False
 	figure_plot.add_layout(Legend(click_policy='hide'))
-	OBJECTS[PLOT_VIEW].extend([figure_plot, enable_datashader, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
+	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ State ################
 	state = State(doc, datatable, figure_plot)
 	###########################################
@@ -131,12 +124,6 @@ def modify_doc(doc):
 	################ Add interactivity ################
 	###################################################
 	################ lim bar ################
-	def on_click_enable_datashader(new):
-		state.datashader = not state.datashader
-		if state.datashader:
-			enable_datashader.button_type="success"
-		else:
-			enable_datashader.button_type="warning"
 	def update_lim_bar():
 		mode, cursor, width, end = state.get_truncate()
 		select_lim_mode.value = mode
@@ -161,7 +148,6 @@ def modify_doc(doc):
 			update_lim_bar()
 		except Exception as e:
 			print(e)
-	enable_datashader.on_click(on_click_enable_datashader)
 	select_lim_mode.on_change('value', on_change_select_lim_mode)
 	slider_lim_cursor.on_change('value_throttled', on_change_lim)
 	textinput_lim_witdh.on_change('value', on_change_lim)
@@ -265,7 +251,7 @@ def modify_doc(doc):
 	    textareainput_json,
 	    datatable,
 	    figure_plot,
-	    row(enable_datashader, select_lim_mode, slider_lim_cursor, textinput_lim_witdh, sizing_mode='scale_width'),
+	    row(select_lim_mode, slider_lim_cursor, textinput_lim_witdh, sizing_mode='scale_width'),
 	    sizing_mode = 'stretch_both',
 	)
 	doc.add_root(root)
