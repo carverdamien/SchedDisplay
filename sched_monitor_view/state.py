@@ -9,6 +9,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
+from bokeh.models.tools import HoverTool
 from tornado import gen
 from functools import partial
 import json
@@ -146,23 +147,19 @@ class State(object):
 		width = self.STATE['truncate']['width']
 		if mode == 'index':
 			end = len(self.DF)
-		elif mode in ['time','datashader']:
+		elif mode == 'time':
 			end = self.DF['timestamp'].iloc[-1]
 		else:
 			raise Exception('Unknown truncate mode')
 		return mode, cursor, width, end
 	def truncate(self, mode, cursor, width):
-		update_plot = False
 		if mode != self.STATE['truncate']['mode']:
 			# TODO: dont reset, try to stay at the same place
-			cursor = 0
-			width = 1
-			update_plot = 'datashader' in [mode, self.STATE['truncate']['mode']]
+			cursor = self.STATE['truncate']['cursor']
+			width = self.STATE['truncate']['width']
 		self.STATE['truncate'] = {'mode':mode, 'cursor': cursor, 'width':width}
 		self.update_source()
 		self.update_table()
-		if update_plot:
-			self.update_plot()
 		self.update_datashader()
 		return cursor, width
 	def sellim(self):
@@ -256,8 +253,6 @@ class State(object):
 		self.update_datashader()
 
 	def update_datashader(self):
-		if self.STATE['truncate']['mode'] != 'datashader':
-			return
 		try:
 			nr_cpu = 160
 			ymin = -1
@@ -289,13 +284,25 @@ class State(object):
 		self.source.clear()
 		items = []
 		index = 0
-		# items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
-		# index+=1
-		if self.STATE['truncate']['mode'] == 'datashader':
-			tooltips = [("","($x, $y)")]
-			self.plot.renderers.append(self.datashader)
-		else:
-			tooltips = [
+		self.plot.renderers.append(self.datashader)
+		items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
+		index+=1
+		for r in self.STATE['renderers']:
+			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
+			glyph = Segment(
+				x0=r['x0'],
+				x1=r['x1'],
+				y0=r['y0'],
+				y1=r['y1'],
+				line_color=r['line_color'],
+			)
+			_r = self.plot.add_glyph(source, glyph)
+			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
+			self.source.append((source, r['filter']))
+			index+=1
+		self.plot.legend.items = items
+		self.plot.add_tools(HoverTool(tooltips = [
+				("(x,y)","($x, $y)"),
 				("index","$index"),
 				("timestamp","@timestamp"),
 				("cpu","@cpu"),
@@ -305,22 +312,6 @@ class State(object):
 				("addr","@addr"),
 				("arg0","@arg0"),
 			    ("arg1","@arg1"),
-			]
-			for r in self.STATE['renderers']:
-				source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
-				glyph = Segment(
-					x0=r['x0'],
-					x1=r['x1'],
-					y0=r['y0'],
-					y1=r['y1'],
-					line_color=r['line_color'],
-				)
-				_r = self.plot.add_glyph(source, glyph)
-				items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
-				self.source.append((source, r['filter']))
-				index+=1
-		self.plot.legend.items = items
-		# Last tool must be hovertool
-		self.plot.toolbar.tools[-1].tooltips = tooltips
+			]))
 		logging.debug('update_plot ends')
 		pass

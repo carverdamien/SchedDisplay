@@ -1,7 +1,7 @@
 # External imports
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
-from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool, HoverTool
+from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
 from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput, Paragraph
@@ -38,7 +38,7 @@ def modify_doc(doc):
 	################ lim bar ################
 	select_lim_mode = Select(
 		title="Mode",
-		options=["index","time","datashader"],
+		options=["index","time"],
 		value="index",
 		width=60,
 		sizing_mode="fixed",
@@ -104,7 +104,6 @@ def modify_doc(doc):
 		# ResetTool(),
 		SaveTool(),
 		active_scroll,
-		HoverTool()
 	]
 	figure_plot.tools = tools
 	figure_plot.toolbar.active_scroll = active_scroll
