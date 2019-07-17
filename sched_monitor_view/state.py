@@ -301,6 +301,7 @@ class State(object):
 			self.source.append((source, r['filter']))
 			index+=1
 		self.plot.legend.items = items
+		# REMINDER: Hovertool must be inserted after renderers
 		self.plot.add_tools(HoverTool(tooltips = [
 				("(x,y)","($x, $y)"),
 				("index","$index"),
