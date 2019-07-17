@@ -8,7 +8,6 @@ from bokeh.plotting import curdoc
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
-from bokeh.models.tools import HoverTool
 from bokeh.models import Legend, LegendItem
 from tornado import gen
 from functools import partial
@@ -286,39 +285,39 @@ class State(object):
 	def update_plot(self):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
-		if self.STATE['truncate']['mode'] == 'datashader':
-			self.plot.renderers.append(self.datashader)
-			return
 		self.source.clear()
 		items = []
 		index = 0
-		for r in self.STATE['renderers']:
-			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
-			glyph = Segment(
-				x0=r['x0'],
-				x1=r['x1'],
-				y0=r['y0'],
-				y1=r['y1'],
-				line_color=r['line_color'],
-			)
-			_r = self.plot.add_glyph(source, glyph)
-			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
-			self.source.append((source, r['filter']))
-			index+=1
+		if self.STATE['truncate']['mode'] == 'datashader':
+			tooltips = [("","($x, $y)")]
+			self.plot.renderers.append(self.datashader)
+		else:
+			tooltips = [
+				("index","$index"),
+				("timestamp","@timestamp"),
+				("cpu","@cpu"),
+				("event","@event"),
+				("comm","@comm"),
+				("pid","@pid"),
+				("addr","@addr"),
+				("arg0","@arg0"),
+			    ("arg1","@arg1"),
+			]
+			for r in self.STATE['renderers']:
+				source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
+				glyph = Segment(
+					x0=r['x0'],
+					x1=r['x1'],
+					y0=r['y0'],
+					y1=r['y1'],
+					line_color=r['line_color'],
+				)
+				_r = self.plot.add_glyph(source, glyph)
+				items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
+				self.source.append((source, r['filter']))
+				index+=1
 		self.plot.legend.items = items
-		# TODO: add this in STATE
-		TOOLTIPS = [
-			("index","$index"),
-			("timestamp","@timestamp"),
-			("cpu","@cpu"),
-			("event","@event"),
-			("comm","@comm"),
-			("pid","@pid"),
-			("addr","@addr"),
-			("arg0","@arg0"),
-		    ("arg1","@arg1"),
-		]
-		self.plot.add_tools(HoverTool(tooltips=TOOLTIPS))
-		# TODO: eventually rm tool?
+		# Last tool must be hovertool
+		self.plot.toolbar.tools[-1].tooltips = tooltips
 		logging.debug('update_plot ends')
 		pass
