@@ -1,6 +1,7 @@
 # External imports
 from bokeh.layouts import row, column
 from bokeh.plotting import figure
+from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
 from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput, Paragraph
@@ -93,12 +94,21 @@ def modify_doc(doc):
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ Plot View ################
 	figure_plot = figure(
-	    sizing_mode='stretch_both',
-	    tools="xpan,reset,save,xwheel_zoom",
-	    active_scroll='xwheel_zoom',
-	    output_backend="webgl",
-	    visible=False,
+		x_range=(0,1), # datashader cannot handle 0-sized range
+		y_range=(0,1), # datashader cannot handle 0-sized range
 	)
+	figure_plot.sizing_mode='stretch_both'
+	active_scroll = WheelZoomTool(dimensions="width")
+	tools = [
+		PanTool(dimensions="width"),
+		# ResetTool(),
+		SaveTool(),
+		active_scroll,
+	]
+	figure_plot.tools = tools
+	figure_plot.toolbar.active_scroll = active_scroll
+	figure_plot.output_backend="webgl"
+	figure_plot.visible=False
 	figure_plot.add_layout(Legend(click_policy='hide'))
 	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
 	################ State ################
@@ -226,6 +236,8 @@ def modify_doc(doc):
 		update_button_import_json,
 	])
 	################ Data View ################
+	################ Plot View ################
+	UPDATES[PLOT_VIEW].extend([state.update_datashader])
 	#####################################################
 	################ Assamble components ################
 	#####################################################

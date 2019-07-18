@@ -1,10 +1,15 @@
+import datashader as ds
+import datashader.transfer_functions as tf
+from datashader.bokeh_ext import InteractiveImage
+from bokeh.events import LODEnd
+
 import logging
 from bokeh.plotting import curdoc
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
-from bokeh.models.tools import HoverTool
 from bokeh.models import Legend, LegendItem
+from bokeh.models.tools import HoverTool
 from tornado import gen
 from functools import partial
 import json
@@ -29,11 +34,25 @@ class State(object):
 			],
 		}
 		self.DF = pd.DataFrame()
+		# Add dummy point because datashader cannot handle emptyframe
+		self.dfimg = pd.DataFrame({
+			'x0':[0],
+			'x1':[0],
+			'y0':[0],
+			'y1':[0],
+			'category':[0],
+		})
+		self.dfimg['category'] = self.dfimg['category'].astype('category')
 		self.comm = {}
 		self.perf_event = {}
 		self.path_id = {}
 		self.path_id_next = 0
 		self.source = []
+		self.last_ranges = {}
+		self.plot.on_event(LODEnd, self.callback_LODEnd)          # Has to be executed before inserting plot in doc
+		self.img = InteractiveImage(self.plot, self.img_callback) # Has to be executed before inserting plot in doc
+		assert(len(self.plot.renderers) == 1)
+		self.datashader = self.plot.renderers[0]
 
 	def from_json(self, new_state, done):
 		new_state = json.loads(new_state)
@@ -76,6 +95,7 @@ class State(object):
 		self.DF.sort_values(by='timestamp', inplace=True)
 		self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
+		self.compute_dimg()
 		self.STATE['hdf5'].append(path)
 		self.update_plot()
 		self.update_source()
@@ -135,11 +155,12 @@ class State(object):
 	def truncate(self, mode, cursor, width):
 		if mode != self.STATE['truncate']['mode']:
 			# TODO: dont reset, try to stay at the same place
-			cursor = 0
-			width = 1
+			cursor = self.STATE['truncate']['cursor']
+			width = self.STATE['truncate']['width']
 		self.STATE['truncate'] = {'mode':mode, 'cursor': cursor, 'width':width}
 		self.update_source()
 		self.update_table()
+		self.update_datashader()
 		return cursor, width
 	def sellim(self):
 		sellim = np.zeros(len(self.DF), dtype=bool)
@@ -170,12 +191,102 @@ class State(object):
 				self.DF,
 				self.STATE['columns'][column],
 			)
+
+	def compute_dimg(self):
+		# Random df
+		# tmax = 1000000000
+		# N = 10000000
+		# nr_cpu = 160
+		# df = pd.DataFrame({
+		# 	'timestamp':np.random.randint(0,tmax,N).astype(float),
+		# 	'cpu':np.random.randint(0,nr_cpu,N).astype(float),
+		# 	'event':np.random.randint(0,10,N),
+		# 	'arg0':np.random.randint(0,2,N),
+		# })
+		# df.sort_values(by='timestamp', inplace=True)
+		# df.index = np.arange(len(df))
+		df = self.DF
+		tmax = df['timestamp'].iloc[-1]
+		nr_cpu = len(np.unique(df['cpu']))
+		ymin = -1
+		ymax = nr_cpu+1
+		px_height = 4
+		img_height = (nr_cpu+2)*px_height
+		y0_shift = 0. / float(px_height)
+		y1_shift = 2. / float(px_height)
+		dfevt = pd.DataFrame({
+			'x0':df['timestamp'],
+			'x1':df['timestamp'],
+			'y0':df['cpu']+y0_shift,
+			'y1':df['cpu']+y1_shift,
+			'category':df['event'],
+		})
+		# TODO intervals
+		# dfint = pd.DataFrame({
+		# 	'x0':df['timestamp'],
+		# 	'x1':sched_monitor_view.lang.columns.compute(df, ['nxt_of_same_evt_on_same_cpu','timestamp']),
+		# 	'y0':df['cpu'],
+		# 	'y1':df['cpu'],
+		# 	'category':df['event'],
+		# })
+		self.dfimg = dfevt # TODO intervals
+		# dfimg = pd.concat([dfevt, dfint[sel]],ignore_index=True)
+		self.dfimg['category'] = self.dfimg['category'].astype('category')
+		# del dfevt
+		# del dfint
+		self.plot.x_range.start = 0
+		self.plot.x_range.end = tmax
+		self.plot.y_range.start = ymin
+		self.plot.y_range.end = ymax
+		self.plot.plot_width = 500
+		self.plot.plot_height = img_height
+
+	def img_callback(self, x_range, y_range, w, h, name=None):
+		logging.debug('img_callback starts')
+		cvs = ds.Canvas(plot_width=w, plot_height=h, x_range=x_range, y_range=y_range)
+		agg = cvs.line(self.dfimg, x=['x0','x1'], y=['y0','y1'], agg=ds.count_cat('category'), axis=1)
+		img = tf.shade(agg,min_alpha=255)
+		logging.debug('img_callback ends')
+		return img
+
+	def callback_LODEnd(self, event):
+		self.update_datashader()
+
+	def update_datashader(self):
+		try:
+			nr_cpu = 160
+			ymin = -1
+			ymax = nr_cpu+1
+			px_height = 4
+			img_height = (nr_cpu+2)*px_height
+			figure_plot = self.plot
+			ranges = {
+				'xmin':figure_plot.x_range.start,
+				'xmax':figure_plot.x_range.end,
+				'ymin':ymin, # do not use figure_plot.y_range.start
+				'ymax':ymax, # do not use figure_plot.y_range.end
+				'w':figure_plot.plot_width,
+				'h':img_height, # do not use figure_plot.plot_height
+			}
+			last_ranges = self.last_ranges
+			if hash(frozenset(last_ranges.items())) != hash(frozenset(ranges.items())):
+				logging.debug('update_datashader starts')
+				self.img.update_image(ranges)
+				self.last_ranges = ranges
+				logging.debug('update_datashader ends')
+		except Exception as e:
+			logging.debug('Exception({}):{}'.format(type(e),e))
+
 	def update_plot(self):
 		logging.debug('update_plot starts')
 		self.plot.renderers.clear()
+		self.plot.legend.items = []
 		self.source.clear()
 		items = []
 		index = 0
+		self.plot.renderers.append(self.datashader)
+		items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
+		index+=1
 		for r in self.STATE['renderers']:
 			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
 			glyph = Segment(
@@ -190,19 +301,18 @@ class State(object):
 			self.source.append((source, r['filter']))
 			index+=1
 		self.plot.legend.items = items
-		# TODO: add this in STATE
-		TOOLTIPS = [
-			("index","$index"),
-			("timestamp","@timestamp"),
-			("cpu","@cpu"),
-			("event","@event"),
-			("comm","@comm"),
-			("pid","@pid"),
-			("addr","@addr"),
-			("arg0","@arg0"),
-		    ("arg1","@arg1"),
-		]
-		self.plot.add_tools(HoverTool(tooltips=TOOLTIPS))
-		# TODO: eventually rm tool?
+		# REMINDER: Hovertool must be inserted after renderers
+		self.plot.add_tools(HoverTool(tooltips = [
+				("(x,y)","($x, $y)"),
+				("index","$index"),
+				("timestamp","@timestamp"),
+				("cpu","@cpu"),
+				("event","@event"),
+				("comm","@comm"),
+				("pid","@pid"),
+				("addr","@addr"),
+				("arg0","@arg0"),
+			    ("arg1","@arg1"),
+			]))
 		logging.debug('update_plot ends')
 		pass
