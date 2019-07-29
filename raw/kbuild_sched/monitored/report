@@ -28,4 +28,4 @@ cat >output/summary.json <<EOF
   "tasks":${TASKS}
 }
 EOF
-./report.py "date/$(date).hdf5" output
+./report.py "${HDF5}" output

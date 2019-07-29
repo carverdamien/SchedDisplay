@@ -1,5 +1,6 @@
 #!/bin/bash
 set -u -e -x
+! [ -f ${HDF5} ]
 source cleanup
 source prepare
 [ -n "${MONITOR}" ] && source monitoring_start
