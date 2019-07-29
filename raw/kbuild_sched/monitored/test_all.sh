@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e -x -u
+
 TASKS=256
 TIMEOUT=36000
 
