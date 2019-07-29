@@ -12,6 +12,7 @@ sed -n 's/\([0-9]*\)/"\1"/p'
 EOF
 cat >output/summary.json <<EOF
 {
+  "MONITOR" : "${MONITOR}",
   "kernel" : {
     "version" : "$(uname -r)",
     "cmdline" : "$(cat /proc/cmdline)"
