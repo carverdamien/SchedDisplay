@@ -12,6 +12,14 @@ sed -n 's/\([0-9]*\)/"\1"/p'
 EOF
 cat >output/summary.json <<EOF
 {
+  "kernel" : {
+    "version" : "$(uname -r)",
+    "cmdline" : "$(cat /proc/cmdline)"
+  },
+  "cpu" : {
+    "scaling_governor" : "$(sort /sys/devices/system/cpu/cpufreq/policy*/scaling_governor | uniq)",
+    "no_turbo" : "$(cat /sys/devices/system/cpu/intel_pstate/no_turbo)"
+  },
   "name":"kbuild",
   "ipanema":"${PATH_TO_IPANEMA_MODULE}",
   "time":${TIME},
