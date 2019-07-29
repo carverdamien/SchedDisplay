@@ -22,7 +22,7 @@ cat >output/summary.json <<EOF
     "scaling_governor" : "$(sort /sys/devices/system/cpu/cpufreq/policy*/scaling_governor | uniq)",
     "no_turbo" : "$(cat /sys/devices/system/cpu/intel_pstate/no_turbo)"
   },
-  "name":"kbuild",
+  "run":"$(cat run)",
   "ipanema":"${PATH_TO_IPANEMA_MODULE}",
   "time":${TIME},
   "tasks":${TASKS}
