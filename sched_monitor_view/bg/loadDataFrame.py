@@ -3,6 +3,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import itertools
+from sched_monitor_view.utils.hdf5_description import description
 
 EXEC_EVT = 0
 
@@ -33,6 +34,7 @@ def fg(path, path_id, callback, done):
 		df['path_id'] = np.array([path_id]*len(df['timestamp']))
 		df = pd.DataFrame(df)
 		data = {
+			'description' : description(f),
 			'df' : df,
 			'comm' : comm,
 			'perf_event' : perf_event,

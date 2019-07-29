@@ -43,7 +43,7 @@ class State(object):
 			'category':[0],
 		})
 		self.dfimg['category'] = self.dfimg['category'].astype('category')
-		self.comm = {}
+		self.description = []
 		self.perf_event = {}
 		self.path_id = {}
 		self.path_id_next = 0
@@ -87,8 +87,8 @@ class State(object):
 	def coroutine_load_hdf5(self, path, data, done):
 		logging.debug('coroutine_load_hdf5 starts')
 		df = data['df']
-		self.comm.clear()
-		self.comm.update(data['comm'])
+		self.description.clear()
+		self.description.extend(data['description'])
 		self.perf_event.clear()
 		self.perf_event.update(data['perf_event'])
 		self.DF = self.DF.append(df, ignore_index=True)

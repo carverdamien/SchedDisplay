@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import h5py, sys
-f=h5py.File(sys.argv[1], 'r')
+# f=h5py.File(sys.argv[1], 'r')
 
 def description(f):
 	res = []
@@ -13,4 +13,4 @@ def description(f):
 		if isinstance(v, h5py._hl.group.Group):
 			res+=description(v)
 	return res
-print('\n'.join(description(f)))
+# print('\n'.join(description(f)))

@@ -200,7 +200,7 @@ def modify_doc(doc):
 	button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
 	def update_paragraph_info():
 		paragraph_info.text = "{}{}{}{}".format(
-			state.comm,
+			'\n'.join(state.description),
 			[(i,Types.EVENT[i]) for i in range(len(Types.EVENT))],
 			[(state.perf_event[k]["id"],hex(state.perf_event[k]["config1"])) for k in state.perf_event],
 			[
