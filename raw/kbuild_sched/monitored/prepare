@@ -13,3 +13,4 @@ tar -C /tmp/kbuild -xJf ${tar}
 make -C /tmp/kbuild/linux* defconfig
 
 mkdir output
+dmesg -C

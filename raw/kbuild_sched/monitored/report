@@ -1,4 +1,5 @@
 #!/bin/bash
+dmesg > output/dmesg
 TIME=$(cat output/run.out)
 cat >output/perf_event.json <<EOF
 {
