@@ -23,7 +23,10 @@ def load_json(path):
         return json.load(f)
 
 def load_sched_monitor(path):
-    df, comm = load_tracer_raw(os.path.join(path, 'tracer-raw'))
+    path = os.path.join(path, 'tracer-raw')
+    if not os.path.exists(path):
+        return {}
+    df, comm = load_tracer_raw(path)
     return {
         'tracer-raw' : { 'df' : df, 'comm':comm }
     }
