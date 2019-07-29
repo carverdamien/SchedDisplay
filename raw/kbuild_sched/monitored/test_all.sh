@@ -7,7 +7,7 @@ for NO_TURBO in '0' '1'
 do
     for SCALING_GOVERNOR in 'performance' 'powersave'
     do
-	for PATH_TO_IPANEMA_MODULE in ''
+	for PATH_TO_IPANEMA_MODULE in '' "/lib/modules/$(uname -r)/source/ipanema/modules/cfs_wwc_local_new_unblock.ko"
 	do
 	    for MONITOR in '' 'y'
 	    do
