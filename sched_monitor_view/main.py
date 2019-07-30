@@ -1,270 +1,262 @@
 # External imports
 from bokeh.layouts import row, column
-from bokeh.plotting import curdoc, figure
+from bokeh.plotting import figure
+from bokeh.models.tools import PanTool, ResetTool, SaveTool, WheelZoomTool
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider
+from bokeh.models.widgets import Select, CheckboxGroup, Button, Dropdown, ColorPicker, RangeSlider, Slider, TextAreaInput, RadioButtonGroup, DataTable, TableColumn, TextInput, Paragraph
 from bokeh.models import ColumnDataSource
 from tornado import gen
 from functools import partial
 # Internal imports
-import Types
-import feeds.fspath
-import bg.loadData
-import bg.updateSource
+import sched_monitor_view.feeds.fspath as fspath
+from sched_monitor_view.state import State
+import sched_monitor_view.Types as Types
 
-TYPES = Types.EVENT+Types.INTERVAL
-data = {}
-color = {
-    k:'#FFFFFF'
-    for k in TYPES
-}
-# Build the components
-doc = curdoc()
-select_hdf5 = Select(
-    title ='Path:',
-    sizing_mode="fixed",
-)
-button_load_hdf5 = Button(
-    label="Load",
-    align="end",
-    button_type="success",
-    width_policy="min",
-)
-select_types = Select(
-    title="Types",
-    sizing_mode="fixed",
-    options=TYPES,
-    value=TYPES[0],
-)
-colorpicker_types = ColorPicker(
-    width=50,
-    sizing_mode="fixed",
-    align='end',
-    color='#FFFFFF',
-)
-rangeslider_t0 = RangeSlider(
-    start=0,
-    end=100,
-    value=(0,100),
-    step=1,
-    sizing_mode="scale_width",
-    disabled=True,
-    callback_policy="mouseup",
-)
-rangeslider_t0_value = [0,100]
-slider_truncate = Slider(
-    title='Truncate (<=1000 Recommended)',
-    start=2,
-    end=1000,
-    value=1000,
-    width=300,
-    sizing_mode="fixed",
-)
-button_plot = Button(
-    align='end',
-    label="Plot",
-    button_type="success",
-    width_policy="min",
-    disabled=True,
-)
-TOOLTIPS = [
-    ("type","@t"),
-    ("timestamp","@x0"),
-    ("pid","@pid"),
-    ("addr","@addr"),
-    ("arg0","@arg0"),
-    ("arg1","@arg1"),
-]
-figure_plot = figure(
-    sizing_mode='stretch_both',
-    tools="xpan,reset,save,xwheel_zoom,hover",
-    tooltips=TOOLTIPS,
-    active_scroll='xwheel_zoom',
-    output_backend="webgl",
-)
-source_event = [
-    ColumnDataSource(
-        data=dict(x0=[], y0=[], x1=[], y1=[])
-    )
-    for i in range(len(Types.EVENT))
-]
-source_interval = [
-    ColumnDataSource(
-        data=dict(x0=[], y0=[], x1=[], y1=[])
-    )
-    for i in range(len(Types.INTERVAL))
-]
-items=[]
-index=0
-segment_event = [
-    Segment(
-        x0='x0',
-        x1='x1',
-        y0='y0',
-        y1='y1',
-        line_color='#FFFFFF',
-    )
-    for i in range(len(source_event))
-]
-
-for i in range(len(source_event)):
-    r = figure_plot.add_glyph(source_event[i], segment_event[i])
-    items.append(LegendItem(label=Types.EVENT[i], renderers=[r], index=index))
-    index+=1
-segment_interval = [
-    Segment(
-        x0='x0',
-        x1='x1',
-        y0='y0',
-        y1='y1',
-        line_color='#FFFFFF'
-    )
-    for i in range(len(source_interval))
-]
-for i in range(len(source_interval)):
-    r = figure_plot.add_glyph(source_interval[i], segment_interval[i])
-    items.append(LegendItem(label=Types.INTERVAL[i], renderers=[r], index=index))
-    index+=1
-legend = Legend(items=items)
-figure_plot.add_layout(legend)
-# Add feeds
-root = './raw'
-ext  = '.hdf5'
-@gen.coroutine
-def coroutine_fspath(l):
-    select_hdf5.options = l
-    select_hdf5.value = l[0]
-def callback_fspath(l):
-    doc.add_next_tick_callback(partial(coroutine_fspath, l))
-feeds.fspath.feed(root,ext,callback_fspath).start()
-
-# Add interactivity
-def on_change_select_hdf5(attr, old, new):
-    path = select_hdf5.value
-    if path in data:
-        button_load_hdf5.label = 'rm'
-        button_load_hdf5.button_type = 'warning'
-    else:
-        button_load_hdf5.label = 'add'
-        button_load_hdf5.button_type = 'success'
-    pass
-select_hdf5.on_change('value', on_change_select_hdf5)
-def on_change_select_types(attr, old, new):
-    type_selected = select_types.value
-    colorpicker_types.color = color[type_selected]
-select_types.on_change('value', on_change_select_types)
-def on_change_colorpicker_types(attr, old, new):
-    type_selected = select_types.value
-    new_color = colorpicker_types.color
-    if type_selected in Types.EVENT:
-        i = Types.ID_EVENT[type_selected]
-        segment_event[i].line_color = new_color
-    elif type_selected in Types.INTERVAL:
-        i = Types.ID_INTERVAL[type_selected]
-        segment_interval[i].line_color = new_color
-    else:
-        raise Exception()
-    color[type_selected] = new_color
-    pass
-colorpicker_types.on_change('color', on_change_colorpicker_types)
-@gen.coroutine
-def coroutine_loadData(path, new_data):
-    if path in data:
-        raise Exception()
-    data[path]=new_data
-    rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
-    rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
-    rangeslider_t0_value[0] = rangeslider_t0.start
-    rangeslider_t0_value[1] = rangeslider_t0.end
-    figure_plot.x_range.start = rangeslider_t0.start
-    figure_plot.x_range.end = rangeslider_t0.end
-    figure_plot.y_range.start = 0
-    figure_plot.y_range.end = sum([1 for path in data for cpu in data[path]])
-    slider_truncate.value = 1000
-    slider_truncate.end = max([len(data[path][cpu]['timestamp']) for path in data for cpu in data[path]])
-    button_load_hdf5.label = 'rm'
-    button_load_hdf5.button_type = 'warning'
-    button_load_hdf5.disabled = False
-    button_plot.disabled = False
-    rangeslider_t0.disabled = False
-def callback_loadData(path, new_data):
-    doc.add_next_tick_callback(partial(coroutine_loadData, path, new_data))
-def on_click_loadhdf5(new):
-    path = select_hdf5.value
-    if path in data:
-        del data[path]
-        button_load_hdf5.label = 'add'
-        button_load_hdf5.button_type = 'success'
-        if len(data) == 0:
-            button_plot.disabled = True
-            rangeslider_t0.disabled = True
-        else:
-            rangeslider_t0.end = max([data[path][cpu]['timestamp'][-1] for path in data for cpu in data[path]])
-            rangeslider_t0.value = (rangeslider_t0.start, rangeslider_t0.end)
-            rangeslider_t0_value[0] = rangeslider_t0.start
-            rangeslider_t0_value[1] = rangeslider_t0.end
-    else:
-        button_load_hdf5.disabled = True
-        button_plot.disabled = True
-        rangeslider_t0.disabled = True
-        bg.loadData.load(path, callback_loadData).start()
-button_load_hdf5.on_click(on_click_loadhdf5)
-@gen.coroutine
-def coroutine_plot(source_event_data, source_interval_data, tlim):
-    rangeslider_t0.value = tlim
-    rangeslider_t0_value[0] = tlim[0]
-    rangeslider_t0_value[1] = tlim[1]
-    figure_plot.x_range.start = tlim[0]
-    figure_plot.x_range.end = tlim[1]
-    for i in range(len(source_event)):
-        source_event[i].data = source_event_data[i]
-    for i in range(len(source_interval)):
-        source_interval[i].data = source_interval_data[i]
-    button_load_hdf5.disabled = False
-    button_plot.disabled = False
-    rangeslider_t0.disabled = False
-    pass
-def callback_plot(source_event_data, source_interval_data, tlim):
-    doc.add_next_tick_callback(
-        partial(
-            coroutine_plot,
-            source_event_data,
-            source_interval_data,
-            tlim,
-        )
-    )
-def go_plot(tlim):
-    button_load_hdf5.disabled = True
-    button_plot.disabled = True
-    rangeslider_t0.disabled = True
-    truncate = slider_truncate.value
-    event    = [i for i in range(len(Types.EVENT))    if color[Types.EVENT[i]]    != '#FFFFFF']
-    interval = [i for i in range(len(Types.INTERVAL)) if color[Types.INTERVAL[i]] != '#FFFFFF']
-    bg.updateSource.plot(data, truncate, event, interval, tlim, callback_plot).start()
-def on_click_plot(new):
-    tlim = rangeslider_t0.value
-    go_plot(tlim)
-button_plot.on_click(on_click_plot)
-def on_change_rangeslider_t0(attr, old, new):
-    value = tuple(new)
-    if rangeslider_t0_value is not None and new[1] > rangeslider_t0_value[1]:
-        value = (new[0]+new[1]-rangeslider_t0_value[1], new[1])
-    go_plot(value)
-rangeslider_t0.on_change('value_throttled', on_change_rangeslider_t0)
-# assamble components
-root = column(
-    row(
-        select_hdf5,
-        button_load_hdf5,
-        select_types,
-        colorpicker_types,
-        slider_truncate,
-        button_plot,
-        sizing_mode = 'scale_width',
-    ),
-    figure_plot,
-    rangeslider_t0,
-    sizing_mode = 'stretch_both',
-)
-doc.add_root(root)
+def modify_doc(doc):
+	######################################################
+	################ Build the components ################
+	######################################################
+	USER_VIEW = 0
+	JSON_VIEW = 1
+	DATA_VIEW = 2
+	PLOT_VIEW = 3
+	TABS        = [   USER_VIEW,   JSON_VIEW,   DATA_VIEW,   PLOT_VIEW, ]
+	labels_TABS = [ "User View", "JSON View", "Data View", "Plot View", ]
+	OBJECTS = {
+		k:[]
+		for k in TABS
+	}
+	UPDATES = {
+		k:[]
+		for k in TABS
+	}
+	################ TABS View ################
+	radiobuttongroup_tab = RadioButtonGroup(
+		labels=labels_TABS,
+	)
+	################ lim bar ################
+	select_lim_mode = Select(
+		title="Mode",
+		options=["index","time"],
+		value="index",
+		width=60,
+		sizing_mode="fixed",
+		visible=False,
+	)
+	textinput_lim_witdh = TextInput(
+		title="Width",
+		sizing_mode="fixed",
+		value='1',
+		width=100,
+		visible=False,
+	)
+	slider_lim_cursor = Slider(
+		align="center",
+	    start=0,
+	    end=1,
+	    value=0,
+	    step=1,
+	    width_policy="max",
+	    sizing_mode="scale_width",
+	    callback_policy="mouseup",
+	    visible=False,
+	)
+	################ User View ################
+	select_hdf5 = Select(
+	    title ='Path:',
+	    sizing_mode="fixed",
+	    visible=False,
+	)
+	button_add_or_rm_hdf5 = Button(
+	    align="end",
+	    button_type="success",
+	    width_policy="min",
+	    visible=False,
+	)
+	paragraph_info = Paragraph()
+	OBJECTS[USER_VIEW].extend([select_hdf5,button_add_or_rm_hdf5,paragraph_info])
+	################ JSON View ################
+	textareainput_json = TextAreaInput(
+		visible=False,
+		max_length=2**20,
+	)
+	button_import_json = Button(
+		label="Import",
+		align="end",
+	    button_type="success",
+	    width_policy="min",
+	    visible=False,
+	)
+	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
+	################ Data View ################
+	datatable = DataTable(source=ColumnDataSource(), visible=False)
+	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
+	################ Plot View ################
+	figure_plot = figure(
+		x_range=(0,1), # datashader cannot handle 0-sized range
+		y_range=(0,1), # datashader cannot handle 0-sized range
+	)
+	figure_plot.sizing_mode='stretch_both'
+	active_scroll = WheelZoomTool(dimensions="width")
+	tools = [
+		PanTool(dimensions="width"),
+		# ResetTool(),
+		SaveTool(),
+		active_scroll,
+	]
+	figure_plot.tools = tools
+	figure_plot.toolbar.active_scroll = active_scroll
+	figure_plot.output_backend="webgl"
+	figure_plot.visible=False
+	figure_plot.add_layout(Legend(click_policy='hide'))
+	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
+	################ State ################
+	state = State(doc, datatable, figure_plot)
+	###########################################
+	################ Add feeds ################
+	###########################################
+	@gen.coroutine
+	def coroutine_fspath(l):
+	    select_hdf5.options = l
+	    select_hdf5.value = l[0]
+	def callback_fspath(l):
+	    doc.add_next_tick_callback(partial(coroutine_fspath, l))
+	fspath.feed('./raw', '.hdf5',callback_fspath).start()
+	###################################################
+	################ Add interactivity ################
+	###################################################
+	################ lim bar ################
+	def update_lim_bar():
+		mode, cursor, width, end = state.get_truncate()
+		select_lim_mode.value = mode
+		slider_lim_cursor.value = 0
+		slider_lim_cursor.end = end
+		slider_lim_cursor.value = cursor
+		textinput_lim_witdh.value = str(width)
+	def on_change_lim(attr, old, new):
+		mode = select_lim_mode.value
+		cursor = slider_lim_cursor.value
+		try:
+			width = int(textinput_lim_witdh.value)
+			cursor, width = state.truncate(mode, cursor, width)
+		except Exception as e:
+			print(e)
+	def on_change_select_lim_mode(attr, old, new):
+		mode = select_lim_mode.value
+		cursor = slider_lim_cursor.value
+		try:
+			width = int(textinput_lim_witdh.value)
+			cursor, width = state.truncate(mode, cursor, width)
+			update_lim_bar()
+		except Exception as e:
+			print(e)
+	select_lim_mode.on_change('value', on_change_select_lim_mode)
+	slider_lim_cursor.on_change('value_throttled', on_change_lim)
+	textinput_lim_witdh.on_change('value', on_change_lim)
+	################ TABS View ################
+	def on_click_radiobuttongroup_tab(new):
+		selected = radiobuttongroup_tab.active
+		for view in TABS:
+			for o in OBJECTS[view]:
+				o.visible = False
+		for o in OBJECTS[selected]:
+			o.visible = True
+		for f in UPDATES[selected]:
+			f()
+		pass
+	radiobuttongroup_tab.on_click(on_click_radiobuttongroup_tab)
+	################ User View ################
+	def update_button_add_or_rm_hdf5():
+		path = select_hdf5.value
+		if state.hdf5_is_loaded(path):
+			button_add_or_rm_hdf5.label = 'rm'
+			button_add_or_rm_hdf5.button_type = 'warning'
+		else:
+			button_add_or_rm_hdf5.label = 'add'
+			button_add_or_rm_hdf5.button_type = 'success'
+	def on_change_select_hdf5(attr, old, new):
+	    update_button_add_or_rm_hdf5()
+	select_hdf5.on_change('value', on_change_select_hdf5)
+	def load_done():
+		update_lim_bar()
+		select_hdf5.disabled = False
+		button_add_or_rm_hdf5.disabled = False
+		update_button_add_or_rm_hdf5()
+	def on_click_loadhdf5(new):
+		path = select_hdf5.value
+		if state.hdf5_is_loaded(path):
+			select_hdf5.disabled = True
+			button_add_or_rm_hdf5.disabled = True
+			state.unload_hdf5(path)
+			update_lim_bar()
+			update_button_add_or_rm_hdf5()
+			select_hdf5.disabled = False
+			button_add_or_rm_hdf5.disabled = False
+		else:
+			select_hdf5.disabled = True
+			button_add_or_rm_hdf5.disabled = True
+			state.load_hdf5(path, load_done)
+	button_add_or_rm_hdf5.on_click(on_click_loadhdf5)
+	def update_paragraph_info():
+		paragraph_info.text = "{}{}{}{}".format(
+			'\n'.join(state.description),
+			[(i,Types.EVENT[i]) for i in range(len(Types.EVENT))],
+			[(state.perf_event[k]["id"],hex(state.perf_event[k]["config1"])) for k in state.perf_event],
+			[
+				("0x063bc0","LLC_MISS.REMOTE_DRAM"),
+				("0x060400","LLC_MISS.LOCAL_DRAM"),
+			]
+		)
+		pass
+	UPDATES[USER_VIEW].extend([update_button_add_or_rm_hdf5, update_paragraph_info])
+	################ JSON View ################
+	def from_json_done():
+		update_button_import_json()
+		update_lim_bar()
+	def on_click_button_import_json(new):
+		new_state = textareainput_json.value
+		button_import_json.disabled = True
+		state.from_json(new_state, from_json_done)
+	button_import_json.on_click(on_click_button_import_json)
+	def update_button_import_json():
+		new_state = textareainput_json.value
+		if state.is_valid(new_state):
+			button_import_json.disabled = False
+		else:
+			button_import_json.disabled = True
+	def update_textareainput_json():
+		value = state.to_pretty_json()
+		textareainput_json.value = value
+	def on_change_textareainput_json(attr, old, new):
+		update_button_import_json()
+	textareainput_json.on_change('value', on_change_textareainput_json)
+	UPDATES[JSON_VIEW].extend([
+		update_textareainput_json,
+		update_button_import_json,
+	])
+	################ Data View ################
+	################ Plot View ################
+	UPDATES[PLOT_VIEW].extend([state.update_datashader])
+	#####################################################
+	################ Assamble components ################
+	#####################################################
+	root = column(
+	    row(
+	        radiobuttongroup_tab,
+	        sizing_mode = 'scale_width',
+	    ),
+	    row(
+			select_hdf5,
+			button_add_or_rm_hdf5,
+			button_import_json,
+			sizing_mode = 'scale_width',
+	    ),
+	    paragraph_info,
+	    textareainput_json,
+	    datatable,
+	    figure_plot,
+	    row(select_lim_mode, slider_lim_cursor, textinput_lim_witdh, sizing_mode='scale_width'),
+	    sizing_mode = 'stretch_both',
+	)
+	doc.add_root(root)

@@ -1,0 +1,150 @@
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "label": "all events #nofilter",
+            "filter": [],
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1",
+            "line_color": "#0000FF"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 1000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "label": "EXEC events only",
+            "filter": ["==","event",0],
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1",
+            "line_color": "#0000FF"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 1000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "label": "RQSIZE of pid0",
+            "filter": ["&",["==","pid",0],["==","event",13]],
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1",
+            "line_color": "#0000FF"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "index",
+        "width": 1000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["==","comm",6],
+            "label": "gcc",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        },
+        {
+            "filter": ["==","comm",4],
+            "label": "make",
+            "line_color": "#0000FF",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        },
+        {
+            "filter": ["==","comm",5],
+            "label": "sh",
+            "line_color": "#FF0000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        }
+    ],
+    "truncate": {
+        "cursor": 1394576,
+        "mode": "index",
+        "width": 10000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["&",["==","comm",6],["==","event",4]],
+            "label": "block gcc",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        },
+        {
+            "filter": ["&",["==","comm",4],["==","event",4]],
+            "label": "block make",
+            "line_color": "#0000FF",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        },
+        {
+            "filter": ["&",["==","comm",5],["==","event",4]],
+            "label": "block sh",
+            "line_color": "#FF0000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        }
+    ],
+    "truncate": {
+        "cursor": 1394576,
+        "mode": "index",
+        "width": 10000
+    }
+}
+{
+    "columns": { "y1": ["+",["copy","cpu"],0.75]},
+    "hdf5": ["./raw/hackbench/256-linux-comm.hdf5"],
+    "renderers": [
+        {
+            "filter": ["&",["==","comm",6],["==","event",2]],
+            "label": "wakeup gcc",
+            "line_color": "#000000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        },
+        {
+            "filter": ["&",["==","comm",4],["==","event",2]],
+            "label": "wakeup make",
+            "line_color": "#0000FF",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        },
+        {
+            "filter": ["&",["==","comm",5],["==","event",2]],
+            "label": "wakeup sh",
+            "line_color": "#FF0000",
+            "x0": "timestamp", "x1": "timestamp",
+            "y0": "cpu", "y1": "y1"
+        }
+    ],
+    "truncate": {
+        "cursor": 1394576,
+        "mode": "index",
+        "width": 10000
+    }
+}

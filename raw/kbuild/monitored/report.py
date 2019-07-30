@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-import sys, h5py, os, mmap, struct, json
+import sys, h5py, os, mmap, struct, json, itertools
 import numpy as np
+import pandas as pd
+
+EXEC_EVT = 0
 
 def main():
     o_path, i_path = sys.argv[1:3]
@@ -10,6 +13,7 @@ def main():
 
 def load_data(path):
     return {
+        'perf_event' : load_json(os.path.join(path, 'perf_event.json')),
         'summary' : load_json(os.path.join(path, 'summary.json')),
         'sched_monitor' : load_sched_monitor(os.path.join(path,'sched_monitor')),
     }
@@ -19,15 +23,51 @@ def load_json(path):
         return json.load(f)
 
 def load_sched_monitor(path):
+    df, comm = load_tracer_raw(os.path.join(path, 'tracer-raw'))
     return {
-        'tracer-raw' : load_tracer_raw(os.path.join(path, 'tracer-raw')),
+        'tracer-raw' : { 'df' : df, 'comm':comm }
     }
 
 def load_tracer_raw(path):
-    return {
+    data = {
         cpu : load_tracer_raw_per_cpu(os.path.join(path, cpu))
         for cpu in os.listdir(path)
     }
+    cpus = list(data.keys())
+    cpus.sort(key=lambda x:int(x))
+    keys = list(data[cpus[0]].keys())
+    df = {
+	k : np.concatenate([data[cpu][k] for cpu in cpus])
+	for k in keys
+    }
+    df['cpu'] = np.concatenate([np.array([int(cpu)]*len(data[cpu][keys[0]])) for cpu in cpus])
+    df = pd.DataFrame(df)
+    df.sort_values(by='timestamp', inplace=True)
+    df.index = np.arange(len(df))
+    comm = {'':0}
+    comm_id = 1
+    df['comm'] = np.zeros(len(df))
+    sel = df['event'] == EXEC_EVT
+    it = itertools.zip_longest(
+        df['pid'][sel],
+        df['addr'][sel],
+        df['timestamp'][sel],
+    )
+    for pid, addr, timestamp in it:
+        sel = (df['pid'] == pid) & (df['timestamp'] >= timestamp)
+        b = addr.to_bytes(8, byteorder="little")
+        i = 0
+        while i < 8 and b[i] > 0:
+            i+=1
+        c = b[:i].decode()
+        print(pid, c)
+        if c not in comm:
+            comm[c] = comm_id
+            comm_id += 1
+        df.loc[sel, 'comm'] = comm[c]
+    comm['N/A'] = comm['']
+    del comm['']
+    return df, comm
 
 def load_tracer_raw_per_cpu(path):
     data = {
@@ -47,8 +87,8 @@ def load_tracer_raw_per_cpu(path):
             head = entry[:16]
             tail = entry[16:]
             timestamp, pid, event = struct.unpack('<Qii',head)
-            addr, = struct.unpack('<Q',tail)
             arg0, arg1 = struct.unpack('<ii',tail)
+            addr = (arg0<<32|arg1)
             entry = {
                 'timestamp' : timestamp,
                 'pid' : pid,
@@ -63,15 +103,17 @@ def load_tracer_raw_per_cpu(path):
 
 def store(grp, obj):
     for key in obj:
-        if isinstance(obj[key], dict):
+        if isinstance(obj[key], (dict, pd.DataFrame)):
             new_grp = grp.create_group(key)
             store(new_grp, obj[key])
         elif isinstance(obj[key], (str,int,float)):
             grp.attrs[key] = obj[key]
         elif isinstance(obj[key], (np.ndarray,list)):
             grp.create_dataset(key,data=obj[key],compression="gzip")
+        elif isinstance(obj[key], (pd.Series)):
+            grp.create_dataset(key,data=np.array(obj[key]),compression="gzip")
         else:
-            raise Exception('Cannot store key {} of obj {}'.format(key,obj))
+            raise Exception('Cannot store key {} (type={}) of obj {}'.format(key,type(obj[key]),obj))
 
 if __name__ == '__main__':
     main()

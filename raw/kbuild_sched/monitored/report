@@ -1,0 +1,31 @@
+#!/bin/bash
+dmesg > output/dmesg
+TIME=$(cat output/run.out)
+cat >output/perf_event.json <<EOF
+{
+$(
+sed -n 's/.*SCHED_MONITOR_PERF\(.*\)/\1,/p' output/dmesg |
+sed '$ s/,$//'  |
+nl -v0 -w1 -nln -s: |
+sed -n 's/\([0-9]*\)/"\1"/p'
+)
+}
+EOF
+cat >output/summary.json <<EOF
+{
+  "MONITOR" : "${MONITOR}",
+  "kernel" : {
+    "version" : "$(uname -r)",
+    "cmdline" : "$(cat /proc/cmdline)"
+  },
+  "cpu" : {
+    "scaling_governor" : "$(sort /sys/devices/system/cpu/cpufreq/policy*/scaling_governor | uniq)",
+    "no_turbo" : "$(cat /sys/devices/system/cpu/intel_pstate/no_turbo)"
+  },
+  "run":"$(cat run)",
+  "ipanema":"${PATH_TO_IPANEMA_MODULE}",
+  "time":${TIME},
+  "tasks":${TASKS}
+}
+EOF
+./report.py "${HDF5}" output

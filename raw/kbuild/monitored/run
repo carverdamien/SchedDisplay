@@ -1,3 +1,8 @@
 #!/bin/bash
 set -e -u
-exec make -C /tmp/kbuild/linux* -j ${TASKS} 2>/dev/null >/dev/null
+exec perf stat \
+     -e cpu/event=0xb7,umask=0x1,offcore_rsp=0x63bc00001,name=offcore_response_demand_data_rd_llc_miss_remote_dram/ \
+     -e cpu/event=0xb7,umask=0x1,offcore_rsp=0x604000001,name=offcore_response_demand_data_rd_llc_miss_local_dram/ \
+     -- \
+     make -C /tmp/kbuild/linux* -j ${TASKS} \
+     2>/dev/null >/dev/null
