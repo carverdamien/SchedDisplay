@@ -4,3 +4,4 @@ pandas
 bokeh
 numpy
 datashader
+tqdm
