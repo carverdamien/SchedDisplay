@@ -7,6 +7,7 @@ def main():
 	def done(*args,**kwargs):
 		pass
 	def callback(path, data, done):
+		print('\n'.join(data['description']))
 		data['df'].to_csv(csv)
 		pass
 	fg(hdf5, 0, callback, done)
