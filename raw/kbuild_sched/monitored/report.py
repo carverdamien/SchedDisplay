@@ -75,6 +75,7 @@ def compute_dfcomm(df):
     print(addr_2_comm_id)
     print(comm)
     unique_pid = np.unique(df_pid)
+    unique_pid = np.random.permutation(unique_pid)
     nr_threads = cpu_count()
     # nr_threads = 1 # debug
     def _compute_dfcomm_of(pid):
