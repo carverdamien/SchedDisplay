@@ -12,6 +12,7 @@ from functools import partial
 import sched_monitor_view.feeds.fspath as fspath
 from sched_monitor_view.state import State
 import sched_monitor_view.Types as Types
+from sched_monitor_view.bokehext.ImportFile import ImportFile
 
 def modify_doc(doc):
 	######################################################
@@ -88,7 +89,14 @@ def modify_doc(doc):
 	    width_policy="min",
 	    visible=False,
 	)
-	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json])
+	importfile_json = ImportFile(
+		label="Upload",
+		align="end",
+		button_type="success",
+		width_policy="min",
+		visible=False,
+	)
+	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json, importfile_json.button])
 	################ Data View ################
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
@@ -250,6 +258,7 @@ def modify_doc(doc):
 			select_hdf5,
 			button_add_or_rm_hdf5,
 			button_import_json,
+			importfile_json.button,
 			sizing_mode = 'scale_width',
 	    ),
 	    paragraph_info,

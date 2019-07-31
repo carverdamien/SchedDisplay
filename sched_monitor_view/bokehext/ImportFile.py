@@ -40,11 +40,11 @@ input.click();
 
 class ImportFile(object):
 	"""docstring for ImportFile"""
-	def __init__(self, callback=lambda x,y:print(x, y.read())):
+	def __init__(self, *args, **kwargs):
 		super(ImportFile, self).__init__()
-		self.callback = callback
+		self.callback = lambda x,y:print(x, y.read())
 		self.datasource = ColumnDataSource({'file_contents':[], 'file_name':[]})
-		self.button = Button(label="Upload", button_type="success")
+		self.button = Button(*args, **kwargs)
 		self.button.callback = CustomJS(args=dict(file_source=self.datasource), code=CUSTOM_JS_CODE)
 		def file_callback(attr,old,new):
 			filename = self.datasource.data['file_name'][0]
