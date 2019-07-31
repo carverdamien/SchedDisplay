@@ -12,7 +12,7 @@ from functools import partial
 import sched_monitor_view.feeds.fspath as fspath
 from sched_monitor_view.state import State
 import sched_monitor_view.Types as Types
-from sched_monitor_view.bokehext.ImportFile import ImportFile
+from sched_monitor_view.bokehext.UploadFile import UploadFile
 
 def modify_doc(doc):
 	######################################################
@@ -89,14 +89,14 @@ def modify_doc(doc):
 	    width_policy="min",
 	    visible=False,
 	)
-	importfile_json = ImportFile(
+	upload_json = UploadFile(
 		label="Upload",
 		align="end",
 		button_type="success",
 		width_policy="min",
 		visible=False,
 	)
-	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json, importfile_json.button])
+	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json, upload_json.button])
 	################ Data View ################
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
 	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
@@ -238,6 +238,10 @@ def modify_doc(doc):
 		textareainput_json.value = value
 	def on_change_textareainput_json(attr, old, new):
 		update_button_import_json()
+	def on_click_button_upload_json(fname, fio):
+		textareainput_json.value = fio.read().decode()
+		pass
+	upload_json.callback = on_click_button_upload_json
 	textareainput_json.on_change('value', on_change_textareainput_json)
 	UPDATES[JSON_VIEW].extend([
 		update_textareainput_json,
@@ -258,7 +262,7 @@ def modify_doc(doc):
 			select_hdf5,
 			button_add_or_rm_hdf5,
 			button_import_json,
-			importfile_json.button,
+			upload_json.button,
 			sizing_mode = 'scale_width',
 	    ),
 	    paragraph_info,

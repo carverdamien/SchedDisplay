@@ -38,10 +38,10 @@ input.onchange = function(){
 input.click();
 """
 
-class ImportFile(object):
-	"""docstring for ImportFile"""
+class UploadFile(object):
+	"""docstring for UploadFile"""
 	def __init__(self, *args, **kwargs):
-		super(ImportFile, self).__init__()
+		super(UploadFile, self).__init__()
 		self.callback = lambda x,y:print(x, y.read())
 		self.datasource = ColumnDataSource({'file_contents':[], 'file_name':[]})
 		self.button = Button(*args, **kwargs)
