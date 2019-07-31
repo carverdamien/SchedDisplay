@@ -3,6 +3,7 @@
 set -e -x -u
 
 TASKS=256
+TASKS=32
 TIMEOUT=36000
 
 for NO_TURBO in '0' '1'
