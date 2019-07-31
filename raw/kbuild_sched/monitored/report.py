@@ -2,6 +2,9 @@
 import sys, h5py, os, mmap, struct, json, itertools
 import numpy as np
 import pandas as pd
+from threading import Thread
+from multiprocessing import cpu_count
+from tqdm import tqdm
 
 EXEC_EVT = 0
 
@@ -31,6 +34,87 @@ def load_sched_monitor(path):
         'tracer-raw' : { 'df' : df, 'comm':comm }
     }
 
+def addr_2_comm(addr):
+    addr = int(addr)
+    b = addr.to_bytes(8, byteorder="little")
+    i = 0
+    while i < 8 and b[i] > 0:
+        i+=1
+    return b[:i].decode()
+
+def compute_addr_2_comm(df, sel_exec_evt):
+    unique_addr = np.unique(df['addr'][sel_exec_evt])
+    # TODO: spawn threads
+    return {
+        addr : addr_2_comm(addr)
+        for addr in unique_addr
+    }
+
+def compute_addr_2_comm_id(addr_2_comm):
+    keys = list(addr_2_comm.keys())
+    # id 0 reserved for comm unknown
+    return {
+        keys[i] : i+1
+        for i in range(len(keys))
+    }, {
+        addr_2_comm[keys[i]]:i+1
+        for i in range(len(keys))
+    }
+
+def compute_dfcomm(df):
+    # By default comm is unknown
+    df_addr = np.array(df['addr'])
+    df_pid = np.array(df['pid'])
+    df_timestamp = np.array(df['timestamp'])
+    df_event = np.array(df['event'])
+    df_comm = np.zeros(len(df), dtype=int)
+    sel_exec_evt = df_event == EXEC_EVT
+    addr_2_comm = compute_addr_2_comm(df, sel_exec_evt)
+    print(addr_2_comm)
+    addr_2_comm_id, comm = compute_addr_2_comm_id(addr_2_comm)
+    print(addr_2_comm_id)
+    print(comm)
+    unique_pid = np.unique(df_pid)
+    nr_threads = cpu_count()
+    # nr_threads = 1 # debug
+    def _compute_dfcomm_of(pid):
+        sel_pid = df_pid == pid
+        my_sel_exec_evt = sel_pid & sel_exec_evt
+        it = itertools.zip_longest(
+            df_addr[my_sel_exec_evt],
+            df_timestamp[my_sel_exec_evt],
+        )
+        for my_addr, my_timestamp in it:
+            my_comm_id = addr_2_comm_id[my_addr]
+            sel = sel_pid & (df_timestamp >= my_timestamp)
+            df_comm[sel] = my_comm_id
+    def compute_dfcomm_of(tid, pids):
+        for pid in tqdm(pids, position=tid):
+            _compute_dfcomm_of(pid)
+    def spawn(tid):
+        # Static distribution of pids
+        nr_pid_per_thread = len(unique_pid)//nr_threads
+        first = nr_pid_per_thread * tid
+        last  = min(first + nr_pid_per_thread, len(unique_pid))
+        # print(first, last)
+        pids = unique_pid[first:last]
+        args=(tid, pids,)
+        t = Thread(target=compute_dfcomm_of, args=args)
+        return t
+    if nr_threads == 1: # debug
+        compute_dfcomm_of(0, unique_pid)
+        df['comm'] = df_comm
+        return comm
+    print('Spawning {} threads'.format(nr_threads))
+    threads = [spawn(tid) for tid in range(nr_threads)]
+    print('Starting threads')
+    for t in threads:
+        t.start()
+    print('Joining threads')
+    for t in threads:
+        t.join()
+    df['comm'] = df_comm
+    return comm
 def load_tracer_raw(path):
     data = {
         cpu : load_tracer_raw_per_cpu(os.path.join(path, cpu))
@@ -47,29 +131,7 @@ def load_tracer_raw(path):
     df = pd.DataFrame(df)
     df.sort_values(by='timestamp', inplace=True)
     df.index = np.arange(len(df))
-    comm = {'':0}
-    comm_id = 1
-    df['comm'] = np.zeros(len(df))
-    sel = df['event'] == EXEC_EVT
-    it = itertools.zip_longest(
-        df['pid'][sel],
-        df['addr'][sel],
-        df['timestamp'][sel],
-    )
-    for pid, addr, timestamp in it:
-        sel = (df['pid'] == pid) & (df['timestamp'] >= timestamp)
-        b = addr.to_bytes(8, byteorder="little")
-        i = 0
-        while i < 8 and b[i] > 0:
-            i+=1
-        c = b[:i].decode()
-        print(pid, c)
-        if c not in comm:
-            comm[c] = comm_id
-            comm_id += 1
-        df.loc[sel, 'comm'] = comm[c]
-    comm['N/A'] = comm['']
-    del comm['']
+    comm = compute_dfcomm(df)
     return df, comm
 
 def load_tracer_raw_per_cpu(path):
