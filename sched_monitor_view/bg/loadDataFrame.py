@@ -21,7 +21,6 @@ def fg(path, path_id, callback, done):
 				}
 			for k in perf_event.keys()
 		}
-		print(perf_event)
 		comm = f['sched_monitor']['tracer-raw']['comm'].attrs
 		comm = {k:comm[k] for k in comm.keys()}
 		dataset = f['sched_monitor']['tracer-raw']['df']

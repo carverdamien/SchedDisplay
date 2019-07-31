@@ -1,0 +1,7 @@
+tabulate
+h5py
+pandas
+bokeh
+numpy
+datashader
+tqdm

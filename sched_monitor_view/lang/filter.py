@@ -15,6 +15,12 @@ def key_not_equals_value(df, key, val):
 	return df[key] != val
 def key_gt_value(df, key, val):
 	return df[key] > val
+def key_lt_value(df, key, val):
+	return df[key] < val
+def key_ge_value(df, key, val):
+	return df[key] >= val
+def key_le_value(df, key, val):
+	return df[key] <= val
 def a_and_b(df, a, b):
 	return a & b
 def a_or_b(df, a, b):
@@ -23,6 +29,9 @@ OPERATOR = {
 	'==' : key_equals_value,
 	'!=' : key_not_equals_value,
 	'>'  : key_gt_value,
+	'<'  : key_lt_value,
+	'>='  : key_ge_value,
+	'<='  : key_le_value,
 	'&'  : a_and_b,
 	'|'  : a_or_b,
 }
