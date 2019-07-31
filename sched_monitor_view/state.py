@@ -97,6 +97,7 @@ class State(object):
 		self.compute_columns()
 		self.compute_dimg()
 		self.STATE['hdf5'].append(path)
+		self.plot.title.text = ' '.join(self.STATE['hdf5'])
 		self.update_plot()
 		self.update_source()
 		self.update_table()
