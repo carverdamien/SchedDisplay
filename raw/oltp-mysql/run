@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e -u
+exec make -C /tmp/kbuild/linux-4.19/ -j ${TASKS} 2>/dev/null >/dev/null

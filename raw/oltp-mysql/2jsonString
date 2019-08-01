@@ -1,0 +1,19 @@
+#!/bin/bash
+echo '"'$(
+sed \
+    -e 's/\\/\\\\/g' \
+    -e 's/"/\\"/g' \
+    -e 's/\//\\\//g' \
+    $1 |
+sed \
+    -e ':a' \
+    -e 'N' \
+    -e '$!ba' \
+    -e 's/\n/\\n/g' \
+)'"'
+# TODO
+# \b backspace
+# \f formfeed
+# \r carriage return
+# \h horizontal tab
+# \u 4hex digits

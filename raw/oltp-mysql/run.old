@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e -u
+
+# No perf_event
+exec make -B -C /tmp/kbuild/linux-4.19/ kernel/sched/ -j ${TASKS} \
+     2>/dev/null >/dev/null
+
+# # Measure Locality
+# exec perf stat \
+#      -e cpu/event=0xb7,umask=0x1,offcore_rsp=0x63bc00001,name=offcore_response_demand_data_rd_llc_miss_remote_dram/ \
+#      -e cpu/event=0xb7,umask=0x1,offcore_rsp=0x604000001,name=offcore_response_demand_data_rd_llc_miss_local_dram/ \
+#      -- \
+#      make -B -C /tmp/kbuild/linux-4.19/ kernel/sched/ -j ${TASKS} \
+#      2>/dev/null >/dev/null
+
+# # Measure Frequency
+# exec perf stat \
+#      -e msr/tsc/ \
+#      -e msr/mperf/ \
+#      -e msr/aperf/ \
+#      -- \
+#      make -B -C /tmp/kbuild/linux-4.19/ kernel/sched/ -j ${TASKS} \
+#      2>/dev/null >/dev/null
