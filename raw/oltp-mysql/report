@@ -1,6 +1,6 @@
 #!/bin/bash
 dmesg > output/dmesg
-TIME=$(cat output/run.out)
+TIME=$(cat output/time.out)
 cat >output/perf_event.json <<EOF
 {
 $(
@@ -22,7 +22,11 @@ cat >output/summary.json <<EOF
     "scaling_governor" : "$(sort /sys/devices/system/cpu/cpufreq/policy*/scaling_governor | uniq)",
     "no_turbo" : "$(cat /sys/devices/system/cpu/intel_pstate/no_turbo)"
   },
-  "run":$(./2jsonString run),
+  "run": {
+    "file": $(./2jsonString run),
+    "out": $(./2jsonString output/run.out),
+    "err": $(./2jsonString output/run.err)
+  },
   "ipanema":"${PATH_TO_IPANEMA_MODULE}",
   "time":${TIME},
   "tasks":${TASKS}

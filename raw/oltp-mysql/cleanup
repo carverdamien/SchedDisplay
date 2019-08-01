@@ -1,3 +1,4 @@
 #!/bin/bash
 rm -rf output
-rm -rf /tmp/kbuild
+./engine.sh stop
+./engine.sh cleanup
