@@ -24,15 +24,15 @@ do
 		    fi
 		    case ${NO_TURBO} in
 			'0')
-			    NO_TURBO='turbo'
+			    TURBO='turbo'
 			    ;;
 			'1')
-			    NO_TURBO=''
+			    TURBO=''
 			    ;;
 		    esac
 		    CSTATE=$(sed -n 's/.*\(cstate=0\).*/\1/p' /proc/cmdline)
 		    KERNEL=$(uname -r)
-		    HDF5=${KERNEL}-${TASKS}-${SCHED}-${SCALING_GOVERNOR}-${NO_TURBO}-${CSTATE}-${MONITOR}.hdf5
+		    HDF5=${KERNEL}-${TASKS}-${SCHED}-${SCALING_GOVERNOR}-${TURBO}-${CSTATE}-${MONITOR}.hdf5
 		    sudo HDF5=${HDF5} MONITOR=${MONITOR} TIMEOUT=${TIMEOUT} PATH_TO_IPANEMA_MODULE=${PATH_TO_IPANEMA_MODULE} TASKS=${TASKS} ./entrypoint
 		done
 	    done
