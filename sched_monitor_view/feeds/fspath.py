@@ -8,7 +8,7 @@ def feed(root, ext, callback):
 def target(root, ext, callback):
 	old = []
 	while True:
-		new = list(find_files(root,ext))
+		new = sorted(list(find_files(root,ext)))
 		if new != old:
 			callback(new)
 			old = new
