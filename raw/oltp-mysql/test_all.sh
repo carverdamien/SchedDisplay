@@ -4,7 +4,7 @@ set -e -x -u
 
 TIMEOUT=36000
 
-for TASKS in 32 256
+for TASKS in 64 128
 do
     for NO_TURBO in '0' '1'
     do
