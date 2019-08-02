@@ -1,31 +1,17 @@
 from bokeh.models.widgets import PreText
-from functools import partial
-from tornado import gen
 import logging
 from threading import Lock
+from functools import partial
+from tornado import gen
+from smv.ViewController import ViewController
 
-class ConsoleViewController(object):
+class ConsoleViewController(ViewController):
 	def __init__(self, max_length=1024, doc=None):
-		super(ConsoleViewController, self).__init__()
+		view = PreText()
+		super(ConsoleViewController, self).__init__(view, doc)
 		self.max_length = max_length
 		self.buffer = []
 		self.lock = Lock()
-		self.view = PreText()
-		self.doc = doc
-
-	def hide(self):
-		if self.doc is not None:
-			@gen.coroutine
-			def coroutine():
-				self.view.visible = False
-			self.doc.add_next_tick_callback(partial(coroutine))
-
-	def show(self):
-		if self.doc is not None:
-			@gen.coroutine
-			def coroutine():
-				self.view.visible = True
-			self.doc.add_next_tick_callback(partial(coroutine))
 
 	def write(self, *args):
 		self.lock.acquire()
