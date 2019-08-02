@@ -1,5 +1,6 @@
 from functools import partial
 from tornado import gen
+import logging
 
 class ViewController(object):
 	"""docstring for ViewController"""
@@ -7,6 +8,10 @@ class ViewController(object):
 		super(ViewController, self).__init__()
 		self.view = view
 		self.doc = doc
+		def log(*args):
+			msg = ''.join([str(a) for a in args])
+			logging.info(msg)
+		self.log = log
 
 	def hide(self):
 		if self.doc is not None:

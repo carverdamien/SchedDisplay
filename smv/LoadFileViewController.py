@@ -23,8 +23,15 @@ function read_file(filename) {
 }
 function load_handler(event) {
     var b64string = event.target.result;
-    file_source.data = {'file_contents' : [b64string], 'file_name':[input.files[0].name]};
-    file_source.trigger("change");
+    //file_source.data = {'file_contents' : [b64string], 'file_name':[input.files[0].name]};
+    //file_source.trigger("change");
+    var i=0;
+    var block_size=10*1048576;
+    while (i<b64string.length) {
+    	file_source.stream({'i':[i], 'block':[b64string.substring(i,i+block_size)],'remaining':[b64string.length-(i+block_size)]})
+    	file_source.change.emit();
+    	i+=block_size;
+    }
 }
 function error_handler(evt) {
     if(evt.target.error.name == "NotReadableError") {
@@ -77,10 +84,12 @@ class LoadFileViewController(ViewController):
 		self.select = select
 		self.select_button = select_button
 		self.upload_button = upload_button
-		self.datasource = ColumnDataSource({'file_contents':[], 'file_name':[]})
+		# self.datasource = ColumnDataSource({'file_contents':[], 'file_name':[]})
+		# self.datasource = ColumnDataSource({'file_contents':[]})
+		self.datasource = ColumnDataSource({'i':[], 'block':[],'remaining':[]})
 		self.on_loaded_callback = None
 		self.select_button.on_click(self.select_on_click)
-		self.upload_button.callback = CustomJS(args=dict(file_source=self.datasource), code=CUSTOM_JS_CODE)
+		self.upload_button.callback = (CustomJS(args=dict(file_source=self.datasource), code=CUSTOM_JS_CODE))
 		self.datasource.on_change('data', self.file_callback)
 
 	def on_loaded(self, callback):
@@ -98,8 +107,11 @@ class LoadFileViewController(ViewController):
 	def file_callback(self,attr,old,new):
 		if self.on_loaded_callback is None:
 			return
-		filename = self.datasource.data['file_name'][0]
-		raw_contents = self.datasource.data['file_contents'][0]
+		remaining = self.datasource.data['remaining'][-1]
+		if remaining > 0:
+			self.log('{} bytes remaining'.format(remaining))
+			return
+		raw_contents = ''.join(self.datasource.data['block'])
 		# remove the prefix that JS adds
 		prefix, b64_contents = raw_contents.split(",", 1)
 		file_contents = base64.b64decode(b64_contents)
