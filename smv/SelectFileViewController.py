@@ -10,6 +10,7 @@ def find_files(directory, ext):
 			if ext == os.path.splitext(name)[1]:
 				yield path
 
+# TODO: Rename to LoadFileViewController
 class SelectFileViewController(ViewController):
 	"""docstring for SelectFileViewController"""
 	def __init__(self, directory, ext, doc=None):
@@ -33,3 +34,15 @@ class SelectFileViewController(ViewController):
 		super(SelectFileViewController, self).__init__(view, doc)
 		self.select = select
 		self.button = button
+		self.callback = None
+		self.button.on_click(self.select_on_click)
+
+	def on_loaded(self, callback):
+		self.callback = callback
+
+	def select_on_click(self):
+		path = self.select.value
+		# TODO: coroutine
+		if self.callback is not None:
+			with open(path,'r') as f:
+				self.callback(f.read())
