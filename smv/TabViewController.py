@@ -4,7 +4,7 @@ from smv.ViewController import ViewController
 
 class TabViewController(ViewController):
 	"""docstring for TabViewController"""
-	def __init__(self, labels, controllers, doc=None):
+	def __init__(self, labels, controllers, doc=None, log=None):
 		radiobuttongroup_tab = RadioButtonGroup(labels=labels)
 		views = [c.view for c in controllers]
 		view = column(
@@ -12,7 +12,7 @@ class TabViewController(ViewController):
 			row(*views),
 			sizing_mode = 'stretch_both'
 		)
-		super(TabViewController, self).__init__(view, doc)
+		super(TabViewController, self).__init__(view, doc, log)
 		self.labels = labels
 		self.controllers = controllers
 		self.views = views

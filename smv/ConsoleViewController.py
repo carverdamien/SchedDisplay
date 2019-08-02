@@ -6,9 +6,9 @@ from tornado import gen
 from smv.ViewController import ViewController
 
 class ConsoleViewController(ViewController):
-	def __init__(self, max_length=1024, doc=None):
+	def __init__(self, max_length=1024, doc=None, log=None):
 		view = PreText()
-		super(ConsoleViewController, self).__init__(view, doc)
+		super(ConsoleViewController, self).__init__(view, doc, log)
 		self.max_length = max_length
 		self.buffer = []
 		self.lock = Lock()

@@ -52,7 +52,7 @@ input.click();
 
 class LoadFileViewController(ViewController):
 	"""docstring for LoadFileViewController"""
-	def __init__(self, directory, ext, doc=None):
+	def __init__(self, directory, ext, doc=None, log=None):
 		options=sorted(list(find_files(directory,ext)))
 		select = Select(
 			title="Select File:",
@@ -80,7 +80,7 @@ class LoadFileViewController(ViewController):
 			height_policy="fixed",
 	    )
 		view = row(select, select_button, upload_button, sizing_mode = 'scale_width',)
-		super(LoadFileViewController, self).__init__(view, doc)
+		super(LoadFileViewController, self).__init__(view, doc, log)
 		self.select = select
 		self.select_button = select_button
 		self.upload_button = upload_button

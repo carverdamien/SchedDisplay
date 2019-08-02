@@ -7,12 +7,13 @@ import json
 
 def modify_doc(doc):
 	console = ConsoleViewController(doc=doc)
-	load_trace = LoadFileViewController('./examples/trace','.hdf5',doc=doc)
-	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc)
+	log = console.write
+	load_trace = LoadFileViewController('./examples/trace','.hdf5',doc=doc, log=log)
+	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc)
-	seq = SeqViewController([load_trace, load_plot, figure], doc=doc)
+	seq = SeqViewController([load_trace, load_plot, figure], doc=doc, log=log)
 	labels = ['Main','Console']
-	tab = TabViewController(labels, [seq, console], doc=doc)
+	tab = TabViewController(labels, [seq, console], doc=doc, log=log)
 	def on_loaded_trace(io):
 		trace = io.read()
 		console.write('Trace: {} bytes loaded'.format(len(trace)))

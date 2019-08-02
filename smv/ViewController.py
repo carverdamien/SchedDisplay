@@ -2,15 +2,18 @@ from functools import partial
 from tornado import gen
 import logging
 
+def logginglog(*args):
+	msg = ''.join([str(a) for a in args])
+	logging.info(msg)
+
 class ViewController(object):
 	"""docstring for ViewController"""
-	def __init__(self, view, doc):
+	def __init__(self, view, doc, log=None):
 		super(ViewController, self).__init__()
 		self.view = view
 		self.doc = doc
-		def log(*args):
-			msg = ''.join([str(a) for a in args])
-			logging.info(msg)
+		if log is None:
+			log = logginglog
 		self.log = log
 
 	def hide(self):

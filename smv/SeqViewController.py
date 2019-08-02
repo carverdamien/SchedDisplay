@@ -3,10 +3,10 @@ from smv.ViewController import ViewController
 
 class SeqViewController(ViewController):
 	"""docstring for SeqViewController"""
-	def __init__(self, controllers, doc=None):
+	def __init__(self, controllers, doc=None, log=None):
 		views = [c.view for c in controllers]
 		view = column(*views, sizing_mode = 'stretch_both')
-		super(SeqViewController, self).__init__(view, doc)
+		super(SeqViewController, self).__init__(view, doc, log)
 		self.controllers = controllers
 		self.views = views
 		for v in self.views:
