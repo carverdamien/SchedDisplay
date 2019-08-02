@@ -6,3 +6,4 @@ COPY smv smv
 COPY server.py server.py
 ENTRYPOINT ["./server.py"]
 EXPOSE 5006
+ENV BOKEH_ALLOW_WS_ORIGIN *

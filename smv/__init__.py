@@ -1,8 +1,11 @@
+import logging
 from bokeh.server.server import Server
 from smv.apps.app0 import modify_doc as app0
 from smv.apps.app1 import modify_doc as app1
 
 def main():
+	FORMAT = '%(asctime)-15s %(message)s'
+	logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 	server = Server({
 		'/app0' : app0,
 		'/app1' : app1,
