@@ -23,15 +23,23 @@ function read_file(filename) {
 }
 function load_handler(event) {
     var b64string = event.target.result;
-    //file_source.data = {'file_contents' : [b64string], 'file_name':[input.files[0].name]};
-    //file_source.trigger("change");
+    update_file_source(b64string);
+}
+function update_file_source(b64string) {
     var i=0;
-    var block_size=10*1048576;
+    var block_size=1048576;
     while (i<b64string.length) {
-    	file_source.stream({'i':[i], 'block':[b64string.substring(i,i+block_size)],'remaining':[b64string.length-(i+block_size)]})
+    	block = b64string.substring(i,i+block_size)
+    	remaining = b64string.length-(i+block_size)
+		file_source.stream({'i':[i], 'block':[block],'remaining':[remaining]})
     	file_source.change.emit();
     	i+=block_size;
     }
+    console.log('update_file_source done');
+}
+function stream(i, block, remaining) {
+	file_source.stream({'i':[i], 'block':[block],'remaining':[remaining]})
+    file_source.change.emit();
 }
 function error_handler(evt) {
     if(evt.target.error.name == "NotReadableError") {
@@ -41,11 +49,21 @@ function error_handler(evt) {
 var input = document.createElement('input');
 input.setAttribute('type', 'file');
 input.onchange = function(){
-    if (window.FileReader) {
-        read_file(input.files[0]);
-    } else {
-        alert('FileReader is not supported in this browser');
-    }
+	if (window.Worker) {
+		const myWorker = new Worker("/static/js/worker.js");
+		myWorker.postMessage(input.files[0])
+		myWorker.onmessage = function(e) {
+			//update_file_source(e.data)
+			stream(e.data[0],e.data[1],e.data[2])
+		}
+	} else {
+		alert("Your browser doesn't support web workers.");
+		if (window.FileReader) {
+        	read_file(input.files[0]);
+    	} else {
+       		alert('FileReader is not supported in this browser');
+    	}	
+	}
 }
 input.click();
 """
@@ -107,6 +125,8 @@ class LoadFileViewController(ViewController):
 	def file_callback(self,attr,old,new):
 		if self.on_loaded_callback is None:
 			return
+		if len(self.datasource.data['remaining']) == 0:
+			return
 		remaining = self.datasource.data['remaining'][-1]
 		if remaining > 0:
 			self.log('{} bytes remaining'.format(remaining))
@@ -117,3 +137,4 @@ class LoadFileViewController(ViewController):
 		file_contents = base64.b64decode(b64_contents)
 		file_io = io.BytesIO(file_contents)
 		self.on_loaded_callback(file_io)
+		# self.datasource.data = {'i':[], 'block':[],'remaining':[]}
