@@ -17,5 +17,7 @@ class SelectFileViewController(ViewController):
 			title="Select File:",
 			value=options[0],
 			options=options,
+			height=40,
+			height_policy="fixed",
 		)
 		super(SelectFileViewController, self).__init__(view, doc)
