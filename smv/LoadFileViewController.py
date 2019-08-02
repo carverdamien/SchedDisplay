@@ -78,25 +78,25 @@ class LoadFileViewController(ViewController):
 		self.select_button = select_button
 		self.upload_button = upload_button
 		self.datasource = ColumnDataSource({'file_contents':[], 'file_name':[]})
-		self.callback = None
+		self.on_loaded_callback = None
 		self.select_button.on_click(self.select_on_click)
 		self.upload_button.callback = CustomJS(args=dict(file_source=self.datasource), code=CUSTOM_JS_CODE)
 		self.datasource.on_change('data', self.file_callback)
 
 	def on_loaded(self, callback):
-		self.callback = callback
+		self.on_loaded_callback = callback
 
 	def select_on_click(self):
-		if self.callback is None:
+		if self.on_loaded_callback is None:
 			return
 		path = self.select.value
 		def target():
 			with open(path,'r') as f:
-				self.callback(f)
+				self.on_loaded_callback(f)
 		Thread(target=target).start()
 
 	def file_callback(self,attr,old,new):
-		if self.callback is None:
+		if self.on_loaded_callback is None:
 			return
 		filename = self.datasource.data['file_name'][0]
 		raw_contents = self.datasource.data['file_contents'][0]
@@ -104,4 +104,4 @@ class LoadFileViewController(ViewController):
 		prefix, b64_contents = raw_contents.split(",", 1)
 		file_contents = base64.b64decode(b64_contents)
 		file_io = io.BytesIO(file_contents)
-		self.callback(file_io)
+		self.on_loaded_callback(file_io)
