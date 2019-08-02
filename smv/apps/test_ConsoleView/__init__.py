@@ -7,8 +7,11 @@ def modify_doc(doc):
 		from time import sleep
 		i=0
 		while True:
-			sleep(.01)
 			console.write(i)
+			sleep(1)
+			console.hide()
+			sleep(1)
+			console.show()
 			i+=1
 	t=Thread(target=target)
 	t.daemon = True

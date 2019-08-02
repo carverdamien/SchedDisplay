@@ -13,6 +13,20 @@ class ConsoleView(object):
 		self.view = PreText()
 		self.doc = doc
 
+	def hide(self):
+		if self.doc is not None:
+			@gen.coroutine
+			def coroutine():
+				self.view.visible = False
+			self.doc.add_next_tick_callback(partial(coroutine))
+
+	def show(self):
+		if self.doc is not None:
+			@gen.coroutine
+			def coroutine():
+				self.view.visible = True
+			self.doc.add_next_tick_callback(partial(coroutine))
+
 	def write(self, *args):
 		self.lock.acquire()
 		msg = ''.join([str(a) for a in args])
