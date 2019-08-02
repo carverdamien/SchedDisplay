@@ -58,7 +58,8 @@ class LoadFileViewController(ViewController):
 			label='Select',
 			align="end",
 			button_type="success",
-			width_policy="min",
+			width=100,
+			width_policy="fixed",
 			height=40,
 			height_policy="fixed",
 		)
@@ -66,12 +67,12 @@ class LoadFileViewController(ViewController):
 			label='Upload',
 			align="end",
 			button_type="success",
-			width_policy="min",
+			width=100,
+			width_policy="fixed",
 			height=40,
 			height_policy="fixed",
 	    )
-		# view = row(select, select_button, upload_button, sizing_mode = 'scale_width',)
-		view = row(select, select_button, upload_button, sizing_mode = 'stretch_both',)
+		view = row(select, select_button, upload_button, sizing_mode = 'scale_width',)
 		super(LoadFileViewController, self).__init__(view, doc)
 		self.select = select
 		self.select_button = select_button
