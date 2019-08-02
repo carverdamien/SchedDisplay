@@ -11,9 +11,8 @@ def find_files(directory, ext):
 			if ext == os.path.splitext(name)[1]:
 				yield path
 
-# TODO: Rename to LoadFileViewController
-class SelectFileViewController(ViewController):
-	"""docstring for SelectFileViewController"""
+class LoadFileViewController(ViewController):
+	"""docstring for LoadFileViewController"""
 	def __init__(self, directory, ext, doc=None):
 		options=sorted(list(find_files(directory,ext)))
 		select = Select(
@@ -32,7 +31,7 @@ class SelectFileViewController(ViewController):
 			height_policy="fixed",
 	    )
 		view = row(select, button, sizing_mode = 'scale_width',)
-		super(SelectFileViewController, self).__init__(view, doc)
+		super(LoadFileViewController, self).__init__(view, doc)
 		self.select = select
 		self.button = button
 		self.callback = None

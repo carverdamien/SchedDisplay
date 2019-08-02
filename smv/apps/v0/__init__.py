@@ -1,20 +1,20 @@
 from smv.TabViewController import TabViewController
 from smv.ConsoleViewController import ConsoleViewController
-from smv.SelectFileViewController import SelectFileViewController
+from smv.LoadFileViewController import LoadFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.SeqViewController import SeqViewController
 
 def modify_doc(doc):
 	console = ConsoleViewController(doc=doc)
-	select = SelectFileViewController('.','.py',doc=doc)
+	load = LoadFileViewController('.','.py',doc=doc)
 	figure = FigureViewController(doc=doc)
-	seq = SeqViewController([select, figure], doc=doc)
+	seq = SeqViewController([load, figure], doc=doc)
 	labels = ['Main','Console']
 	tab = TabViewController(labels, [seq, console], doc=doc)
-	def select_on_loaded(data):
+	def on_loaded(data):
 		console.write('{} bytes loaded'.format(len(data)))
 		seq.next()
-	select.on_loaded(select_on_loaded)
+	load.on_loaded(on_loaded)
 	doc.add_root(tab.view)
 	seq.next()
 	pass
