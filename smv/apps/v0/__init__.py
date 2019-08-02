@@ -3,18 +3,30 @@ from smv.ConsoleViewController import ConsoleViewController
 from smv.LoadFileViewController import LoadFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.SeqViewController import SeqViewController
+import json
 
 def modify_doc(doc):
 	console = ConsoleViewController(doc=doc)
-	load = LoadFileViewController('.','.py',doc=doc)
+	load_trace = LoadFileViewController('./examples/trace','.hdf5',doc=doc)
+	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc)
 	figure = FigureViewController(doc=doc)
-	seq = SeqViewController([load, figure], doc=doc)
+	seq = SeqViewController([load_trace, load_plot, figure], doc=doc)
 	labels = ['Main','Console']
 	tab = TabViewController(labels, [seq, console], doc=doc)
-	def on_loaded(io):
-		console.write('{} bytes loaded'.format(len(io.read())))
+	def on_loaded_trace(io):
+		trace = io.read()
+		console.write('Trace: {} bytes loaded'.format(len(trace)))
 		seq.next()
-	load.on_loaded(on_loaded)
+	load_trace.on_loaded(on_loaded_trace)
+	def on_loaded_plot(io):
+		plot = io.read()
+		console.write('Plot:{}'.format(plot))
+		try:
+			plot = json.loads(plot)
+			seq.next()
+		except Exception as e:
+			console.write(e)
+	load_plot.on_loaded(on_loaded_plot)
 	doc.add_root(tab.view)
 	seq.next()
 	pass

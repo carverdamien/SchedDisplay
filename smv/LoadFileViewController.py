@@ -91,7 +91,7 @@ class LoadFileViewController(ViewController):
 			return
 		path = self.select.value
 		def target():
-			with open(path,'r') as f:
+			with open(path,'rb') as f:
 				self.on_loaded_callback(f)
 		Thread(target=target).start()
 
