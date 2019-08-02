@@ -1,8 +1,8 @@
-from smv.ConsoleView import ConsoleView
+from smv.ConsoleViewController import ConsoleViewController
 from threading import Thread
 
 def modify_doc(doc):
-	console = ConsoleView()
+	console = ConsoleViewController()
 	def target():
 		from time import sleep
 		i=0

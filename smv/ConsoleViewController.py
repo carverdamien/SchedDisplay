@@ -4,9 +4,9 @@ from tornado import gen
 import logging
 from threading import Lock
 
-class ConsoleView(object):
+class ConsoleViewController(object):
 	def __init__(self, max_length=1024, doc=None):
-		super(ConsoleView, self).__init__()
+		super(ConsoleViewController, self).__init__()
 		self.max_length = max_length
 		self.buffer = []
 		self.lock = Lock()
