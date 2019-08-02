@@ -1,4 +1,4 @@
-from smv.apps.app0.ConsoleView import ConsoleView
+from smv.ConsoleView import ConsoleView
 from threading import Thread
 
 def modify_doc(doc):
