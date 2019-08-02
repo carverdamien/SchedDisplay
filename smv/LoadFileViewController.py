@@ -51,14 +51,21 @@ function error_handler(evt) {
 var input = document.createElement('input');
 input.setAttribute('type', 'file');
 input.onchange = function(){
+	file_source.data = {'i':[], 'block':[],'remaining':[]}
+    file_source.change.emit();
 	if (window.Worker) {
 		const myWorker = new Worker("/static/js/worker.js");
+		var calls = 0;
 		// myWorker.postMessage([file_source, input.files[0]])
 		myWorker.postMessage(['NO_file_source', input.files[0]])
 		myWorker.onmessage = function(e) {
 			//update_file_source(e.data)
 			//function f() { stream(e.data[0],e.data[1],e.data[2]); };setTimeout(f, 1000);
 			stream(e.data[0],e.data[1],e.data[2]);
+			calls += 1;
+			if (calls==2) {
+				alert('Big File detected: check your client console for progression. On chrome: Ctrl+Shift+J or Cmd+Option+J. On firefox Ctrl+Shift+K or Cmd+Opt+K')
+			}
 		}
 	} else {
 		alert("Your browser doesn't support web workers.");
