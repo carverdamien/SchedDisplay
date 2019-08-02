@@ -2,6 +2,7 @@ from smv.ViewController import ViewController
 from bokeh.models.widgets import Select, Button
 from bokeh.layouts import row
 import os
+from threading import Thread
 
 def find_files(directory, ext):
 	for root, dirs, files in os.walk(directory, topdown=False):
@@ -41,8 +42,10 @@ class SelectFileViewController(ViewController):
 		self.callback = callback
 
 	def select_on_click(self):
+		if self.callback is None:
+			return
 		path = self.select.value
-		# TODO: coroutine
-		if self.callback is not None:
+		def target():
 			with open(path,'r') as f:
 				self.callback(f.read())
+		Thread(target=target).start()

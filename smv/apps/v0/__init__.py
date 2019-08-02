@@ -12,7 +12,7 @@ def modify_doc(doc):
 	labels = ['Main','Console']
 	tab = TabViewController(labels, [seq, console], doc=doc)
 	def select_on_loaded(data):
-		console.write(data)
+		console.write('{} bytes loaded'.format(len(data)))
 		seq.next()
 	select.on_loaded(select_on_loaded)
 	doc.add_root(tab.view)
