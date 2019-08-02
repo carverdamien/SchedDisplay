@@ -14,6 +14,7 @@ def find_files(directory, ext):
 
 # Special thanks to Kevin Anderson
 CUSTOM_JS_CODE = """
+console.log(file_source)
 function read_file(filename) {
     var reader = new FileReader();
     reader.onload = load_handler;
@@ -37,7 +38,8 @@ function update_file_source(b64string) {
     }
     console.log('update_file_source done');
 }
-function stream(i, block, remaining) {
+async function stream(i, block, remaining) {
+	console.log('uploading block',i)
 	file_source.stream({'i':[i], 'block':[block],'remaining':[remaining]})
     file_source.change.emit();
 }
@@ -51,10 +53,12 @@ input.setAttribute('type', 'file');
 input.onchange = function(){
 	if (window.Worker) {
 		const myWorker = new Worker("/static/js/worker.js");
-		myWorker.postMessage(input.files[0])
+		// myWorker.postMessage([file_source, input.files[0]])
+		myWorker.postMessage(['NO_file_source', input.files[0]])
 		myWorker.onmessage = function(e) {
 			//update_file_source(e.data)
-			stream(e.data[0],e.data[1],e.data[2])
+			//function f() { stream(e.data[0],e.data[1],e.data[2]); };setTimeout(f, 1000);
+			stream(e.data[0],e.data[1],e.data[2]);
 		}
 	} else {
 		alert("Your browser doesn't support web workers.");

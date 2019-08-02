@@ -26,7 +26,6 @@ def main():
 		'/v0'                  : v0,
 	},
 	extra_patterns=[('/static/js/worker.js', StaticHandler, {"path":'./static/js/worker.js'})],
-	port=8080,
 	)
 	server.start()
 	server.io_loop.start()
