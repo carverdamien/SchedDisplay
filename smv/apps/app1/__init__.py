@@ -7,24 +7,26 @@ def modify_doc(doc):
 	console = [ConsoleViewController(doc=doc), ConsoleViewController(doc=doc)]
 	tab = TabViewController(labels, console, doc=doc)
 	doc.add_root(tab.view)
-	def target():
-		from time import sleep
-		i=0
-		while True:
-			console[0].write(i)
-			sleep(1)
-			i+=2
-	t=Thread(target=target)
-	t.daemon = True
-	t.start()
-	def target():
-		from time import sleep
-		i=1
-		while True:
-			console[1].write(i)
-			sleep(1)
-			i+=2
-	t=Thread(target=target)
-	t.daemon = True
-	t.start()
+	# def target():
+	# 	from time import sleep
+	# 	i=0
+	# 	while True:
+	# 		console[0].write(i)
+	# 		sleep(1)
+	# 		i+=2
+	# t=Thread(target=target)
+	# t.daemon = True
+	# t.start()
+	# def target():
+	# 	from time import sleep
+	# 	i=1
+	# 	while True:
+	# 		console[1].write(i)
+	# 		sleep(1)
+	# 		i+=2
+	# t=Thread(target=target)
+	# t.daemon = True
+	# t.start()
+	console[0].write('Hello')
+	console[1].write('World')
 	pass
