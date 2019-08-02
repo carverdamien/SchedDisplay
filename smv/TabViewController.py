@@ -9,7 +9,8 @@ class TabViewController(ViewController):
 		views = [c.view for c in controllers]
 		view = column(
 			row(radiobuttongroup_tab, sizing_mode='scale_width',),
-			row(*views, sizing_mode = 'stretch_both')
+			row(*views),
+			sizing_mode = 'stretch_both'
 		)
 		super(TabViewController, self).__init__(view, doc)
 		self.labels = labels

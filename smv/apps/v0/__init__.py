@@ -11,6 +11,9 @@ def modify_doc(doc):
 	seq = SeqViewController([select, figure], doc=doc)
 	labels = ['Main','Console']
 	tab = TabViewController(labels, [seq, console], doc=doc)
+	def select_on_click(new):
+		seq.next()
+	select.button.on_click(select_on_click)
 	doc.add_root(tab.view)
 	seq.next()
 	pass

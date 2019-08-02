@@ -1,11 +1,11 @@
-from bokeh.layouts import row
+from bokeh.layouts import column
 from smv.ViewController import ViewController
 
 class SeqViewController(ViewController):
 	"""docstring for SeqViewController"""
 	def __init__(self, controllers, doc=None):
 		views = [c.view for c in controllers]
-		view = row(*views, sizing_mode = 'stretch_both')
+		view = column(*views, sizing_mode = 'stretch_both')
 		super(SeqViewController, self).__init__(view, doc)
 		self.controllers = controllers
 		self.views = views
