@@ -317,3 +317,19 @@ class State(object):
 			]))
 		logging.debug('update_plot ends')
 		pass
+
+	def fit(self):
+		nr_cpu = 160
+		ymin = -1
+		ymax = nr_cpu+1
+		if self.STATE['truncate']['mode'] == 'time':
+			tmin = self.STATE['truncate']['cursor']
+			tmax = tmin + self.STATE['truncate']['width']
+		else:
+			return
+		self.plot.x_range.start = tmin
+		self.plot.x_range.end = tmax
+		self.plot.y_range.start = ymin
+		self.plot.y_range.end = ymax
+		self.update_datashader()
+		pass

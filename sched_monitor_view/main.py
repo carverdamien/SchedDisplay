@@ -166,6 +166,9 @@ def modify_doc(doc):
 			update_lim_bar()
 		except Exception as e:
 			print(e)
+	def on_click_button_fit(new):
+		state.fit()
+	button_fit.on_click(on_click_button_fit)
 	select_lim_mode.on_change('value', on_change_select_lim_mode)
 	slider_lim_cursor.on_change('value_throttled', on_change_lim)
 	textinput_lim_witdh.on_change('value', on_change_lim)
