@@ -13,14 +13,16 @@ def bg(*args):
 def fg(path, path_id, callback, done):
 	df = {}
 	with h5py.File(path) as f:
-		perf_event = f['perf_event']
-		perf_event = {
-			k : {
-				kk : perf_event[k].attrs[kk]
-				for kk in  perf_event[k].attrs.keys()
+		perf_event = {}
+		if 'perf_event' in f:
+			perf_event = f['perf_event']
+			perf_event = {
+				k : {
+					kk : perf_event[k].attrs[kk]
+					for kk in  perf_event[k].attrs.keys()
 				}
-			for k in perf_event.keys()
-		}
+				for k in perf_event.keys()
+			}
 		comm = f['sched_monitor']['tracer-raw']['comm'].attrs
 		comm = {k:comm[k] for k in comm.keys()}
 		dataset = f['sched_monitor']['tracer-raw']['df']
