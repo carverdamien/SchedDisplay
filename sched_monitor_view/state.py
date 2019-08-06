@@ -290,12 +290,15 @@ class State(object):
 		index+=1
 		for r in self.STATE['renderers']:
 			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
+			if 'line_width' not in r:
+				r['line_width'] = 1
 			glyph = Segment(
 				x0=r['x0'],
 				x1=r['x1'],
 				y0=r['y0'],
 				y1=r['y1'],
 				line_color=r['line_color'],
+				line_width=r['line_width'],
 			)
 			_r = self.plot.add_glyph(source, glyph)
 			items.append(LegendItem(label=r['label'], renderers=[_r], index=index))
