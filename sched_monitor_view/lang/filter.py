@@ -1,7 +1,7 @@
 import numpy as np
 
 def sel(df, expression):
-	if len(expression) == 0:
+	if len(expression) == 0 or len(df) == 0:
 		return np.ones(len(df),dtype=bool)
 	op = expression[0]
 	args = expression[1:]

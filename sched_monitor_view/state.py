@@ -120,19 +120,25 @@ class State(object):
 				self.load_many_hdf5(paths[1:], done)
 			self.load_hdf5(paths[0], my_done)
 	def unload_hdf5(self, path):
+		logging.debug('unload_hdf5 starts')
 		path_id = self.path_id[path]
 		sel = self.DF['path_id'] != path_id
 		df = pd.DataFrame()
 		if np.sum(sel) > 0:
 			df = self.DF[sel]
+		logging.debug(df)
 		self.DF = pd.DataFrame().append(df, ignore_index=True)
-		self.DF.sort_values(by='timestamp', inplace=True)
-		self.DF.index = np.arange(len(self.DF))
+		if len(self.DF) > 0:
+			self.DF.sort_values(by='timestamp', inplace=True)
+			self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
 		self.STATE['hdf5'].remove(path)
+		self.plot.title.text = ' '.join(self.STATE['hdf5'])
+		self.compute_dimg()
 		self.update_plot()
 		self.update_source()
 		self.update_table()
+		logging.debug('unload_hdf5 ends')
 	def update_source(self):
 		logging.debug('update_source starts')
 		sellim = self.sellim()
@@ -143,15 +149,20 @@ class State(object):
 		logging.debug('update_source ends')
 		pass
 	def get_truncate(self):
+		logging.debug('get_truncate starts')
 		mode = self.STATE['truncate']['mode']
 		cursor = self.STATE['truncate']['cursor']
 		width = self.STATE['truncate']['width']
-		if mode == 'index':
-			end = len(self.DF)
-		elif mode == 'time':
-			end = self.DF['timestamp'].iloc[-1]
+		if len(self.DF) == 0:
+			end = 1
 		else:
-			raise Exception('Unknown truncate mode')
+			if mode == 'index':
+				end = len(self.DF)
+			elif mode == 'time':
+				end = self.DF['timestamp'].iloc[-1]
+			else:
+				raise Exception('Unknown truncate mode')
+		logging.debug('get_truncate ends')
 		return mode, cursor, width, end
 	def truncate(self, mode, cursor, width):
 		if mode != self.STATE['truncate']['mode']:
@@ -164,15 +175,19 @@ class State(object):
 		self.update_datashader()
 		return cursor, width
 	def sellim(self):
+		logging.debug('sellim starts')
 		sellim = np.zeros(len(self.DF), dtype=bool)
+		if len(sellim) == 0:
+			logging.debug('sellim ends')
+			return sellim
 		cursor = self.STATE['truncate']['cursor']
 		width  = self.STATE['truncate']['width']
 		if self.STATE['truncate']['mode'] == 'index':
-			end = min(len(sellim), cursor+width)
 			sellim[cursor:cursor+width] = True
 		elif self.STATE['truncate']['mode'] == 'time':
 			# TODO: use np.searchsorted
 			sellim = (self.DF['timestamp'] >= cursor) & (self.DF['timestamp'] <= (cursor+width))
+		logging.debug('sellim ends')
 		return sellim
 	def update_table(self):
 		logging.debug('update_table starts')
@@ -187,13 +202,16 @@ class State(object):
 		logging.debug('update_table ends')
 		pass
 	def compute_columns(self):
+		logging.debug('compute_columns starts')
 		for column in self.STATE['columns']:
 			self.DF[column] = sched_monitor_view.lang.columns.compute(
 				self.DF,
 				self.STATE['columns'][column],
 			)
+		logging.debug('compute_columns ends')
 
 	def compute_dimg(self):
+		logging.debug('compute_dimg starts')
 		# Random df
 		# tmax = 1000000000
 		# N = 10000000
@@ -207,6 +225,19 @@ class State(object):
 		# df.sort_values(by='timestamp', inplace=True)
 		# df.index = np.arange(len(df))
 		df = self.DF
+		if len(df) == 0:
+			# Add dummy point because datashader cannot handle emptyframe
+			self.dfimg = pd.DataFrame({
+				'x0':[0],
+				'x1':[0],
+				'y0':[0],
+				'y1':[0],
+				'category':[0],
+			})
+			self.dfimg['category'] = self.dfimg['category'].astype('category')
+			self.update_datashader(force=True)
+			logging.debug('compute_dimg ends')
+			return
 		tmax = df['timestamp'].iloc[-1]
 		nr_cpu = len(np.unique(df['cpu']))
 		ymin = -1
@@ -241,6 +272,9 @@ class State(object):
 		self.plot.y_range.end = ymax
 		self.plot.plot_width = 500
 		self.plot.plot_height = img_height
+		self.update_datashader(force=True)
+		logging.debug('compute_dimg ends')
+		return
 
 	def img_callback(self, x_range, y_range, w, h, name=None):
 		logging.debug('img_callback starts')
@@ -253,7 +287,7 @@ class State(object):
 	def callback_LODEnd(self, event):
 		self.update_datashader()
 
-	def update_datashader(self):
+	def update_datashader(self, force=False):
 		try:
 			nr_cpu = 160
 			ymin = -1
@@ -270,11 +304,11 @@ class State(object):
 				'h':img_height, # do not use figure_plot.plot_height
 			}
 			last_ranges = self.last_ranges
-			if hash(frozenset(last_ranges.items())) != hash(frozenset(ranges.items())):
-				logging.debug('update_datashader starts')
+			if force or hash(frozenset(last_ranges.items())) != hash(frozenset(ranges.items())):
+				logging.debug('update_datashader starts force={}'.format(force))
 				self.img.update_image(ranges)
 				self.last_ranges = ranges
-				logging.debug('update_datashader ends')
+				logging.debug('update_datashader ends force={}'.format(force))
 		except Exception as e:
 			logging.debug('Exception({}):{}'.format(type(e),e))
 
@@ -286,7 +320,7 @@ class State(object):
 		items = []
 		index = 0
 		self.plot.renderers.append(self.datashader)
-		items.append(LegendItem(label='datashader', renderers=[self.datashader], index=index))
+		items.append(LegendItem(label='Datashader', renderers=[self.datashader], index=index))
 		index+=1
 		for r in self.STATE['renderers']:
 			source = ColumnDataSource({r[k]:[] for k in ['x0', 'x1', 'y0', 'y1']})
