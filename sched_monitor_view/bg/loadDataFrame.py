@@ -12,7 +12,7 @@ def bg(*args):
 
 def fg(path, path_id, callback, done):
 	df = {}
-	with h5py.File(path) as f:
+	with h5py.File(path, 'r') as f:
 		perf_event = {}
 		if 'perf_event' in f:
 			perf_event = f['perf_event']
