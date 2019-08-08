@@ -1,0 +1,164 @@
+{
+    "columns": {
+        "y1": [
+            "+",
+            [
+                "copy",
+                "cpu"
+            ],
+            1
+        ],
+        "y2": [
+            "+",
+            [
+                "copy",
+                "cpu"
+            ],
+            2
+        ]
+    },
+    "hdf5": [
+        "./raw/plos/kbuild_sched/32-linux_std.hdf5"
+    ],
+    "renderers": [
+        {
+            "filter": [
+		"&",
+		[
+                    "==",
+                    "event",
+                    10
+		],
+		[
+		    "<=",
+		    "arg1",
+		    1200000
+		]
+	    ],
+            "label": "Frequency [0, 1.2] GHz",
+            "line_color": "#8cd0f5",
+            "line_width": 2,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1"
+        },
+        {
+            "filter": [
+                "&",
+                [
+                    "&",
+                    [
+                        "==",
+                        "event",
+                        10
+                    ],
+                    [
+                        ">",
+                        "arg1",
+                        1200000
+                    ]
+                ],
+                [
+                    "<=",
+                    "arg1",
+                    1800000
+                ]
+            ],
+            "label": "Frequency ]1.2, 1.8] GHz",
+            "line_color": "#8ded6d",
+            "line_width": 2,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1"
+        },
+        {
+            "filter": [
+                "&",
+                [
+                    "&",
+                    [
+                        "==",
+                        "event",
+                        10
+                    ],
+                    [
+                        ">",
+                        "arg1",
+                        1800000
+                    ]
+                ],
+                [
+                    "<=",
+                    "arg1",
+                    2400000
+                ]
+            ],
+            "label": "Frequency ]1.8, 2.4] GHz",
+            "line_color": "#d6ed6d",
+            "line_width": 2,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1"
+        },
+        {
+            "filter": [
+                "&",
+                [
+                    "&",
+                    [
+                        "==",
+                        "event",
+                        10
+                    ],
+                    [
+                        ">",
+                        "arg1",
+                        2400000
+                    ]
+                ],
+                [
+                    "<=",
+                    "arg1",
+                    2700000
+                ]
+            ],
+            "label": "Frequency ]2.4, 2.7] GHz",
+            "line_color": "#e09e24",
+            "line_width": 2,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1"
+        },
+        {
+            "filter": [
+                "&",
+                [
+                    "==",
+                    "event",
+                    10
+                ],
+                [
+                    ">",
+                    "arg1",
+                    2700000
+                ]
+            ],
+            "label": "Frequency ]2.7, 3.0] GHz",
+            "line_color": "#e02424",
+            "line_width": 2,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y1"
+        }
+    ],
+    "truncate": {
+        "cursor": 0,
+        "mode": "time",
+        "width": 7000000000
+    }
+}
