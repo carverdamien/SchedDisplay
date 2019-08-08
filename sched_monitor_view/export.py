@@ -79,12 +79,12 @@ def plot(img, df, renderers):
 	fig.savefig(without_legend, bbox_inches='tight')
 	ax.legend() #title='Frequency in GHz')
 	handles, labels = ax.get_legend_handles_labels()
-	with_legend = name + '.with_legend' + ext
+	with_legend = name + '_with_legend' + ext
 	fig.savefig(with_legend, bbox_inches='tight')
 	ncol=len(labels)
 	fig = plt.figure(figsize=figsize) #(ncol*3,1))
 	fig.legend(handles, labels, loc='center', frameon=False, ncol=ncol)
-	legend_only = name + '.legend_only' + ext
+	legend_only = name + '_legend_only' + ext
 	fig.savefig(legend_only, bbox_inches='tight')
 	print('savefig ends')
 	pass
