@@ -44,6 +44,10 @@ def plot(img, df, renderers):
 	# lc    = LineCollection(lines, colors=c, linewidths=2)
 	xmin = 0
 	xmax = df['timestamp'].iloc[-1]
+	if xmax < 6.5*10**9:
+		xmax = 6.5*10**9
+	elif xmax < 50*10**9:
+		xmax = 50*10**9
 	ymin = 0 - 1
 	ymax = 160 + 1
 	for r in renderers:
