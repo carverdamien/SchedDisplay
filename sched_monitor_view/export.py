@@ -29,6 +29,8 @@ def compute_columns(df, columns):
 	pass
 
 def update_plot(df, renderers):
+	# df = df.iloc[np.arange(100000)]
+	print(df)
 	fig, ax = plt.subplots()
 	# lines = [[(0, 1), (1, 1)], [(2, 3), (3, 3)], [(1, 2), (1, 3)]]
 	# c     = np.array([(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1)])
@@ -38,51 +40,23 @@ def update_plot(df, renderers):
 	ymin = 0 - 1
 	ymax = 159 + 1
 	for r in renderers:
-		# lines = [
-		# 	[p0,p1]
-		# 	for p0, p1 in itertools.zip_longest(
-		# 		[
-		# 			(x0,y0)
-		# 			for x0, y0 in itertools.zip_longest(df[r['x0']],df[r['y0']])
-		# 		],
-		# 		[	
-		# 			(x1,y1)
-		# 			for x1, y1 in itertools.zip_longest(df[r['x1']],df[r['y1']])
-		# 		],
-		# 	)
-		# ]
-		X0 = np.array([xmin])
-		X1 = np.array([xmax])
-		Y0 = np.array([ymin])
-		Y1 = np.array([ymax])
-		lines = [
-			[p0,p1]
-			for p0, p1 in itertools.zip_longest(
-				[
-					(x0,y0)
-					for x0, y0 in itertools.zip_longest(X0,Y0)
-				],
-				[	
-					(x1,y1)
-					for x1, y1 in itertools.zip_longest(X1,Y1)
-				],
-			)
-		]
-		L = np.array([[X0,Y0],[X1,Y1]])
-		N = 1
-		L = np.reshape(L, (N,2,2))
-		print('lines=',lines)
-		print('L=',L)
-		# x = np.arange(100)
-		# # Here are many sets of y to plot vs x
-		# ys = x[:50, np.newaxis] + x[np.newaxis, :]
-		# segs = np.zeros((50, 100, 2))
-		# segs[:, :, 1] = ys
-		# segs[:, :, 0] = x
-		# L = segs
+		X0 = df[r['x0']]
+		X1 = df[r['x1']]
+		Y0 = df[r['y0']]
+		Y1 = df[r['y1']]
+		N = len(X0)
+		print('transpose starts')
+		L = np.transpose(np.array([[X0,X1],[Y0,Y1]]))
+		print('transpose ends')
+		print('LineCollection starts')
 		lc = LineCollection(L)
+		print('LineCollection ends')
+		print('add_collection starts')
 		ax.add_collection(lc)
+		print('add_collection ends')
 	ax.set_xlim(xmin, xmax)
 	ax.set_ylim(ymin, ymax)
+	print('savefig starts')
 	fig.savefig('foo.jpg')
+	print('savefig ends')
 	pass
