@@ -5,7 +5,7 @@ from bokeh.events import LODEnd
 
 import logging
 from bokeh.plotting import curdoc
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, FuncTickFormatter
 from bokeh.models.widgets import TableColumn
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
@@ -18,6 +18,8 @@ import numpy as np
 import sched_monitor_view.bg.loadDataFrame
 import sched_monitor_view.lang.filter
 import sched_monitor_view.lang.columns
+
+X_AXIS_FORMATTER="""return ""+(tick/10**9)"""
 
 class State(object):
 	"""docstring for State"""
@@ -83,6 +85,12 @@ class State(object):
 	def hdf5_is_loaded(self, path):
 		return path in self.STATE['hdf5']
 
+	def decorate_plot(self):
+		self.plot.title.text = ' '.join(self.STATE['hdf5'])
+		self.plot.xaxis.axis_label = 'Time in seconds'
+		self.plot.xaxis.formatter = FuncTickFormatter(code=X_AXIS_FORMATTER)
+		self.plot.yaxis.axis_label = 'CPU'
+
 	@gen.coroutine
 	def coroutine_load_hdf5(self, path, data, done):
 		logging.debug('coroutine_load_hdf5 starts')
@@ -97,7 +105,7 @@ class State(object):
 		self.compute_columns()
 		self.compute_dimg()
 		self.STATE['hdf5'].append(path)
-		self.plot.title.text = ' '.join(self.STATE['hdf5'])
+		self.decorate_plot()
 		self.update_plot()
 		self.update_source()
 		self.update_table()
@@ -133,7 +141,7 @@ class State(object):
 			self.DF.index = np.arange(len(self.DF))
 		self.compute_columns()
 		self.STATE['hdf5'].remove(path)
-		self.plot.title.text = ' '.join(self.STATE['hdf5'])
+		self.decorate_plot()
 		self.compute_dimg()
 		self.update_plot()
 		self.update_source()
