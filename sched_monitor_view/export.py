@@ -6,10 +6,16 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 import numpy as np
 import itertools
+import os
 
-def export(img_path, json_dict):
+import matplotlib as mpl
+font = { 'size' : 20,}
+mpl.rc('font', **font)
+
+def export(img_path, json_dict, hdf5_path=None):
 	print(img_path, json_dict)
-	hdf5_path = json_dict['hdf5'][0]
+	if hdf5_path is None:
+		hdf5_path = json_dict['hdf5'][0]
 	path_id = 0
 	def callback_load_hdf5(path, data, done):
 		df = data['df']
@@ -31,14 +37,15 @@ def compute_columns(df, columns):
 def plot(img, df, renderers):
 	# df = df.iloc[np.arange(100000)]
 	# print(df)
-	fig, ax = plt.subplots()
+	figsize = (6.4*4, 4.8*1.)
+	fig, ax = plt.subplots(figsize=figsize)
 	# lines = [[(0, 1), (1, 1)], [(2, 3), (3, 3)], [(1, 2), (1, 3)]]
 	# c     = np.array([(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1)])
 	# lc    = LineCollection(lines, colors=c, linewidths=2)
 	xmin = 0
 	xmax = df['timestamp'].iloc[-1]
 	ymin = 0 - 1
-	ymax = 159 + 1
+	ymax = 160 + 1
 	for r in renderers:
 		sel = sched_monitor_view.lang.filter.sel(df, r['filter'])
 		X0 = df[r['x0']][sel]
@@ -57,10 +64,23 @@ def plot(img, df, renderers):
 		print('add_collection ends')
 	ax.set_xlim(xmin, xmax)
 	ax.set_ylim(ymin, ymax)
-	ax.legend()
-	ax.set_xlabel('Time in ns')
+	ax.set_xlabel('Time in seconds')
 	ax.set_ylabel('CPU')
+	ax.set_yticks(np.arange(0,161,20))
+	xticks = ax.get_xticks()
+	ax.set_xticklabels([str(int(x/10**9)) for x in xticks])
 	print('savefig starts')
-	fig.savefig(img)
+	name, ext = os.path.splitext(img)
+	without_legend = name + ext
+	fig.savefig(without_legend, bbox_inches='tight')
+	ax.legend() #title='Frequency in GHz')
+	handles, labels = ax.get_legend_handles_labels()
+	with_legend = name + '.with_legend' + ext
+	fig.savefig(with_legend, bbox_inches='tight')
+	ncol=len(labels)
+	fig = plt.figure(figsize=figsize) #(ncol*3,1))
+	fig.legend(handles, labels, loc='center', frameon=False, ncol=ncol)
+	legend_only = name + '.legend_only' + ext
+	fig.savefig(legend_only, bbox_inches='tight')
 	print('savefig ends')
 	pass
