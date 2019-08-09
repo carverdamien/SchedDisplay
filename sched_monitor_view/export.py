@@ -45,16 +45,19 @@ def plot(img, df, renderers):
 	# lc    = LineCollection(lines, colors=c, linewidths=2)
 	xmin = 0
 	xmax = df['timestamp'].iloc[-1]
+	xminortick = None
+	xmajortick = None
 	if xmax < 6.5*10**9:
 		xmax = 6.5*10**9
-		xminortick = 1 * 10**8
-		xmajortick = 0.5 * 10**9
+		xminortick = MultipleLocator(1 * 10**8)
+		xmajortick = MultipleLocator(0.5 * 10**9)
 	elif xmax < 50*10**9:
 		xmax = 50*10**9
-		xminortick = 1 * 10**9
-		xmajortick = 5 * 10**9
+		xminortick = MultipleLocator(1 * 10**9)
+		xmajortick = MultipleLocator(5 * 10**9)
 	else:
-		raise Exception()
+		print('WARING')
+		# raise Exception()
 	ymin = 0 - 1
 	ymax = 160 + 1
 	for r in renderers:
@@ -78,8 +81,10 @@ def plot(img, df, renderers):
 	ax.set_xlabel('Time in seconds')
 	ax.set_ylabel('CPU')
 	ax.set_yticks(np.arange(0,161,20))
-	ax.xaxis.set_major_locator(MultipleLocator(xmajortick))
-	ax.xaxis.set_minor_locator(MultipleLocator(xminortick))
+	if xmajortick is not None:
+		ax.xaxis.set_major_locator(xmajortick)
+	if xminortick is not None:
+		ax.xaxis.set_minor_locator(xminortick)
 	# ax.tick_params(which='minor', length=1)
 	xticks = ax.get_xticks()
 	def my_format(x):
