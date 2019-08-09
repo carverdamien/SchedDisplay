@@ -36,18 +36,39 @@ def compute_columns(df, columns):
 	pass
 
 def plot(img, df, renderers):
-	# df = df.iloc[np.arange(100000)]
-	# print(df)
 	figsize = (6.4*4, 4.8*1.)
-	fig, ax = plt.subplots(figsize=figsize)
-	# lines = [[(0, 1), (1, 1)], [(2, 3), (3, 3)], [(1, 2), (1, 3)]]
-	# c     = np.array([(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1)])
-	# lc    = LineCollection(lines, colors=c, linewidths=2)
 	xmin = 0
 	xmax = df['timestamp'].iloc[-1]
+	ymin = 0 - 1
+	ymax = 160 + 1
+	yticks = np.arange(0,161,20)
 	xminortick = None
 	xmajortick = None
-	if xmax < 6.5*10**9:
+	if img == 'freqdelay.png':
+		figsize = (6.4*1., 4.8*1.)
+		center = 1 * 10**9
+		size   = 0.5 * 10**8
+		xmin = center - size
+		xmax = center + size
+		sel = (df['timestamp'] >= xmin) & (df['timestamp'] <= xmax)
+		df = df[sel]
+		ymin = 50
+		ymax = 100
+		yticks = np.arange(ymin,ymax,10)
+		pass
+	elif img == 'forkwait.png':
+		figsize = (6.4*1., 4.8*1.)
+		center = 1 * 10**9
+		size   = 0.5 * 10**8
+		xmin = center - size
+		xmax = center + size
+		sel = (df['timestamp'] >= xmin) & (df['timestamp'] <= xmax)
+		df = df[sel]
+		# ymin = 50
+		# ymax = 100
+		# yticks = np.arange(ymin,ymax,10)
+		pass
+	elif xmax < 6.5*10**9:
 		xmax = 6.5*10**9
 		xminortick = MultipleLocator(1 * 10**8)
 		xmajortick = MultipleLocator(0.5 * 10**9)
@@ -58,8 +79,7 @@ def plot(img, df, renderers):
 	else:
 		print('WARING')
 		# raise Exception()
-	ymin = 0 - 1
-	ymax = 160 + 1
+	fig, ax = plt.subplots(figsize=figsize)
 	for r in renderers:
 		sel = sched_monitor_view.lang.filter.sel(df, r['filter'])
 		X0 = df[r['x0']][sel]
@@ -71,7 +91,10 @@ def plot(img, df, renderers):
 		L = np.transpose(np.array([[X0,X1],[Y0,Y1]]))
 		print('transpose ends')
 		print('LineCollection starts')
-		lc = LineCollection(L,color=r['line_color'],label=r['label'])
+		if 'line_width' not in r:
+			r['line_width'] = None
+		r['line_width'] = None
+		lc = LineCollection(L,color=r['line_color'],linewidths=r['line_width'],label=r['label'])
 		print('LineCollection ends')
 		print('add_collection starts')
 		ax.add_collection(lc)
@@ -80,7 +103,7 @@ def plot(img, df, renderers):
 	ax.set_ylim(ymin, ymax)
 	ax.set_xlabel('Time in seconds')
 	ax.set_ylabel('CPU')
-	ax.set_yticks(np.arange(0,161,20))
+	ax.set_yticks(yticks)
 	if xmajortick is not None:
 		ax.xaxis.set_major_locator(xmajortick)
 	if xminortick is not None:

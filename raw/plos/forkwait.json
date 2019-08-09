@@ -1,0 +1,69 @@
+{
+    "columns": {
+        "y1":["+",["copy","cpu"],0.5],
+        "y2":["+",["copy","cpu"],3],
+        "x1":["nxt_of_same_evt_on_same_cpu","timestamp"]
+    },
+    "hdf5": [],
+    "renderers": [
+        {
+            "filter": ["&", ["==","event",13], ["==","arg0",1]],
+            "label": "RQSIZE=1 line",
+            "line_color": "#444444",
+            "x0": "timestamp", "x1": "x1",
+            "y0": "cpu", "y1": "cpu"
+        },
+        {
+            "filter": ["&", ["==","event",13], [">","arg0",1]],
+            "label": "RQSIZE>1 line",
+            "line_color": "#ff0000",
+            "x0": "timestamp", "x1": "x1",
+            "y0": "cpu", "y1": "cpu"
+        },
+        {
+            "filter": ["==", "event", 0],
+            "label": "EXEC",
+            "line_color": "#ff0000",
+            "line_width": 1,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y2"
+        },
+        {
+            "filter": ["==","event",3],
+            "label": "WAKEUP_NEW",
+            "line_color": "#000000",
+            "line_width": 1,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y2"
+        },
+        {
+            "filter": ["==","event",4],
+            "label": "BLOCK",
+            "line_color": "#dddddd",
+            "line_width": 1,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y2"
+        },
+        {
+            "filter": ["==", "event", 9],
+            "label": "FORK",
+            "line_color": "#FFFF00",
+            "line_width": 1,
+            "x0": "timestamp",
+            "x1": "timestamp",
+            "y0": "cpu",
+            "y1": "y2"
+        }
+    ],
+    "truncate": {
+        "cursor": 1500000000,
+        "mode": "time",
+        "width": 1000000
+    }
+}
