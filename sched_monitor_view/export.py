@@ -4,6 +4,7 @@ import sched_monitor_view.lang.columns
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+from matplotlib.ticker import MultipleLocator
 import numpy as np
 import itertools
 import os
@@ -46,8 +47,14 @@ def plot(img, df, renderers):
 	xmax = df['timestamp'].iloc[-1]
 	if xmax < 6.5*10**9:
 		xmax = 6.5*10**9
+		xminortick = 1 * 10**8
+		xmajortick = 0.5 * 10**9
 	elif xmax < 50*10**9:
 		xmax = 50*10**9
+		xminortick = 1 * 10**9
+		xmajortick = 5 * 10**9
+	else:
+		raise Exception()
 	ymin = 0 - 1
 	ymax = 160 + 1
 	for r in renderers:
@@ -71,8 +78,16 @@ def plot(img, df, renderers):
 	ax.set_xlabel('Time in seconds')
 	ax.set_ylabel('CPU')
 	ax.set_yticks(np.arange(0,161,20))
+	ax.xaxis.set_major_locator(MultipleLocator(xmajortick))
+	ax.xaxis.set_minor_locator(MultipleLocator(xminortick))
+	# ax.tick_params(which='minor', length=1)
 	xticks = ax.get_xticks()
-	ax.set_xticklabels([str(int(x/10**9)) for x in xticks])
+	def my_format(x):
+		if x%10**9 == 0:
+			return str(int(x/10**9))
+		else:
+			return str(x/10**9)
+	ax.set_xticklabels([my_format(x) for x in xticks])
 	print('savefig starts')
 	name, ext = os.path.splitext(img)
 	without_legend = name + ext
