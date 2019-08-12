@@ -16,6 +16,17 @@ class ViewController(object):
 			log = logginglog
 		self.log = log
 
+	def logFunctionCall(func, *args, **kwargs):
+		# print(func, args, kwargs)
+		def f(self, *args, **kwargs):
+			fname = func.__name__
+			self.log('{} starts'.format(fname))
+			# print(self, args, kwargs)
+			r = func(self, *args,**kwargs)
+			self.log('{} ends'.format(fname))
+			return r
+		return f
+
 	def hide(self):
 		if self.doc is not None:
 			@gen.coroutine
