@@ -52,7 +52,6 @@ def modify_doc(doc):
 		console.write('{} records in trace'.format(len(df)))
 		state['df'] = df
 		state['lines'] = lines_from_df(df)
-		seq.next()
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_plot(io):
