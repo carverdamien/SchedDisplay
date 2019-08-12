@@ -1,4 +1,4 @@
-from bokeh.models.widgets import PreText
+from bokeh.models.widgets import TextAreaInput
 import logging, datetime
 from threading import Lock
 from functools import partial
@@ -21,7 +21,11 @@ def logFunctionCall(log):
 
 class ConsoleViewController(ViewController):
 	def __init__(self, max_length=1024, doc=None, log=None):
-		view = PreText()
+		view = TextAreaInput(
+			value='',
+			sizing_mode='stretch_both',
+			max_length=2**20,
+		)
 		super(ConsoleViewController, self).__init__(view, doc, log)
 		self.max_length = max_length
 		self.buffer = []
@@ -38,6 +42,6 @@ class ConsoleViewController(ViewController):
 		if self.doc is not None:
 			@gen.coroutine
 			def coroutine():
-				self.view.text = '\n'.join(reversed(self.buffer))
+				self.view.value = '\n'.join(reversed(self.buffer))
 			self.doc.add_next_tick_callback(partial(coroutine))
 		self.lock.release()
