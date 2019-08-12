@@ -18,11 +18,11 @@ from datashader.bokeh_ext import InteractiveImage
 # Add dummy point because datashader cannot handle emptyframe
 def empty_lines():
 	df = pd.DataFrame({
-		'x0':[0],
-		'x1':[0],
-		'y0':[0],
-		'y1':[0],
-		'category':[0],
+		'x0':[0, 1],
+		'x1':[0, 1],
+		'y0':[0, 1],
+		'y1':[0, 1],
+		'category':[0, 1],
 	})
 	df['category'] = df['category'].astype('category')
 	return df
@@ -63,7 +63,7 @@ class FigureViewController(ViewController):
 		)
 		query_textinput = TextInput(
 			title="query",
-			sizing_mode="fixed",
+			sizing_mode="stretch_width",
 			value='',
 			width=100
 		)
@@ -98,7 +98,13 @@ class FigureViewController(ViewController):
 	@ViewController.logFunctionCall
 	def apply_query(self):
 		try:
-			return self.lines.query(self.query)
+			lines = self.lines.query(self.query)
+			if len(lines) == 0:
+				raise Exception(
+					'QUERY ERROR',
+					'{} => len(lines) == 0'.format(self.query)
+				)
+			return lines
 		except Exception as e:
 			self.log(e)
 		return self.lines

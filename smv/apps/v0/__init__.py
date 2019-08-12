@@ -10,6 +10,8 @@ import dask
 from multiprocessing import cpu_count
 
 def modify_doc(doc):
+	console = ConsoleViewController(doc=doc)
+	log = console.write
 	nr_cpu = 160
 	px_height = 4
 	height = (nr_cpu+2)*px_height
@@ -22,10 +24,30 @@ def modify_doc(doc):
 		'y0_shift' : 0. / float(px_height),
 		'y1_shift' : 2. / float(px_height),
 	}
-	console = ConsoleViewController(doc=doc)
-	log = console.write
+	def get_image_ranges(FVC):
+		xmin = FVC.fig.x_range.start
+		xmax = FVC.fig.x_range.end
+		# ymin = FVC.fig.y_range.start
+		# ymax = FVC.fig.y_range.end
+		ymin = -1
+		ymax = nr_cpu+1
+		if FVC.fig.y_range.end > ymax:
+			FVC.fig.y_range.end = ymax
+		if FVC.fig.y_range.start < ymin:
+			FVC.fig.y_range.start = ymin
+		w = FVC.fig.plot_width
+		h = FVC.fig.plot_height
+		return {
+			'xmin':xmin,
+			'xmax':xmax,
+			'ymin':FVC.fig.y_range.start,
+			'ymax':FVC.fig.y_range.end,
+			'w':w,
+			'h':h,
+		}
 	@logFunctionCall(log)
 	def lines_from_df(df):
+		df['timestamp'] = df['timestamp']-min(df['timestamp'])
 		lines = pd.DataFrame({
 			'x0':df['timestamp'],
 			'x1':df['timestamp'],
@@ -39,7 +61,7 @@ def modify_doc(doc):
 		return lines
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
-	figure = FigureViewController(doc=doc, log=log)
+	figure = FigureViewController(get_image_ranges=get_image_ranges, doc=doc, log=log)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
 		Panel(child=load_plot.view,  title='Select JSON'),
