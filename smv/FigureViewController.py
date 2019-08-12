@@ -67,7 +67,7 @@ class FigureViewController(ViewController):
 			value='',
 			width=100
 		)
-		view = column(fig, query_textinput)
+		view = column(fig, query_textinput, sizing_mode='stretch_both')
 		super(FigureViewController, self).__init__(view, doc, log)
 		self.fig = fig
 		self.query_textinput = query_textinput
