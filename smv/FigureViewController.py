@@ -41,6 +41,9 @@ def get_image_ranges(FVC):
 		'h':h,
 	}
 
+def is_valid_query(q):
+	return q is not None or q.strip() != ''
+
 class FigureViewController(ViewController):
 	"""docstring for FigureViewController"""
 	def __init__(self, 
@@ -51,6 +54,7 @@ class FigureViewController(ViewController):
 			doc=None,
 			log=None,
 		):
+		self.query = None
 		self.lines = lines
 		self.get_image_ranges = get_image_ranges
 		view = figure(
@@ -73,12 +77,22 @@ class FigureViewController(ViewController):
 		pass
 
 	@ViewController.logFunctionCall
+	def apply_query(self):
+		try:
+			return self.lines.query(self.query)
+		except Exception as e:
+			self.log(e)
+		return self.lines
+
+	@ViewController.logFunctionCall
 	def callback_InteractiveImage(self, x_range, y_range, plot_width, plot_height, name=None):
 		cvs = ds.Canvas(
 			plot_width=plot_width, plot_height=plot_height,
 			x_range=x_range, y_range=y_range,
 		)
-		agg = cvs.line(self.lines,
+		if is_valid_query(self.query):
+			lines = self.apply_query()
+		agg = cvs.line(lines,
 			x=['x0','x1'], y=['y0','y1'],
 			agg=ds.count_cat('category'), axis=1,
 		)
