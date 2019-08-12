@@ -1,4 +1,5 @@
 from smv.ViewController import ViewController
+from bokeh.layouts import column
 from functools import partial
 from tornado import gen
 
@@ -7,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from bokeh.plotting import figure
+from bokeh.models.widgets import TextInput
 from bokeh.events import LODEnd
 
 import datashader as ds
@@ -26,12 +28,12 @@ def empty_lines():
 	return df
 
 def get_image_ranges(FVC):
-	xmin = FVC.view.x_range.start
-	xmax = FVC.view.x_range.end
-	ymin = FVC.view.y_range.start
-	ymax = FVC.view.y_range.end
-	w = FVC.view.plot_width
-	h = FVC.view.plot_height
+	xmin = FVC.fig.x_range.start
+	xmax = FVC.fig.x_range.end
+	ymin = FVC.fig.y_range.start
+	ymax = FVC.fig.y_range.end
+	w = FVC.fig.plot_width
+	h = FVC.fig.plot_height
 	return {
 		'xmin':xmin,
 		'xmax':xmax,
@@ -40,9 +42,6 @@ def get_image_ranges(FVC):
 		'w':w,
 		'h':h,
 	}
-
-def is_valid_query(q):
-	return q is not None or q.strip() != ''
 
 class FigureViewController(ViewController):
 	"""docstring for FigureViewController"""
@@ -54,18 +53,38 @@ class FigureViewController(ViewController):
 			doc=None,
 			log=None,
 		):
-		self.query = None
+		self.query = ''
 		self.lines = lines
 		self.get_image_ranges = get_image_ranges
-		view = figure(
+		fig = figure(
 			x_range=x_range,
 			y_range=y_range,
+			sizing_mode='stretch_both',
 		)
+		query_textinput = TextInput(
+			title="query",
+			sizing_mode="fixed",
+			value='',
+			width=100
+		)
+		view = column(fig, query_textinput)
 		super(FigureViewController, self).__init__(view, doc, log)
-		# Has to be executed before inserting plot in doc
-		self.view.on_event(LODEnd, self.callback_LODEnd)
-		# Has to be executed before inserting plot in doc
-		self.img = InteractiveImage(self.view, self.callback_InteractiveImage)
+		self.fig = fig
+		self.query_textinput = query_textinput
+		# Has to be executed before inserting fig in doc
+		self.fig.on_event(LODEnd, self.callback_LODEnd)
+		# Has to be executed before inserting fig in doc
+		self.img = InteractiveImage(self.fig, self.callback_InteractiveImage)
+		self.query_textinput.on_change('value', self.on_change_query_textinput)
+
+	def is_valid_query(self, q):
+		# TODO: improve test
+		return q is not None and q.strip() != ''
+
+	def on_change_query_textinput(self, attr, old, new):
+		if self.is_valid_query(self.query_textinput.value):
+			self.query = self.query_textinput.value
+			self.update_image()
 
 	def callback_LODEnd(self, event):
 		self.update_image()
@@ -90,7 +109,8 @@ class FigureViewController(ViewController):
 			plot_width=plot_width, plot_height=plot_height,
 			x_range=x_range, y_range=y_range,
 		)
-		if is_valid_query(self.query):
+		lines = self.lines
+		if self.is_valid_query(self.query):
 			lines = self.apply_query()
 		agg = cvs.line(lines,
 			x=['x0','x1'], y=['y0','y1'],
@@ -116,12 +136,12 @@ class FigureViewController(ViewController):
 			ymin = min(*dask.compute((lines['y0'].min(),lines['y1'].min())))
 		if ymax is None:
 			ymax = max(*dask.compute((lines['y0'].max(),lines['y1'].max())))
-		self.view.x_range.start = xmin
-		self.view.x_range.end = xmax
-		self.view.y_range.start = ymin
-		self.view.y_range.end = ymax
-		self.view.plot_width = width
-		self.view.plot_height = height
+		self.fig.x_range.start = xmin
+		self.fig.x_range.end = xmax
+		self.fig.y_range.start = ymin
+		self.fig.y_range.end = ymax
+		self.fig.plot_width = width
+		self.fig.plot_height = height
 		self.lines = lines
 		self.update_image()
 		pass

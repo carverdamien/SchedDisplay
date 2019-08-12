@@ -8,7 +8,8 @@ def dummy_lines():
 	px_height = 4
 	y0_shift = 0. / float(px_height)
 	y1_shift = 2. / float(px_height)
-	N = 50000000
+	# N = 50000000
+	N = 100000
 	# N = 100
 	tmax = 1000000000
 	nr_cpu = 160
@@ -34,9 +35,9 @@ def dummy_lines():
 	return df
 
 def get_image_ranges(FVC):
-	xmin = FVC.view.x_range.start
-	xmax = FVC.view.x_range.end
-	w = FVC.view.plot_width
+	xmin = FVC.fig.x_range.start
+	xmax = FVC.fig.x_range.end
+	w = FVC.fig.plot_width
 	nr_cpu = 160
 	ymin = -1
 	ymax = nr_cpu+1
