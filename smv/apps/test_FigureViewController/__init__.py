@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import dask
 from multiprocessing import cpu_count
+from smv.DataFrame import save
 
 def dummy_lines():
 	px_height = 4
@@ -30,6 +31,11 @@ def dummy_lines():
 	df['category'] = df['category'].astype('category')
 	df.sort_values(by='x0', inplace=True)
 	df.index = np.arange(len(df))
+	# save('dummy.tar', pd.DataFrame({
+	# 	'timestamp' : x0,
+	# 	'cpu' : y0,
+	# 	'event' : c
+	# }))
 	df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
 	df.persist() # Persist multiple Dask collections into memory
 	return df
