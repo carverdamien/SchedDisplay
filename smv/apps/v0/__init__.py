@@ -1,5 +1,5 @@
 from smv.TabViewController import TabViewController
-from smv.ConsoleViewController import ConsoleViewController
+from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.SeqViewController import SeqViewController
@@ -20,6 +20,9 @@ def modify_doc(doc):
 		'y0_shift' : 0. / float(px_height),
 		'y1_shift' : 2. / float(px_height),
 	}
+	console = ConsoleViewController(doc=doc)
+	log = console.write
+	@logFunctionCall(log)
 	def lines_from_df(df):
 		lines = pd.DataFrame({
 			'x0':df['timestamp'],
@@ -30,14 +33,13 @@ def modify_doc(doc):
 		})
 		lines['category'] = lines['category'].astype('category')
 		return lines
-	console = ConsoleViewController(doc=doc)
-	log = console.write
 	load_trace = LoadFileViewController('./examples/trace','.hdf5',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc, log=log)
 	seq = SeqViewController([load_trace, load_plot, figure], doc=doc, log=log)
 	labels = ['Main','Server Console']
 	tab = TabViewController(labels, [seq, console], doc=doc, log=log)
+	@logFunctionCall(log)
 	def on_loaded_trace(io):
 		df = DataFrame(io)
 		console.write('{} records in trace'.format(len(df)))
@@ -45,6 +47,7 @@ def modify_doc(doc):
 		state['lines'] = lines_from_df(df)
 		seq.next()
 	load_trace.on_loaded(on_loaded_trace)
+	@logFunctionCall(log)
 	def on_loaded_plot(io):
 		plot = io.read()
 		console.write('Plot:{}'.format(plot))

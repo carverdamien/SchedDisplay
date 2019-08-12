@@ -4,6 +4,20 @@ from threading import Lock
 from functools import partial
 from tornado import gen
 from smv.ViewController import ViewController
+import time
+
+def logFunctionCall(log):
+	def wrap(func):
+		def f(*args, **kwargs):
+			fname = func.__name__
+			log('{} starts'.format(fname))
+			starts = time.time()
+			r = func(*args,**kwargs)
+			ends = time.time()
+			log('{} ends in {}s'.format(fname, ends-starts))
+			return r
+		return f
+	return wrap
 
 class ConsoleViewController(ViewController):
 	def __init__(self, max_length=1024, doc=None, log=None):

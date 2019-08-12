@@ -16,12 +16,10 @@ class ViewController(object):
 			log = logginglog
 		self.log = log
 
-	def logFunctionCall(func, *args, **kwargs):
-		# print(func, args, kwargs)
+	def logFunctionCall(func):
 		def f(self, *args, **kwargs):
 			fname = func.__name__
 			self.log('{} starts'.format(fname))
-			# print(self, args, kwargs)
 			starts = time.time()
 			r = func(self, *args,**kwargs)
 			ends = time.time()
