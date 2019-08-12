@@ -24,18 +24,13 @@ def empty_lines():
 	df['category'] = df['category'].astype('category')
 	return df
 
-# Customizable get_image_ranges:
-# TODO: mv this func in app/X/__init__.py and replace it with a more generic
-# because the FigureViewController should not know nr_cpu.
 def get_image_ranges(FVC):
 	xmin = FVC.view.x_range.start
 	xmax = FVC.view.x_range.end
+	ymin = FVC.view.y_range.start
+	ymax = FVC.view.y_range.end
 	w = FVC.view.plot_width
-	nr_cpu = 160
-	ymin = -1
-	ymax = nr_cpu+1
-	px_height = 4
-	h = (nr_cpu+2)*px_height
+	h = FVC.view.plot_height
 	return {
 		'xmin':xmin,
 		'xmax':xmax,
@@ -48,6 +43,8 @@ def get_image_ranges(FVC):
 class FigureViewController(ViewController):
 	"""docstring for FigureViewController"""
 	def __init__(self, 
+			x_range=(0,1), # datashader cannot handle 0-sized range
+			y_range=(0,1), # datashader cannot handle 0-sized range
 			lines=empty_lines(), 
 			get_image_ranges=get_image_ranges,
 			doc=None,
@@ -56,8 +53,8 @@ class FigureViewController(ViewController):
 		self.lines = lines
 		self.get_image_ranges = get_image_ranges
 		view = figure(
-			x_range=(0,1), # datashader cannot handle 0-sized range
-			y_range=(0,1), # datashader cannot handle 0-sized range
+			x_range=x_range,
+			y_range=y_range,
 		)
 		super(FigureViewController, self).__init__(view, doc, log)
 		# Has to be executed before inserting plot in doc
@@ -87,15 +84,15 @@ class FigureViewController(ViewController):
 		img = tf.shade(agg,min_alpha=255)
 		return img
 
-	def plot(self, lines, width, height, xmin=None, xmax=None, ymin=None, ymax=None):
+	def plot(self, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
 		if self.doc is not None:
 			@gen.coroutine
 			def coroutine():
-				self._plot(lines, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+				self._plot(width, height, lines=lines, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 			self.doc.add_next_tick_callback(partial(coroutine))
 
 	@ViewController.logFunctionCall
-	def _plot(self, lines, width, height, xmin=None, xmax=None, ymin=None, ymax=None):
+	def _plot(self, width, height, lines, xmin=None, xmax=None, ymin=None, ymax=None):
 		if xmin is None:
 			xmin = min(min(lines['x0']),min(lines['x1']))
 		if xmax is None:

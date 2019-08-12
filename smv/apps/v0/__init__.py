@@ -5,36 +5,6 @@ from smv.FigureViewController import FigureViewController
 from smv.SeqViewController import SeqViewController
 import json
 
-import pandas as pd
-import numpy as np
-
-def dummy_lines():
-	px_height = 4
-	y0_shift = 0. / float(px_height)
-	y1_shift = 2. / float(px_height)
-	N = 10000000
-	# N = 100
-	tmax = 1000000000
-	nr_cpu = 160
-	nr_event = 20
-	x0 = np.random.randint(0,tmax,N).astype(float)
-	x1 = x0
-	y0 = np.random.randint(0,nr_cpu,N).astype(float)
-	y1 = y0 + y1_shift
-	y0 = y0 + y0_shift
-	c = np.random.randint(0,nr_event,N)
-	df = pd.DataFrame({
-		'x0':x0,
-		'x1':x1,
-		'y0':y0,
-		'y1':y1,
-		'category':c,
-	})
-	df['category'] = df['category'].astype('category')
-	# df.sort_values(by='x0', inplace=True)
-	# df.index = np.arange(len(df))
-	return df
-
 def modify_doc(doc):
 	nr_cpu = 160
 	px_height = 4
@@ -62,7 +32,7 @@ def modify_doc(doc):
 			console.write(e)
 			return
 		seq.next()
-		figure.plot(dummy_lines(), width, height)
+		# figure.plot(width, height, dummy_lines())
 	load_plot.on_loaded(on_loaded_plot)
 	doc.add_root(tab.view)
 	seq.next()

@@ -1,0 +1,61 @@
+from smv.FigureViewController import FigureViewController
+import pandas as pd
+import numpy as np
+
+def dummy_lines():
+	px_height = 4
+	y0_shift = 0. / float(px_height)
+	y1_shift = 2. / float(px_height)
+	N = 10000000
+	# N = 100
+	tmax = 1000000000
+	nr_cpu = 160
+	nr_event = 20
+	x0 = np.random.randint(0,tmax,N).astype(float)
+	x1 = x0
+	y0 = np.random.randint(0,nr_cpu,N).astype(float)
+	y1 = y0 + y1_shift
+	y0 = y0 + y0_shift
+	c = np.random.randint(0,nr_event,N)
+	df = pd.DataFrame({
+		'x0':x0,
+		'x1':x1,
+		'y0':y0,
+		'y1':y1,
+		'category':c,
+	})
+	df['category'] = df['category'].astype('category')
+	df.sort_values(by='x0', inplace=True)
+	df.index = np.arange(len(df))
+	return df
+
+def get_image_ranges(FVC):
+	xmin = FVC.view.x_range.start
+	xmax = FVC.view.x_range.end
+	w = FVC.view.plot_width
+	nr_cpu = 160
+	ymin = -1
+	ymax = nr_cpu+1
+	px_height = 4
+	h = (nr_cpu+2)*px_height
+	return {
+		'xmin':xmin,
+		'xmax':xmax,
+		'ymin':ymin,
+		'ymax':ymax,
+		'w':w,
+		'h':h,
+	}
+
+def modify_doc(doc):
+	lines = dummy_lines()
+	figure = FigureViewController(
+		x_range=(0,1000000000),
+		y_range=(-1,160),
+		lines=lines,
+		get_image_ranges=get_image_ranges,
+		doc=doc)
+	figure.view.sizing_mode = 'stretch_both'
+	doc.add_root(figure.view)
+	pass
+
