@@ -1,6 +1,7 @@
-import h5py
+import tarfile, os
 import numpy as np
 import pandas as pd
+from threading import Thread
 
 def description(f):
 	res = []
@@ -14,33 +15,20 @@ def description(f):
 			res+=description(v)
 	return res
 
-def DataFrame(io):
-	with h5py.File(io, 'r') as f:
-		perf_event = {}
-		if 'perf_event' in f:
-			perf_event = f['perf_event']
-			perf_event = {
-				k : {
-					kk : perf_event[k].attrs[kk]
-					for kk in  perf_event[k].attrs.keys()
-				}
-				for k in perf_event.keys()
-			}
-		comm = f['sched_monitor']['tracer-raw']['comm'].attrs
-		comm = {k:comm[k] for k in comm.keys()}
-		dataset = f['sched_monitor']['tracer-raw']['df']
-		keys = list(dataset.keys())
-		df = {
-			k : np.array(dataset[k])
-			for k in keys
-		}
-		df['timestamp']-=min(df['timestamp'])
-		# df['path_id'] = np.array([path_id]*len(df['timestamp']))
-		df = pd.DataFrame(df)
-		data = {
-			'description' : description(f),
-			'df' : df,
-			'comm' : comm,
-			'perf_event' : perf_event,
-		}
-		return df
+def DataFrame(path):
+	df = {}
+	with tarfile.open(path, 'r') as tar:
+		def target(tarinfo):
+			with tarfile.open(path, 'r') as tar:
+				with tar.extractfile(tarinfo.name) as f:
+					npzfile = np.load(f)
+					df.update({k:npzfile[k] for k in npzfile.files})
+		def spawn(tarinfo):
+			args = (tarinfo,)
+			t = Thread(target=target, args=args)
+			t.start()
+			return t
+		thread = [spawn(tarinfo) for tarinfo in tar if tarinfo.isreg() and os.path.splitext(tarinfo.name)[1] == '.npz']
+		for t in thread: t.join()
+	df = pd.DataFrame(df)
+	return df

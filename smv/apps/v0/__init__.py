@@ -1,6 +1,7 @@
 from smv.TabViewController import TabViewController
 from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
+from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.SeqViewController import SeqViewController
 from smv.DataFrame import DataFrame
@@ -37,20 +38,20 @@ def modify_doc(doc):
 		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
 		lines.persist() # Persist multiple Dask collections into memory
 		return lines
-	load_trace = LoadFileViewController('./examples/trace','.hdf5',doc=doc, log=log)
+	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc, log=log)
 	seq = SeqViewController([load_trace, load_plot, figure], doc=doc, log=log)
 	labels = ['Main','Server Console']
 	tab = TabViewController(labels, [seq, console], doc=doc, log=log)
 	@logFunctionCall(log)
-	def on_loaded_trace(io):
-		df = DataFrame(io)
+	def on_selected_trace(path):
+		df = DataFrame(path)
 		console.write('{} records in trace'.format(len(df)))
 		state['df'] = df
 		state['lines'] = lines_from_df(df)
 		seq.next()
-	load_trace.on_loaded(on_loaded_trace)
+	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_plot(io):
 		plot = io.read()
