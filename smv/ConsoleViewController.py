@@ -24,6 +24,6 @@ class ConsoleViewController(ViewController):
 		if self.doc is not None:
 			@gen.coroutine
 			def coroutine():
-				self.view.text = '\n'.join(self.buffer)
+				self.view.text = '\n'.join(reversed(self.buffer))
 			self.doc.add_next_tick_callback(partial(coroutine))
 		self.lock.release()
