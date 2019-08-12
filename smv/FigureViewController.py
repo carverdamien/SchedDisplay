@@ -68,15 +68,14 @@ class FigureViewController(ViewController):
 	def callback_LODEnd(self, event):
 		self.update_image()
 
+	@ViewController.logFunctionCall
 	def update_image(self):
-		self.log('update_image starts')
 		ranges = self.get_image_ranges(self)
 		self.img.update_image(ranges)
-		self.log('update_image ends')
 		pass
 
+	@ViewController.logFunctionCall
 	def callback_InteractiveImage(self, x_range, y_range, plot_width, plot_height, name=None):
-		self.log('callback_InteractiveImage starts')
 		cvs = ds.Canvas(
 			plot_width=plot_width, plot_height=plot_height,
 			x_range=x_range, y_range=y_range,
@@ -86,7 +85,6 @@ class FigureViewController(ViewController):
 			agg=ds.count_cat('category'), axis=1,
 		)
 		img = tf.shade(agg,min_alpha=255)
-		self.log('callback_InteractiveImage ends')
 		return img
 
 	def plot(self, lines, width, height, xmin=None, xmax=None, ymin=None, ymax=None):
@@ -96,6 +94,7 @@ class FigureViewController(ViewController):
 				self._plot(lines, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 			self.doc.add_next_tick_callback(partial(coroutine))
 
+	@ViewController.logFunctionCall
 	def _plot(self, lines, width, height, xmin=None, xmax=None, ymin=None, ymax=None):
 		if xmin is None:
 			xmin = min(min(lines['x0']),min(lines['x1']))
