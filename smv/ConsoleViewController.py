@@ -1,5 +1,5 @@
 from bokeh.models.widgets import PreText
-import logging
+import logging, datetime
 from threading import Lock
 from functools import partial
 from tornado import gen
@@ -15,9 +15,10 @@ class ConsoleViewController(ViewController):
 
 	def write(self, *args):
 		self.lock.acquire()
+		header = datetime.datetime.now().isoformat() + ' '
 		msg = ''.join([str(a) for a in args])
 		logging.info(msg)
-		self.buffer.append(msg)
+		self.buffer.append(header+msg)
 		while len(self.buffer) > self.max_length:
 			self.buffer.pop(0)
 		if self.doc is not None:
