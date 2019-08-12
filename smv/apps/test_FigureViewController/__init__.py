@@ -1,12 +1,14 @@
 from smv.FigureViewController import FigureViewController
 import pandas as pd
 import numpy as np
+import dask
+from multiprocessing import cpu_count
 
 def dummy_lines():
 	px_height = 4
 	y0_shift = 0. / float(px_height)
 	y1_shift = 2. / float(px_height)
-	N = 10000000
+	N = 50000000
 	# N = 100
 	tmax = 1000000000
 	nr_cpu = 160
@@ -27,6 +29,8 @@ def dummy_lines():
 	df['category'] = df['category'].astype('category')
 	df.sort_values(by='x0', inplace=True)
 	df.index = np.arange(len(df))
+	df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
+	df.persist() # Persist multiple Dask collections into memory
 	return df
 
 def get_image_ranges(FVC):

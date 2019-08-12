@@ -2,6 +2,7 @@ from smv.ViewController import ViewController
 from functools import partial
 from tornado import gen
 
+import dask
 import pandas as pd
 import numpy as np
 
@@ -94,13 +95,13 @@ class FigureViewController(ViewController):
 	@ViewController.logFunctionCall
 	def _plot(self, width, height, lines, xmin=None, xmax=None, ymin=None, ymax=None):
 		if xmin is None:
-			xmin = min(min(lines['x0']),min(lines['x1']))
+			xmin = min(*dask.compute((lines['x0'].min(),lines['x1'].min())))
 		if xmax is None:
-			xmax = max(max(lines['x0']),max(lines['x1']))
+			xmax = max(*dask.compute((lines['x0'].max(),lines['x1'].max())))
 		if ymin is None:
-			ymin = min(min(lines['y0']),min(lines['y1']))
+			ymin = min(*dask.compute((lines['y0'].min(),lines['y1'].min())))
 		if ymax is None:
-			ymax = max(max(lines['y0']),max(lines['y1']))
+			ymax = max(*dask.compute((lines['y0'].max(),lines['y1'].max())))
 		self.view.x_range.start = xmin
 		self.view.x_range.end = xmax
 		self.view.y_range.start = ymin

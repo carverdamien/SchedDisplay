@@ -6,6 +6,8 @@ from smv.SeqViewController import SeqViewController
 from smv.DataFrame import DataFrame
 import json
 import pandas as pd
+import dask
+from multiprocessing import cpu_count
 
 def modify_doc(doc):
 	nr_cpu = 160
@@ -32,6 +34,8 @@ def modify_doc(doc):
 			'category':df['event'],
 		})
 		lines['category'] = lines['category'].astype('category')
+		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
+		lines.persist() # Persist multiple Dask collections into memory
 		return lines
 	load_trace = LoadFileViewController('./examples/trace','.hdf5',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
