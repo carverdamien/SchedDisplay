@@ -1,9 +1,8 @@
-from smv.TabViewController import TabViewController
+from bokeh.models import Panel, Tabs
 from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
 from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
-from smv.SeqViewController import SeqViewController
 from smv.DataFrame import DataFrame
 import json
 import pandas as pd
@@ -41,9 +40,12 @@ def modify_doc(doc):
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc, log=log)
-	seq = SeqViewController([load_trace, load_plot, figure], doc=doc, log=log)
-	labels = ['Main','Server Console']
-	tab = TabViewController(labels, [seq, console], doc=doc, log=log)
+	tab = Tabs(tabs=[
+		Panel(child=load_trace.view, title='Select TAR'),
+		Panel(child=load_plot.view,  title='Select JSON'),
+		Panel(child=figure.view,     title='Figure'),
+		Panel(child=console.view,    title='Console'),
+	])
 	@logFunctionCall(log)
 	def on_selected_trace(path):
 		df = DataFrame(path)
@@ -61,9 +63,7 @@ def modify_doc(doc):
 		except Exception as e:
 			console.write(e)
 			return
-		seq.next()
 		figure.plot(state['width'], state['height'], state['lines'])
 	load_plot.on_loaded(on_loaded_plot)
-	doc.add_root(tab.view)
-	seq.next()
+	doc.add_root(tab)
 	pass
