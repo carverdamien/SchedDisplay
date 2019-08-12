@@ -1,6 +1,6 @@
 from functools import partial
 from tornado import gen
-import logging
+import logging, time
 
 def logginglog(*args):
 	msg = ''.join([str(a) for a in args])
@@ -22,8 +22,10 @@ class ViewController(object):
 			fname = func.__name__
 			self.log('{} starts'.format(fname))
 			# print(self, args, kwargs)
+			starts = time.time()
 			r = func(self, *args,**kwargs)
-			self.log('{} ends'.format(fname))
+			ends = time.time()
+			self.log('{} ends in {}s'.format(fname, ends-starts))
 			return r
 		return f
 
