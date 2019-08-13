@@ -83,7 +83,6 @@ def modify_doc(doc):
 			plot = json.loads(plot)
 		except Exception as e:
 			console.write(e)
-			return
 		figure.plot(state['width'], state['height'], state['lines'])
 	load_plot.on_loaded(on_loaded_plot)
 	doc.add_root(tab)
