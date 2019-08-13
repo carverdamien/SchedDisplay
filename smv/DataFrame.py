@@ -2,6 +2,7 @@ import tarfile, os, shutil
 import numpy as np
 import pandas as pd
 from threading import Thread
+import time
 
 def description(f):
 	res = []
@@ -19,10 +20,13 @@ def DataFrame(path):
 	df = {}
 	with tarfile.open(path, 'r') as tar:
 		def target(tarinfo):
+			start = time.time()
 			with tarfile.open(path, 'r') as tar:
 				with tar.extractfile(tarinfo.name) as f:
 					npzfile = np.load(f)
 					df.update({k:npzfile[k] for k in npzfile.files})
+			end = time.time()
+			print('{} loaded in {} s'.format(tarinfo.name, end-start))
 		def spawn(tarinfo):
 			args = (tarinfo,)
 			t = Thread(target=target, args=args)
