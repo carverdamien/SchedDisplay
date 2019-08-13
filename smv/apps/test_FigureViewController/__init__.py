@@ -26,9 +26,9 @@ def dummy_lines():
 		'x1':x1,
 		'y0':y0,
 		'y1':y1,
-		'category':c,
+		'c':c,
 	})
-	df['category'] = df['category'].astype('category')
+	df['c'] = df['c'].astype('category')
 	df.sort_values(by='x0', inplace=True)
 	df.index = np.arange(len(df))
 	# save('dummy.tar', pd.DataFrame({

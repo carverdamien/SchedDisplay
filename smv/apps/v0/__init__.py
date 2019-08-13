@@ -53,9 +53,9 @@ def modify_doc(doc):
 			'x1':df['timestamp'],
 			'y0':df['cpu']+state['y0_shift'],
 			'y1':df['cpu']+state['y1_shift'],
-			'category':df['event'],
+			'c':df['event'],
 		})
-		lines['category'] = lines['category'].astype('category')
+		lines['c'] = lines['c'].astype('category')
 		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
 		lines.persist() # Persist multiple Dask collections into memory
 		return lines

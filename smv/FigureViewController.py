@@ -22,9 +22,9 @@ def empty_lines():
 		'x1':[0, 1],
 		'y0':[0, 1],
 		'y1':[0, 1],
-		'category':[0, 1],
+		'c':[0, 1],
 	})
-	df['category'] = df['category'].astype('category')
+	df['c'] = df['c'].astype('category')
 	return df
 
 def get_image_ranges(FVC):
@@ -120,7 +120,7 @@ class FigureViewController(ViewController):
 			lines = self.apply_query()
 		agg = cvs.line(lines,
 			x=['x0','x1'], y=['y0','y1'],
-			agg=ds.count_cat('category'), axis=1,
+			agg=ds.count_cat('c'), axis=1,
 		)
 		img = tf.shade(agg,min_alpha=255)
 		return img
