@@ -48,13 +48,16 @@ def modify_doc(doc):
 	@logFunctionCall(log)
 	def lines_from_df(df):
 		df['timestamp'] = df['timestamp']-min(df['timestamp'])
-		lines = pd.DataFrame({
+		required = {
 			'x0':df['timestamp'],
 			'x1':df['timestamp'],
 			'y0':df['cpu']+state['y0_shift'],
 			'y1':df['cpu']+state['y1_shift'],
 			'c':df['event'],
-		})
+		}
+		extra = ['arg0', 'arg1', 'addr', 'pid']
+		required.update({k:df[k] for k in extra if k in df})
+		lines = pd.DataFrame(required)
 		lines['c'] = lines['c'].astype('category')
 		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
 		lines.persist() # Persist multiple Dask collections into memory

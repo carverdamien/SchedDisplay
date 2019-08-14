@@ -124,13 +124,15 @@ class FigureViewController(ViewController):
 		)
 		spatial = "({})&({})".format(xspatial, yspatial)
 		def _target():
-			MAX = 10000.
+			MAX = 100000.
 			lines_to_render = self.lines_to_render.query(spatial)
 			n = len(lines_to_render)
-			print(n)
 			if n > MAX:
 				frac = MAX/n
+				self.log('Sampling hovertool frac={}'.format(frac))
 				lines_to_render = lines_to_render.sample(frac=frac)
+			else:
+				self.log('Full hovertool')
 			df = dask.compute(lines_to_render)[0]
 			if len(df) > 0:
 				@gen.coroutine
