@@ -55,6 +55,7 @@ class FigureViewController(ViewController):
 		):
 		self.query = ''
 		self.lines = lines
+		self.lines_to_render = lines
 		self.get_image_ranges = get_image_ranges
 		fig = figure(
 			x_range=x_range,
@@ -90,8 +91,16 @@ class FigureViewController(ViewController):
 		self.update_image()
 
 	@ViewController.logFunctionCall
+	def compute_lines_to_render(self):
+		# TODO: use ranges = self.get_image_ranges(self)
+		self.lines_to_render = self.lines
+		if self.is_valid_query(self.query):
+			self.lines_to_render = self.apply_query()
+
+	@ViewController.logFunctionCall
 	def update_image(self):
 		ranges = self.get_image_ranges(self)
+		self.compute_lines_to_render()
 		self.img.update_image(ranges)
 		pass
 
@@ -115,10 +124,7 @@ class FigureViewController(ViewController):
 			plot_width=plot_width, plot_height=plot_height,
 			x_range=x_range, y_range=y_range,
 		)
-		lines = self.lines
-		if self.is_valid_query(self.query):
-			lines = self.apply_query()
-		agg = cvs.line(lines,
+		agg = cvs.line(self.lines_to_render,
 			x=['x0','x1'], y=['y0','y1'],
 			agg=ds.count_cat('c'), axis=1,
 		)
