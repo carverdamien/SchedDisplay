@@ -1,0 +1,48 @@
+{
+	"shape" : ["x0","y0","x1","y1","c","opt0","opt1","optN"],
+	"category" : [
+		{ "label" : "Exec Event", "color" : "#e41a1c"},
+		{ "label" : "category B", "color" : "#377eb8"},
+		{ "label" : "category C", "color" : "#4daf4a"},
+		{ "label" : "category D", "color" : "#984ea3"},
+		{ "label" : "category E", "color" : "#ff7f00"},
+		{ "label" : "category F", "color" : "#ffff33"},
+		{ "label" : "category G", "color" : "#a65628"},
+		{ "label" : "category H", "color" : "#f781bf"},
+		{ "label" : "category I", "color" : "#999999"},
+		{ "label" : "category J", "color" : "#66c2a5"},
+		{ "label" : "category K", "color" : "#fc8d62"},
+		{ "label" : "category L", "color" : "#8da0cb"},
+		{ "label" : "category M", "color" : "#a6d854"},
+		{ "label" : "category N", "color" : "#ffd92f"},
+		{ "label" : "category O", "color" : "#e5c494"},
+		{ "label" : "category P", "color" : "#ffffb3"},
+		{ "label" : "category Q", "color" : "#fb8072"},
+		{ "label" : "category R", "color" : "#fdb462"},
+		{ "label" : "category S", "color" : "#fccde5"},
+		{ "label" : "category T", "color" : "#d9d9d9"},
+		{ "label" : "category U", "color" : "#ccebc5"},
+		{ "label" : "category V", "color" : "#ffed6f"}
+	],
+	"concatenate" : [
+		[
+			["query","event==0"],
+			["eval","x0=timestamp"],
+			["eval","x1=timestamp"],
+			["eval","y0=cpu"],
+			["eval","y1=cpu+2"],
+			["eval","c=0"],
+			["eval","opt0=pid"],
+			["eval","opt1=arg0"],
+			["eval","optN=arg1"]
+		],
+		[
+			["query","event==13 & cpu==0"],
+			["eval","x0=timestamp"],
+			["eval","y0=cpu"],
+			["eval","y1=cpu"],
+			["eval","c=1"],
+			["eval","x0= No way to express next event of same cpu"],
+		]
+	]
+}
