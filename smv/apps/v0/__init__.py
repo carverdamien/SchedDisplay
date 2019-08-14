@@ -57,7 +57,7 @@ def modify_doc(doc):
 		}
 		extra = ['arg0', 'arg1', 'addr', 'pid']
 		required.update({k:df[k] for k in extra if k in df})
-		lines = pd.DataFrame(required)
+		lines = pd.DataFrame(required) # TODO: dask asap
 		lines['c'] = lines['c'].astype('category')
 		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
 		lines.persist() # Persist multiple Dask collections into memory

@@ -108,6 +108,16 @@ class FigureViewController(ViewController):
 		self.lines_to_render = self.lines
 		if self.is_valid_query(self.query):
 			self.lines_to_render = self.apply_query()
+		def target():
+			try:
+				self.compute_hovertool(ranges)
+			except Exception as e:
+				print(e)
+		Thread(target=target).start()
+
+	@ViewController.logFunctionCall
+	def compute_hovertool(self, ranges):
+		MAX = 100000.
 		xmin = ranges['xmin']
 		xmax = ranges['xmax']
 		xspatial = "({})|({})|({})".format(
@@ -123,28 +133,20 @@ class FigureViewController(ViewController):
 			"y0<={} & y1>={}".format(ymin,ymax),
 		)
 		spatial = "({})&({})".format(xspatial, yspatial)
-		def _target():
-			MAX = 100000.
-			lines_to_render = self.lines_to_render.query(spatial)
-			n = len(lines_to_render)
-			if n > MAX:
-				frac = MAX/n
-				self.log('Sampling hovertool frac={}'.format(frac))
-				lines_to_render = lines_to_render.sample(frac=frac)
-			else:
-				self.log('Full hovertool')
-			df = dask.compute(lines_to_render)[0]
-			if len(df) > 0:
-				@gen.coroutine
-				def coroutine(df):
-					self.source.data = ColumnDataSource.from_df(df)
-				self.doc.add_next_tick_callback(partial(coroutine, df))
-		def target():
-			try:
-				_target()
-			except Exception as e:
-				print(e)
-		Thread(target=target).start()
+		lines_to_render = self.lines_to_render.query(spatial)
+		n = len(lines_to_render)
+		if n > MAX:
+			frac = MAX/n
+			self.log('Sampling hovertool frac={}'.format(frac))
+			lines_to_render = lines_to_render.sample(frac=frac)
+		else:
+			self.log('Full hovertool')
+		df = dask.compute(lines_to_render)[0]
+		if len(df) > 0:
+			@gen.coroutine
+			def coroutine(df):
+				self.source.data = ColumnDataSource.from_df(df)
+			self.doc.add_next_tick_callback(partial(coroutine, df))
 
 	@ViewController.logFunctionCall
 	def update_image(self):
