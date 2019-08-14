@@ -5,7 +5,6 @@ from tornado import gen
 from threading import Thread
 
 import dask
-from dask.distributed import Client
 import pandas as pd
 import numpy as np
 
@@ -70,7 +69,7 @@ class FigureViewController(ViewController):
 			y_range=y_range,
 			sizing_mode='stretch_both',
 		)
-		fig.add_layout(Legend(click_policy='hide'))
+		# fig.add_layout(Legend(click_policy='hide'))
 		query_textinput = TextInput(
 			title="query",
 			sizing_mode="stretch_width",
@@ -91,7 +90,6 @@ class FigureViewController(ViewController):
 		self.category = None
 		self.source = None
 		self.hovertool = None
-		# self.client = Client()
 
 	def is_valid_query(self, q):
 		# TODO: improve test
@@ -104,32 +102,6 @@ class FigureViewController(ViewController):
 
 	def callback_LODEnd(self, event):
 		self.update_image()
-
-	def callback_spatial_query(self, future):
-		# total = future.result()
-		# print(total)
-		return
-		lines_to_render = future.result()
-		if len(lines_to_render) > 10000:
-			return
-		print('callback_spatial_query')
-		for i in range(len(self.category)):
-			c = self.category[i]
-			q = "(c=={})".format(c)
-			future = self.client.compute(self.lines_to_render.query(q))
-			def callback(f):
-				df = f.result()
-				if len(df) == 0:
-					return
-				c =  df['c'].iloc[0]
-				print('callback',c)
-				if self.doc is not None:
-					@gen.coroutine
-					def coroutine():
-						self.source[c].data = ColumnDataSource.from_df(df)
-					self.doc.add_next_tick_callback(partial(coroutine))
-			future.add_done_callback(callback)
-		pass
 
 	@ViewController.logFunctionCall
 	def compute_lines_to_render(self, ranges):
@@ -173,9 +145,6 @@ class FigureViewController(ViewController):
 			except Exception as e:
 				print(e)
 		Thread(target=target).start()
-		# future = self.client.compute(self.lines_to_render.query(spatial))
-		# future.add_done_callback(self.callback_spatial_query)
-		# self.lines_to_render = self.lines_to_render.query(spatial)
 
 	@ViewController.logFunctionCall
 	def update_image(self):
@@ -265,8 +234,6 @@ class FigureViewController(ViewController):
 		self.fig.plot_width = width
 		self.fig.plot_height = height
 		self.lines = lines
-		# foo = self.client.compute(lines['c'].unique())
-		# print(foo.result())
 		self.category = dask.compute(lines['c'].unique())[0]
 		len_category = len(self.category)
 		source = {}
@@ -277,10 +244,7 @@ class FigureViewController(ViewController):
 				x1='x1',
 				y0='y0',
 				y1='y1',
-				# line_color=datashader_color[n],
 				line_alpha=0,
-				# line_color=r['line_color'],
-				# line_width=r['line_width'],
 			)
 			renderer = self.fig.add_glyph(cds, glyph)
 			source[self.category[n]]=cds
@@ -294,5 +258,5 @@ class FigureViewController(ViewController):
 				tooltips.append((k,"@"+str(k)))
 			self.hovertool = HoverTool(tooltips = tooltips)
 			self.fig.add_tools(self.hovertool)
-			self.fig.legend.items = [LegendItem(label='Datashader', renderers=[self.datashader], index=0)]
+			# self.fig.legend.items = [LegendItem(label='Datashader', renderers=[self.datashader], index=0)]
 		pass
