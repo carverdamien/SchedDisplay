@@ -2,8 +2,10 @@ from smv.ViewController import ViewController
 from bokeh.layouts import column
 from functools import partial
 from tornado import gen
+from threading import Thread
 
 import dask
+from dask.distributed import Client
 import pandas as pd
 import numpy as np
 
@@ -11,6 +13,7 @@ from bokeh.plotting import figure
 from bokeh.models.widgets import TextInput
 from bokeh.models import ColumnDataSource
 from bokeh.models.glyphs import Segment
+from bokeh.models import Legend, LegendItem
 from bokeh.events import LODEnd
 from bokeh.models.tools import HoverTool
 
@@ -67,6 +70,7 @@ class FigureViewController(ViewController):
 			y_range=y_range,
 			sizing_mode='stretch_both',
 		)
+		fig.add_layout(Legend(click_policy='hide'))
 		query_textinput = TextInput(
 			title="query",
 			sizing_mode="stretch_width",
@@ -87,6 +91,7 @@ class FigureViewController(ViewController):
 		self.category = None
 		self.source = None
 		self.hovertool = None
+		# self.client = Client()
 
 	def is_valid_query(self, q):
 		# TODO: improve test
@@ -99,6 +104,32 @@ class FigureViewController(ViewController):
 
 	def callback_LODEnd(self, event):
 		self.update_image()
+
+	def callback_spatial_query(self, future):
+		# total = future.result()
+		# print(total)
+		return
+		lines_to_render = future.result()
+		if len(lines_to_render) > 10000:
+			return
+		print('callback_spatial_query')
+		for i in range(len(self.category)):
+			c = self.category[i]
+			q = "(c=={})".format(c)
+			future = self.client.compute(self.lines_to_render.query(q))
+			def callback(f):
+				df = f.result()
+				if len(df) == 0:
+					return
+				c =  df['c'].iloc[0]
+				print('callback',c)
+				if self.doc is not None:
+					@gen.coroutine
+					def coroutine():
+						self.source[c].data = ColumnDataSource.from_df(df)
+					self.doc.add_next_tick_callback(partial(coroutine))
+			future.add_done_callback(callback)
+		pass
 
 	@ViewController.logFunctionCall
 	def compute_lines_to_render(self, ranges):
@@ -120,6 +151,30 @@ class FigureViewController(ViewController):
 			"y0<={} & y1>={}".format(ymin,ymax),
 		)
 		spatial = "({})&({})".format(xspatial, yspatial)
+		def _target():
+			MAX = 10000.
+			lines_to_render = self.lines_to_render.query(spatial)
+			n = len(lines_to_render)
+			print(n)
+			if n > MAX:
+				frac = MAX/n
+				lines_to_render = lines_to_render.sample(frac=frac)
+			for c in self.source:
+				q = "(c=={})".format(c)
+				df = dask.compute(lines_to_render.query(q))[0]
+				if len(df) > 0:
+					@gen.coroutine
+					def coroutine(df,c):
+						self.source[c].data = ColumnDataSource.from_df(df)
+					self.doc.add_next_tick_callback(partial(coroutine, df, c))
+		def target():
+			try:
+				_target()
+			except Exception as e:
+				print(e)
+		Thread(target=target).start()
+		# future = self.client.compute(self.lines_to_render.query(spatial))
+		# future.add_done_callback(self.callback_spatial_query)
 		# self.lines_to_render = self.lines_to_render.query(spatial)
 
 	@ViewController.logFunctionCall
@@ -134,18 +189,19 @@ class FigureViewController(ViewController):
 		self.compute_lines_to_render(ranges)
 		len_lines_to_render = len(self.lines_to_render)
 		self.log('{} lines to render'.format(len_lines_to_render))
-		if len_lines_to_render > 1000:
-			for r in self.fig.renderers:
-				if r != self.datashader:
-					r.visible = False
-			self.datashader.visible = True
-			self.img.update_image(ranges)
-		else:
-			self.datashader.visible = False
-			for r in self.fig.renderers:
-				if r != self.datashader:
-					r.visible = True
-			self.update_source(ranges)
+		# if len_lines_to_render > 1000:
+		# 	for r in self.fig.renderers:
+		# 		if r != self.datashader:
+		# 			r.visible = False
+		# 	self.datashader.visible = True
+		# 	self.img.update_image(ranges)
+		# else:
+		# 	self.datashader.visible = False
+		# 	for r in self.fig.renderers:
+		# 		if r != self.datashader:
+		# 			r.visible = True
+		# 	self.update_source(ranges)
+		self.img.update_image(ranges)
 
 	@ViewController.logFunctionCall
 	def update_source(self, ranges):
@@ -209,9 +265,11 @@ class FigureViewController(ViewController):
 		self.fig.plot_width = width
 		self.fig.plot_height = height
 		self.lines = lines
+		# foo = self.client.compute(lines['c'].unique())
+		# print(foo.result())
 		self.category = dask.compute(lines['c'].unique())[0]
 		len_category = len(self.category)
-		source = []
+		source = {}
 		for n in range(len_category):
 			cds = ColumnDataSource({k:[] for k in lines.columns})
 			glyph = Segment(
@@ -219,12 +277,13 @@ class FigureViewController(ViewController):
 				x1='x1',
 				y0='y0',
 				y1='y1',
-				line_color=datashader_color[n],
+				# line_color=datashader_color[n],
+				line_alpha=0,
 				# line_color=r['line_color'],
 				# line_width=r['line_width'],
 			)
 			renderer = self.fig.add_glyph(cds, glyph)
-			source.append(cds)
+			source[self.category[n]]=cds
 		self.source = source
 		self.update_image()
 		if self.hovertool is None:
@@ -235,4 +294,5 @@ class FigureViewController(ViewController):
 				tooltips.append((k,"@"+str(k)))
 			self.hovertool = HoverTool(tooltips = tooltips)
 			self.fig.add_tools(self.hovertool)
+			self.fig.legend.items = [LegendItem(label='Datashader', renderers=[self.datashader], index=0)]
 		pass
