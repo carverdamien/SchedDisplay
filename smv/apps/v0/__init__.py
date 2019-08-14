@@ -72,7 +72,7 @@ def modify_doc(doc):
 	def on_selected_trace(path):
 		df = DataFrame(path)
 		console.write('{} records in trace'.format(len(df)))
-		state['df'] = df
+		# state['df'] = df
 		state['lines'] = lines_from_df(df)
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)

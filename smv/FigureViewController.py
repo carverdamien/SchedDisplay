@@ -87,8 +87,8 @@ class FigureViewController(ViewController):
 		self.query_textinput.on_change('value', self.on_change_query_textinput)
 		assert(len(self.fig.renderers) == 1)
 		self.datashader = self.fig.renderers[0]
-		self.category = None
 		self.source = None
+		self.segment = None
 		self.hovertool = None
 
 	def is_valid_query(self, q):
@@ -131,14 +131,12 @@ class FigureViewController(ViewController):
 			if n > MAX:
 				frac = MAX/n
 				lines_to_render = lines_to_render.sample(frac=frac)
-			for c in self.source:
-				q = "(c=={})".format(c)
-				df = dask.compute(lines_to_render.query(q))[0]
-				if len(df) > 0:
-					@gen.coroutine
-					def coroutine(df,c):
-						self.source[c].data = ColumnDataSource.from_df(df)
-					self.doc.add_next_tick_callback(partial(coroutine, df, c))
+			df = dask.compute(lines_to_render)[0]
+			if len(df) > 0:
+				@gen.coroutine
+				def coroutine(df):
+					self.source.data = ColumnDataSource.from_df(df)
+				self.doc.add_next_tick_callback(partial(coroutine, df))
 		def target():
 			try:
 				_target()
@@ -156,32 +154,7 @@ class FigureViewController(ViewController):
 	def _update_image(self):
 		ranges = self.get_image_ranges(self)
 		self.compute_lines_to_render(ranges)
-		len_lines_to_render = len(self.lines_to_render)
-		self.log('{} lines to render'.format(len_lines_to_render))
-		# if len_lines_to_render > 1000:
-		# 	for r in self.fig.renderers:
-		# 		if r != self.datashader:
-		# 			r.visible = False
-		# 	self.datashader.visible = True
-		# 	self.img.update_image(ranges)
-		# else:
-		# 	self.datashader.visible = False
-		# 	for r in self.fig.renderers:
-		# 		if r != self.datashader:
-		# 			r.visible = True
-		# 	self.update_source(ranges)
 		self.img.update_image(ranges)
-
-	@ViewController.logFunctionCall
-	def update_source(self, ranges):
-		df = []
-		for i in range(len(self.category)):
-			c = self.category[i]
-			q = "(c=={})".format(c)
-			df.append(self.lines_to_render.query(q))
-		for i in range(len(self.category)):
-			self.source[i].data = ColumnDataSource.from_df(dask.compute(df[i])[0])
-		pass
 
 	@ViewController.logFunctionCall
 	def apply_query(self):
@@ -234,21 +207,15 @@ class FigureViewController(ViewController):
 		self.fig.plot_width = width
 		self.fig.plot_height = height
 		self.lines = lines
-		self.category = dask.compute(lines['c'].unique())[0]
-		len_category = len(self.category)
-		source = {}
-		for n in range(len_category):
-			cds = ColumnDataSource({k:[] for k in lines.columns})
-			glyph = Segment(
+		self.source = ColumnDataSource({k:[] for k in lines.columns})
+		glyph = Segment(
 				x0='x0',
 				x1='x1',
 				y0='y0',
 				y1='y1',
 				line_alpha=0,
 			)
-			renderer = self.fig.add_glyph(cds, glyph)
-			source[self.category[n]]=cds
-		self.source = source
+		self.segment = self.fig.add_glyph(self.source, glyph)
 		self.update_image()
 		if self.hovertool is None:
 			tooltips = [
