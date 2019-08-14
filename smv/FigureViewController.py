@@ -9,11 +9,15 @@ import numpy as np
 
 from bokeh.plotting import figure
 from bokeh.models.widgets import TextInput
+from bokeh.models import ColumnDataSource
+from bokeh.models.glyphs import Segment
 from bokeh.events import LODEnd
 
 import datashader as ds
 import datashader.transfer_functions as tf
 from datashader.bokeh_ext import InteractiveImage
+
+datashader_color=['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999', '#66c2a5', '#fc8d62', '#8da0cb', '#a6d854', '#ffd92f', '#e5c494', '#ffffb3', '#fb8072', '#fdb462', '#fccde5', '#d9d9d9', '#ccebc5', '#ffed6f']
 
 # Add dummy point because datashader cannot handle emptyframe
 def empty_lines():
@@ -77,6 +81,10 @@ class FigureViewController(ViewController):
 		# Has to be executed before inserting fig in doc
 		self.img = InteractiveImage(self.fig, self.callback_InteractiveImage)
 		self.query_textinput.on_change('value', self.on_change_query_textinput)
+		assert(len(self.fig.renderers) == 1)
+		self.datashader = self.fig.renderers[0]
+		self.category = None
+		self.source = None
 
 	def is_valid_query(self, q):
 		# TODO: improve test
@@ -91,17 +99,60 @@ class FigureViewController(ViewController):
 		self.update_image()
 
 	@ViewController.logFunctionCall
-	def compute_lines_to_render(self):
-		# TODO: use ranges = self.get_image_ranges(self)
+	def compute_lines_to_render(self, ranges):
 		self.lines_to_render = self.lines
 		if self.is_valid_query(self.query):
 			self.lines_to_render = self.apply_query()
+		xmin = ranges['xmin']
+		xmax = ranges['xmax']
+		xspatial = "({})|({})|({})".format(
+			"x0>={} & x0<={}".format(xmin,xmax),
+			"x1>={} & x1<={}".format(xmin,xmax),
+			"x0<={} & x1>={}".format(xmin,xmax),
+		)
+		ymin = ranges['ymin']
+		ymax = ranges['ymax']
+		yspatial = "({})|({})|({})".format(
+			"y0>={} & y0<={}".format(ymin,ymax),
+			"y1>={} & y1<={}".format(ymin,ymax),
+			"y0<={} & y1>={}".format(ymin,ymax),
+		)
+		spatial = "({})&({})".format(xspatial, yspatial)
+		self.lines_to_render = self.lines_to_render.query(spatial)
 
 	@ViewController.logFunctionCall
 	def update_image(self):
+		try:
+			self._update_image()
+		except Exception as e:
+			self.log(e)
+
+	def _update_image(self):
 		ranges = self.get_image_ranges(self)
-		self.compute_lines_to_render()
-		self.img.update_image(ranges)
+		self.compute_lines_to_render(ranges)
+		len_lines_to_render = len(self.lines_to_render)
+		self.log('{} lines to render'.format(len_lines_to_render))
+		if len_lines_to_render > 1000:
+			for r in self.fig.renderers:
+				if r != self.datashader:
+					r.visible = False
+			self.datashader.visible = True
+			self.img.update_image(ranges)
+		else:
+			for r in self.fig.renderers:
+				if r != self.datashader:
+					r.visible = True
+			self.datashader.visible = False
+			self.update_source(ranges)
+
+	@ViewController.logFunctionCall
+	def update_source(self, ranges):
+		for i in range(len(self.category)):
+			c = self.category[i]
+			q = "(c=={})".format(c)
+			df = self.lines_to_render.query(q)
+			df = dask.compute(df)[0]
+			self.source[i].data = ColumnDataSource.from_df(df)
 		pass
 
 	@ViewController.logFunctionCall
@@ -155,5 +206,22 @@ class FigureViewController(ViewController):
 		self.fig.plot_width = width
 		self.fig.plot_height = height
 		self.lines = lines
+		self.category = dask.compute(lines['c'].unique())[0]
+		len_category = len(self.category)
+		source = []
+		for n in range(len_category):
+			cds = ColumnDataSource({k:[] for k in lines.columns})
+			glyph = Segment(
+				x0='x0',
+				x1='x1',
+				y0='y0',
+				y1='y1',
+				line_color=datashader_color[n],
+				# line_color=r['line_color'],
+				# line_width=r['line_width'],
+			)
+			renderer = self.fig.add_glyph(cds, glyph)
+			source.append(cds)
+		self.source = source
 		self.update_image()
 		pass
