@@ -120,7 +120,7 @@ class FigureViewController(ViewController):
 			"y0<={} & y1>={}".format(ymin,ymax),
 		)
 		spatial = "({})&({})".format(xspatial, yspatial)
-		self.lines_to_render = self.lines_to_render.query(spatial)
+		# self.lines_to_render = self.lines_to_render.query(spatial)
 
 	@ViewController.logFunctionCall
 	def update_image(self):
@@ -141,20 +141,21 @@ class FigureViewController(ViewController):
 			self.datashader.visible = True
 			self.img.update_image(ranges)
 		else:
+			self.datashader.visible = False
 			for r in self.fig.renderers:
 				if r != self.datashader:
 					r.visible = True
-			self.datashader.visible = False
 			self.update_source(ranges)
 
 	@ViewController.logFunctionCall
 	def update_source(self, ranges):
+		df = []
 		for i in range(len(self.category)):
 			c = self.category[i]
 			q = "(c=={})".format(c)
-			df = self.lines_to_render.query(q)
-			df = dask.compute(df)[0]
-			self.source[i].data = ColumnDataSource.from_df(df)
+			df.append(self.lines_to_render.query(q))
+		for i in range(len(self.category)):
+			self.source[i].data = ColumnDataSource.from_df(dask.compute(df[i])[0])
 		pass
 
 	@ViewController.logFunctionCall
