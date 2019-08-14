@@ -12,6 +12,7 @@ from bokeh.models.widgets import TextInput
 from bokeh.models import ColumnDataSource
 from bokeh.models.glyphs import Segment
 from bokeh.events import LODEnd
+from bokeh.models.tools import HoverTool
 
 import datashader as ds
 import datashader.transfer_functions as tf
@@ -85,6 +86,7 @@ class FigureViewController(ViewController):
 		self.datashader = self.fig.renderers[0]
 		self.category = None
 		self.source = None
+		self.hovertool = None
 
 	def is_valid_query(self, q):
 		# TODO: improve test
@@ -224,4 +226,12 @@ class FigureViewController(ViewController):
 			source.append(cds)
 		self.source = source
 		self.update_image()
+		if self.hovertool is None:
+			tooltips = [
+				("(x,y)","($x, $y)"),
+			]
+			for k in lines.columns:
+				tooltips.append((k,"@"+str(k)))
+			self.hovertool = HoverTool(tooltips = tooltips)
+			self.fig.add_tools(self.hovertool)
 		pass
