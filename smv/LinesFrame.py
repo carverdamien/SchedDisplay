@@ -15,6 +15,7 @@ def from_df(df, config):
 	required.update({k:df[k] for k in extra if k in df})
 	lines = pd.DataFrame(required) # TODO: dask asap
 	lines['c'] = lines['c'].astype('category')
+	lines = lines[config['shape']]
 	lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
 	lines.persist() # Persist multiple Dask collections into memory
 	return lines
