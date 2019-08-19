@@ -66,6 +66,7 @@ def modify_doc(doc):
 		df = DataFrame(path)
 		console.write('{} records in trace'.format(len(df)))
 		state['df'] = df
+		state['path'] = path
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_plot(io):
@@ -73,8 +74,10 @@ def modify_doc(doc):
 		console.write('Plot:{}'.format(config))
 		try:
 			config = json.loads(config)
+			if 'df' not in state:
+				on_selected_trace(state['path'])
 			state['lines'] = LinesFrame_from_df(state['df'], config)
-			del state['df']
+			del state['df'] # Save memory
 			figure.plot(state['width'], state['height'], state['lines'])
 		except Exception as e:
 			console.write(e)
