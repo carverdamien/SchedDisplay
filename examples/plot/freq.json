@@ -40,7 +40,7 @@
                         ["assign","x1=timestamp"],
                         ["assign","y0=cpu"],
                         ["assign","y1=cpu+2"],
-                        ["assign","c=18"],
+                        ["assign","c=18"]
                 ],
                 [
                         ["query","event==10 & arg1>1200000 & arg1<=1700000"],
@@ -48,7 +48,7 @@
                         ["assign","x1=timestamp"],
                         ["assign","y0=cpu"],
                         ["assign","y1=cpu+2"],
-                        ["assign","c=19"],
+                        ["assign","c=19"]
                 ],
                 [
                         ["query","event==10 & arg1>1700000 & arg1<=2100000"],
@@ -56,7 +56,7 @@
                         ["assign","x1=timestamp"],
                         ["assign","y0=cpu"],
                         ["assign","y1=cpu+2"],
-                        ["assign","c=20"],
+                        ["assign","c=20"]
                 ],
                 [
                         ["query","event==10 & arg1>2100000 & arg1<=2600000"],
@@ -64,7 +64,7 @@
                         ["assign","x1=timestamp"],
                         ["assign","y0=cpu"],
                         ["assign","y1=cpu+2"],
-                        ["assign","c=21"],
+                        ["assign","c=21"]
                 ],
                 [
                         ["query","event==10 & arg1>2600000"],
@@ -72,7 +72,7 @@
                         ["assign","x1=timestamp"],
                         ["assign","y0=cpu"],
                         ["assign","y1=cpu+2"],
-                        ["assign","c=22"],
+                        ["assign","c=22"]
                 ]
         ]
 }

@@ -4,6 +4,7 @@ from smv.LoadFileViewController import LoadFileViewController
 from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.DataFrame import DataFrame
+import smv.LinesFrame as LinesFrame
 import json
 import pandas as pd
 import dask
@@ -46,22 +47,8 @@ def modify_doc(doc):
 			'h':h,
 		}
 	@logFunctionCall(log)
-	def lines_from_df(df):
-		df['timestamp'] = df['timestamp']-min(df['timestamp'])
-		required = {
-			'x0':df['timestamp'],
-			'x1':df['timestamp'],
-			'y0':df['cpu']+state['y0_shift'],
-			'y1':df['cpu']+state['y1_shift'],
-			'c':df['event'],
-		}
-		extra = ['arg0', 'arg1', 'addr', 'pid']
-		required.update({k:df[k] for k in extra if k in df})
-		lines = pd.DataFrame(required) # TODO: dask asap
-		lines['c'] = lines['c'].astype('category')
-		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
-		lines.persist() # Persist multiple Dask collections into memory
-		return lines
+	def LinesFrame_from_df(df, config):
+		return LinesFrame.from_df(df, config)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(get_image_ranges=get_image_ranges, doc=doc, log=log)
@@ -75,18 +62,19 @@ def modify_doc(doc):
 	def on_selected_trace(path):
 		df = DataFrame(path)
 		console.write('{} records in trace'.format(len(df)))
-		# state['df'] = df
-		state['lines'] = lines_from_df(df)
+		state['df'] = df
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_plot(io):
-		plot = io.read()
-		console.write('Plot:{}'.format(plot))
+		config = io.read()
+		console.write('Plot:{}'.format(config))
 		try:
-			plot = json.loads(plot)
+			config = json.loads(config)
+			state['lines'] = LinesFrame_from_df(state['df'], config)
+			del state['df']
+			figure.plot(state['width'], state['height'], state['lines'])
 		except Exception as e:
 			console.write(e)
-		figure.plot(state['width'], state['height'], state['lines'])
 	load_plot.on_loaded(on_loaded_plot)
 	doc.add_root(tab)
 	pass
