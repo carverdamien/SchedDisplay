@@ -78,7 +78,7 @@ def modify_doc(doc):
 				on_selected_trace(state['path'])
 			state['lines'] = LinesFrame_from_df(state['df'], config)
 			del state['df'] # Save memory
-			figure.plot(state['width'], state['height'], state['lines'])
+			figure.plot(config, state['width'], state['height'], state['lines'])
 		except Exception as e:
 			console.write(e)
 	load_plot.on_loaded(on_loaded_plot)

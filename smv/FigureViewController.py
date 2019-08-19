@@ -191,15 +191,15 @@ class FigureViewController(ViewController):
 		img = tf.shade(agg,min_alpha=255)
 		return img
 
-	def plot(self, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
+	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
 		if self.doc is not None:
 			@gen.coroutine
 			def coroutine():
-				self._plot(width, height, lines=lines, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+				self._plot(config, width, height, lines=lines, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 			self.doc.add_next_tick_callback(partial(coroutine))
 
 	@ViewController.logFunctionCall
-	def _plot(self, width, height, lines, xmin=None, xmax=None, ymin=None, ymax=None):
+	def _plot(self, config, width, height, lines, xmin=None, xmax=None, ymin=None, ymax=None):
 		if xmin is None:
 			xmin = min(*dask.compute((lines['x0'].min(),lines['x1'].min())))
 		if xmax is None:
