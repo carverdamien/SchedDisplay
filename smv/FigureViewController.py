@@ -99,14 +99,9 @@ class FigureViewController(ViewController):
 		if self.table is not None:
 			self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
 
-	def is_valid_query(self, q):
-		# TODO: improve test
-		return q is not None and q.strip() != ''
-
 	def on_change_query_textinput(self, attr, old, new):
-		if self.is_valid_query(self.query_textinput.value):
-			self.query = self.query_textinput.value
-			self.update_image()
+		self.query = self.query_textinput.value
+		self.update_image()
 
 	def callback_LODEnd(self, event):
 		self.update_image()
@@ -114,8 +109,7 @@ class FigureViewController(ViewController):
 	@ViewController.logFunctionCall
 	def compute_lines_to_render(self, ranges):
 		self.lines_to_render = self.lines
-		if self.is_valid_query(self.query):
-			self.lines_to_render = self.apply_query()
+		self.lines_to_render = self.apply_query()
 		def target():
 			try:
 				self.compute_hovertool(ranges)
@@ -171,6 +165,8 @@ class FigureViewController(ViewController):
 	@ViewController.logFunctionCall
 	def apply_query(self):
 		try:
+			if self.query.strip() == '':
+				return self.lines
 			lines = self.lines.query(self.query)
 			if len(lines) == 0:
 				raise Exception(
