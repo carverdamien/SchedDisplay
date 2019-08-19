@@ -1,4 +1,5 @@
 from bokeh.models import Panel, Tabs
+from bokeh.models.widgets import DataTable
 from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
 from smv.SelectFileViewController import SelectFileViewController
@@ -52,10 +53,12 @@ def modify_doc(doc):
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(get_image_ranges=get_image_ranges, doc=doc, log=log)
+	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
 		Panel(child=load_plot.view,  title='Select JSON'),
 		Panel(child=figure.view,     title='Figure'),
+		# Panel(child=figure.table,    title='Sample'),
 		Panel(child=console.view,    title='Console'),
 	])
 	@logFunctionCall(log)

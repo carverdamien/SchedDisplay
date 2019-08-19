@@ -10,6 +10,7 @@ import numpy as np
 
 from bokeh.plotting import figure
 from bokeh.models.widgets import TextInput
+from bokeh.models.widgets import TableColumn
 from bokeh.models import ColumnDataSource
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
@@ -87,9 +88,16 @@ class FigureViewController(ViewController):
 		self.query_textinput.on_change('value', self.on_change_query_textinput)
 		assert(len(self.fig.renderers) == 1)
 		self.datashader = self.fig.renderers[0]
-		self.source = None
+		self.source = ColumnDataSource({})
 		self.segment = None
 		self.hovertool = None
+		self.table = None
+
+	@ViewController.logFunctionCall
+	def update_source(self, df):
+		self.source.data = ColumnDataSource.from_df(df)
+		if self.table is not None:
+			self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
 
 	def is_valid_query(self, q):
 		# TODO: improve test
@@ -142,10 +150,10 @@ class FigureViewController(ViewController):
 		else:
 			self.log('Full hovertool')
 		df = dask.compute(lines_to_render)[0]
-		if len(df) > 0:
-			@gen.coroutine
-			def coroutine(df):
-				self.source.data = ColumnDataSource.from_df(df)
+		@gen.coroutine
+		def coroutine(df):
+			self.update_source(df)
+		if self.doc is not None:
 			self.doc.add_next_tick_callback(partial(coroutine, df))
 
 	@ViewController.logFunctionCall
@@ -211,7 +219,7 @@ class FigureViewController(ViewController):
 		self.fig.plot_width = width
 		self.fig.plot_height = height
 		self.lines = lines
-		self.source = ColumnDataSource({k:[] for k in lines.columns})
+		self.update_source(pd.DataFrame({k:[] for k in lines.columns}))
 		glyph = Segment(
 				x0='x0',
 				x1='x1',
