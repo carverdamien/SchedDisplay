@@ -84,6 +84,7 @@ class FigureViewController(ViewController):
 		# Has to be executed before inserting fig in doc
 		self.fig.on_event(LODEnd, self.callback_LODEnd)
 		# Has to be executed before inserting fig in doc
+		self.color_key = datashader_color
 		self.img = InteractiveImage(self.fig, self.callback_InteractiveImage)
 		self.query_textinput.on_change('value', self.on_change_query_textinput)
 		assert(len(self.fig.renderers) == 1)
@@ -188,7 +189,7 @@ class FigureViewController(ViewController):
 			x=['x0','x1'], y=['y0','y1'],
 			agg=ds.count_cat('c'), axis=1,
 		)
-		img = tf.shade(agg,min_alpha=255)
+		img = tf.shade(agg,min_alpha=255,color_key=self.color_key)
 		return img
 
 	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
@@ -200,6 +201,7 @@ class FigureViewController(ViewController):
 
 	@ViewController.logFunctionCall
 	def _plot(self, config, width, height, lines, xmin=None, xmax=None, ymin=None, ymax=None):
+		self.configure(config)
 		if xmin is None:
 			xmin = min(*dask.compute((lines['x0'].min(),lines['x1'].min())))
 		if xmax is None:
@@ -234,4 +236,12 @@ class FigureViewController(ViewController):
 			self.hovertool = HoverTool(tooltips = tooltips)
 			self.fig.add_tools(self.hovertool)
 			# self.fig.legend.items = [LegendItem(label='Datashader', renderers=[self.datashader], index=0)]
+		pass
+
+	def configure(self, config):
+		try:
+			category = config['category']
+			self.color_key = [category[c]['color'] for c in sorted(category, key=lambda x : int(x))]
+		except Exception as e:
+			self.log(e)
 		pass
