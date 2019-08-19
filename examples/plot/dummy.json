@@ -18,15 +18,15 @@
                 "14" : { "label" : "IDLE_BALANCE_BEG",     "color" : "#e5c494"},
                 "15" : { "label" : "IDLE_BALANCE_END",     "color" : "#ffffb3"},
                 "16" : { "label" : "PERIODIC_BALANCE_BEG", "color" : "#fb8072"},
-                "17" : { "label" : "PERIODIC_BALANCE_END", "color" : "#fdb462"},
+                "17" : { "label" : "PERIODIC_BALANCE_END", "color" : "#fdb462"}
         },
         "concatenate" : [
                 [
-                        ["assign","x0=timestamp"],
-                        ["assign","x1=timestamp"],
-                        ["assign","y0=cpu+0.0"],
-                        ["assign","y1=cpu+0.5"],
-                        ["assign","c=event"]
+                        ["=","x0","timestamp"],
+                        ["=","x1","timestamp"],
+                        ["=","y0",["+","cpu",0.0]],
+                        ["=","y1",["+","cpu",0.5]],
+                        ["=","c","event"]
                 ]
         ]
 }
