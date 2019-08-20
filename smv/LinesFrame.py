@@ -3,6 +3,10 @@ import dask
 from multiprocessing import cpu_count
 import numpy as np
 import time
+from smv.ConsoleViewController import logFunctionCall
+
+def default_log(*args):
+	pass
 
 def debug(func):
 	def f(*args, **kwargs):
@@ -65,27 +69,53 @@ def apply(df, op):
 		raise Exception('Cannot handle {}'.format(op))
 
 # @debug
-def one(df, operators):
+def one(df, operators, log=default_log):
 	for op in operators:
+		log('Processing {}'.format(op))
 		df = apply(df, op)
 	return df
 
 # @debug
-def category(df, c):
+def category(df, c, log=default_log):
+	log('Processing {}'.format(c))
 	return pd.concat([one(df, o) for o in c['concatenate']])
 
-def from_df(df, config):
-	df['timestamp'] = df['timestamp']-min(df['timestamp'])
-	df = pd.DataFrame(df)
-	concat = [
-		category(df, config['c'][i]).assign(c=i)
-		for i in range(len(config['c']))
-	]
+def from_df(df, config, log=default_log):
+	@logFunctionCall(log)
+	def subtract_min_timestamp(df):
+		return df['timestamp']-min(df['timestamp'])
+	df['timestamp'] = subtract_min_timestamp(df)
+	@logFunctionCall(log)
+	def array_to_dataframe(df):
+		return pd.DataFrame(df)
+	df = array_to_dataframe(df)
+	@logFunctionCall(log)
+	def compute_categories(df, config):
+		return [
+			category(df, config['c'][i]).assign(c=i)
+			for i in range(len(config['c']))
+		]
+	concat = compute_categories(df, config)
 	for i in range(len(concat)):
-		config['c'][i]['len'] = len(concat[i])
-	df = pd.concat(concat)
-	df['c'] = df['c'].astype(pd.CategoricalDtype(ordered=True))
-	df = df[config['shape']]
-	df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
-	df.persist() # Persist multiple Dask collections into memory
-	return df
+		n = len(concat[i])
+		log('{} elements in category[{}]'.format(n,i))
+		config['c'][i]['len'] = n
+	@logFunctionCall(log)
+	def concatenate_categories(concat):
+		return pd.concat(concat)
+	df = concatenate_categories(concat)
+	@logFunctionCall(log)
+	def convert_c_as_CategoricalDtype(df):
+		df['c'] = df['c'].astype(pd.CategoricalDtype(ordered=True))
+		return df
+	df = convert_c_as_CategoricalDtype(df)
+	@logFunctionCall(log)
+	def reduce_shape(df, config):
+		return df[config['shape']]
+	df = reduce_shape(df, config)
+	@logFunctionCall(log)
+	def dask_partition(df):
+		df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
+		df.persist() # Persist multiple Dask collections into memory
+		return df
+	return dask_partition(df)

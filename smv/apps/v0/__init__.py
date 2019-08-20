@@ -49,7 +49,7 @@ def modify_doc(doc):
 		}
 	@logFunctionCall(log)
 	def LinesFrame_from_df(df, config):
-		return LinesFrame.from_df(df, config)
+		return LinesFrame.from_df(df, config, log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
 	figure = FigureViewController(get_image_ranges=get_image_ranges, doc=doc, log=log)
