@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e -x
+img=scheddisplay
+docker build -t ${img} .
+docker run --rm -v ${PWD}/examples:/home/server/examples -p 5006:5006 ${img}
