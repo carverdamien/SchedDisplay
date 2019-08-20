@@ -136,9 +136,10 @@ def from_df(df, config, log=default_log):
 		df['c'] = df['c'].astype(pd.CategoricalDtype(ordered=True))
 		return df
 	df = convert_c_as_CategoricalDtype(df)
-	@logFunctionCall(log)
-	def dask_partition(df):
-		df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
-		df.persist() # Persist multiple Dask collections into memory
-		return df
-	return dask_partition(df)
+	return df
+	# @logFunctionCall(log)
+	# def dask_partition(df):
+	# 	df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
+	# 	df.persist() # Persist multiple Dask collections into memory
+	# 	return df
+	# return dask_partition(df)

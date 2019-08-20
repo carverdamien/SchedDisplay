@@ -5,6 +5,7 @@ from tornado import gen
 from threading import Thread
 
 import dask
+from multiprocessing import cpu_count
 import pandas as pd
 import numpy as np
 
@@ -193,6 +194,8 @@ class FigureViewController(ViewController):
 		return img
 
 	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
+		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
+		lines.persist()
 		if self.doc is not None:
 			@gen.coroutine
 			def coroutine():
