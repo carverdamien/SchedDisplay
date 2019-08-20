@@ -14,9 +14,12 @@ class SelectFileViewController(ViewController):
 	"""docstring for SelectFileViewController"""
 	def __init__(self, directory, ext, doc=None, log=None):
 		options=sorted(list(find_files(directory,ext)))
+		options0 = None
+		if len(options) > 0:
+			options0 = options[0]
 		select = Select(
 			title="Select File:",
-			value=options[0],
+			value=options0,
 			options=options,
 			height=40,
 			height_policy="fixed",
