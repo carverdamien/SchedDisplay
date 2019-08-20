@@ -70,10 +70,20 @@ def one(df, operators):
 		df = apply(df, op)
 	return df
 
+# @debug
+def category(df, c):
+	return pd.concat([one(df, o) for o in c['concatenate']])
+
 def from_df(df, config):
 	df['timestamp'] = df['timestamp']-min(df['timestamp'])
 	df = pd.DataFrame(df)
-	df = pd.concat([one(df,o) for o in config['concatenate']])
+	concat = [
+		category(df, config['c'][i]).assign(c=i)
+		for i in range(len(config['c']))
+	]
+	for i in range(len(concat)):
+		config['c'][i]['len'] = len(concat[i])
+	df = pd.concat(concat)
 	df['c'] = df['c'].astype(pd.CategoricalDtype(ordered=True))
 	df = df[config['shape']]
 	df = dask.dataframe.from_pandas(df, npartitions=cpu_count())

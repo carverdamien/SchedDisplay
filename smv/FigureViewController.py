@@ -240,7 +240,7 @@ class FigureViewController(ViewController):
 
 	def configure(self, config):
 		try:
-			self.color_key = [c['color'] for c in config['c']]
+			self.color_key = [c['color'] for c in config['c'] if c['len'] > 0]
 		except Exception as e:
 			self.log(e)
 		pass

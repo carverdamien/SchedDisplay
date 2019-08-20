@@ -1,32 +1,203 @@
 {
         "shape" : ["x0","y0","x1","y1","c"],
         "c" : [
-                { "label" : "EXEC_EVT",             "color" : "#e41a1c"},
-                { "label" : "EXIT_EVT",             "color" : "#377eb8"},
-                { "label" : "WAKEUP",               "color" : "#4daf4a"},
-                { "label" : "WAKEUP_NEW",           "color" : "#984ea3"},
-                { "label" : "BLOCK",                "color" : "#ff7f00"},
-                { "label" : "BLOCK_IO",             "color" : "#ffff33"},
-                { "label" : "BLOCK_LOCK",           "color" : "#a65628"},
-                { "label" : "WAKEUP_LOCK",          "color" : "#f781bf"},
-                { "label" : "WAKER_LOCK",           "color" : "#999999"},
-                { "label" : "FORK_EVT",             "color" : "#66c2a5"},
-                { "label" : "TICK_EVT",             "color" : "#fc8d62"},
-                { "label" : "CTX_SWITCH",           "color" : "#8da0cb"},
-                { "label" : "MIGRATE_EVT",          "color" : "#a6d854"},
-                { "label" : "RQ_SIZE",              "color" : "#ffd92f"},
-                { "label" : "IDLE_BALANCE_BEG",     "color" : "#e5c494"},
-                { "label" : "IDLE_BALANCE_END",     "color" : "#ffffb3"},
-                { "label" : "PERIODIC_BALANCE_BEG", "color" : "#fb8072"},
-                { "label" : "PERIODIC_BALANCE_END", "color" : "#fdb462"}
-        ],
-        "concatenate" : [
-                [
-                        ["=","x0","timestamp"],
-                        ["=","x1","timestamp"],
-                        ["=","y0",["+","cpu",0.0]],
-                        ["=","y1",["+","cpu",0.5]],
-                        ["=","c","event"]
-                ]
+                {
+                        "label" : "EXEC_EVT",
+                        "color" : "#e41a1c",
+                        "concatenate" : [[
+                                ["query","event==0"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "EXIT_EVT",
+                        "color" : "#377eb8",
+                        "concatenate" : [[
+                                ["query","event==1"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAKEUP",
+                        "color" : "#4daf4a",
+                        "concatenate" : [[
+                                ["query","event==2"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAKEUP_NEW",
+                        "color" : "#984ea3",
+                        "concatenate" : [[
+                                ["query","event==3"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK",
+                        "color" : "#ff7f00",
+                        "concatenate" : [[
+                                ["query","event==4"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK_IO",
+                        "color" : "#ffff33",
+                        "concatenate" : [[
+                                ["query","event==5"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK_LOCK",
+                        "color" : "#a65628",
+                        "concatenate" : [[
+                                ["query","event==6"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAKEUP_LOCK",
+                        "color" : "#f781bf",
+                        "concatenate" : [[
+                                ["query","event==7"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAKER_LOCK",
+                        "color" : "#999999",
+                        "concatenate" : [[
+                                ["query","event==8"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "FORK_EVT",
+                        "color" : "#66c2a5",
+                        "concatenate" : [[
+                                ["query","event==9"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "TICK_EVT",
+                        "color" : "#fc8d62",
+                        "concatenate" : [[
+                                ["query","event==10"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "CTX_SWITCH",
+                        "color" : "#8da0cb",
+                        "concatenate" : [[
+                                ["query","event==11"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "MIGRATE_EVT",
+                        "color" : "#a6d854",
+                        "concatenate" : [[
+                                ["query","event==12"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE",
+                        "color" : "#ffd92f",
+                        "concatenate" : [[
+                                ["query","event==13"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "IDLE_BALANCE_BEG",
+                        "color" : "#e5c494",
+                        "concatenate" : [[
+                                ["query","event==14"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "IDLE_BALANCE_END",
+                        "color" : "#ffffb3",
+                        "concatenate" : [[
+                                ["query","event==15"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "PERIODIC_BALANCE_BEG",
+                        "color" : "#fb8072",
+                        "concatenate" : [[
+                                ["query","event==16"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "PERIODIC_BALANCE_END",
+                        "color" : "#fdb462",
+                        "concatenate" : [[
+                                ["query","event==17"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                }
         ]
 }
