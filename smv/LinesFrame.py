@@ -4,6 +4,7 @@ from multiprocessing import cpu_count
 import numpy as np
 import time
 from smv.ConsoleViewController import logFunctionCall
+from threading import Thread, Semaphore
 
 def default_log(*args):
 	pass
@@ -71,7 +72,7 @@ def apply(df, op):
 # @debug
 def one(df, i, operators, shape, log=default_log):
 	for op in operators:
-		log('Processing {}'.format(op))
+		log('c[{}] Processing {}'.format(i, op))
 		df = apply(df, op)
 	return df.assign(c=i)[shape]
 
@@ -79,7 +80,7 @@ def one(df, i, operators, shape, log=default_log):
 def category(df, i, config, log=default_log):
 	shape = config['shape']
 	c = config['c'][i]
-	log('Processing {}'.format(c))
+	log('c[{}] Processing {}'.format(i, c))
 	return pd.concat([one(df, i, o, shape, log=log) for o in c['concatenate']])
 
 def from_df(df, config, log=default_log):
@@ -94,12 +95,33 @@ def from_df(df, config, log=default_log):
 	def array_to_dataframe(df):
 		return pd.DataFrame(df)
 	df = array_to_dataframe(df)
+	# Sequential
+	# @logFunctionCall(log)
+	# def compute_categories(df, config):
+	# 	return [
+	# 		category(df, i, config, log=log)
+	# 		for i in range(len(config['c']))
+	# 	]
+	# Parallel
 	@logFunctionCall(log)
 	def compute_categories(df, config):
-		return [
-			category(df, i, config, log=log)
+		sem = Semaphore(cpu_count())
+		result = [None]*len(config['c'])
+		def target(df, i, config, log):
+			sem.acquire()
+			result[i] = category(df, i, config, log=log)
+			sem.release()
+		def spawn(*args):
+			t = Thread(target=target,args=args)
+			t.start()
+			return t
+		threads = [
+			spawn(df, i, config, log)
 			for i in range(len(config['c']))
 		]
+		for t in threads:
+			t.join()
+		return result
 	concat = compute_categories(df, config)
 	for i in range(len(concat)):
 		n = len(concat[i])
