@@ -51,12 +51,12 @@ def modify_doc(doc):
 	def LinesFrame_from_df(df, config):
 		return LinesFrame.from_df(df, config, log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
-	load_plot = LoadFileViewController('./examples/plot','.json',doc=doc, log=log)
+	load_config = LoadFileViewController('./examples/config','.json',doc=doc, log=log)
 	figure = FigureViewController(get_image_ranges=get_image_ranges, doc=doc, log=log)
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
-		Panel(child=load_plot.view,  title='Select JSON'),
+		Panel(child=load_config.view,  title='Select JSON'),
 		Panel(child=figure.view,     title='Figure'),
 		# Panel(child=figure.table,    title='Sample'),
 		Panel(child=console.view,    title='Console'),
@@ -69,9 +69,9 @@ def modify_doc(doc):
 		state['path'] = path
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
-	def on_loaded_plot(io):
+	def on_loaded_config(io):
 		config = io.read()
-		console.write('Plot:{}'.format(config))
+		console.write('config:{}'.format(config))
 		try:
 			config = json.loads(config)
 			if 'df' not in state:
@@ -81,6 +81,6 @@ def modify_doc(doc):
 			figure.plot(config, state['width'], state['height'], state['lines'])
 		except Exception as e:
 			console.write(e)
-	load_plot.on_loaded(on_loaded_plot)
+	load_config.on_loaded(on_loaded_config)
 	doc.add_root(tab)
 	pass
