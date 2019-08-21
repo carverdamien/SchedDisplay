@@ -36,6 +36,20 @@ def walk_data(data, k, func_data):
 		else:
 			func_data(list(k+[myk]), v)
 
+def add_array_to_tar(path, k, v):
+	if isinstance(k, str):
+		k = [k]
+	with tarfile.open(path, 'a') as tar:
+		k = ['data']+k
+		d = '/'.join(k[:-1])
+		if not os.path.isdir(d):
+			os.makedirs(d)
+		fname = '{}.npz'.format('/'.join(k))
+		np.savez_compressed(fname, **{k[-1]:v})
+		tar.add(fname)
+		os.remove(fname)
+		shutil.rmtree('data')
+
 def to_tar(path, dd):
 	with tarfile.open(path, 'w') as tar:
 		def func_data(k,v):

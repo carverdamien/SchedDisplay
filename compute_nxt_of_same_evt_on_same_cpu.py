@@ -90,11 +90,13 @@ def main():
 	_, tar = sys.argv
 	dd = DataDict.from_tar(tar)
 	dd = {k:dd[k] for k in dd if k in ['timestamp','cpu','event']}
-	dd['nxt_timestamp_of_same_evt_on_same_cpu'] = nxt_of_same_evt_on_same_cpu(dd, 'timestamp')
-	dd['parallel_nxt_timestamp_of_same_evt_on_same_cpu'] = parallel_nxt_of_same_evt_on_same_cpu(dd, 'timestamp')
-	print(np.sum(
-		dd['nxt_timestamp_of_same_evt_on_same_cpu']-dd['parallel_nxt_timestamp_of_same_evt_on_same_cpu']
-	))
+	dd['nxt_timestamp_of_same_evt_on_same_cpu'] = parallel_nxt_of_same_evt_on_same_cpu(dd, 'timestamp')
+	# dd['nxt_timestamp_of_same_evt_on_same_cpu'] = nxt_of_same_evt_on_same_cpu(dd, 'timestamp')
+	# dd['parallel_nxt_timestamp_of_same_evt_on_same_cpu'] = parallel_nxt_of_same_evt_on_same_cpu(dd, 'timestamp')
+	# print(np.sum(
+		# dd['nxt_timestamp_of_same_evt_on_same_cpu']-dd['parallel_nxt_timestamp_of_same_evt_on_same_cpu']
+	# ))
+	DataDict.add_array_to_tar(tar,'nxt_timestamp_of_same_evt_on_same_cpu',dd['nxt_timestamp_of_same_evt_on_same_cpu'])
 	pass
 
 if __name__ == '__main__':
