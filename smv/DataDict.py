@@ -5,7 +5,7 @@ import numpy as np
 from threading import Thread
 import time
 
-def DataDict(path):
+def from_tar(path):
 	dd = {}
 	with tarfile.open(path, 'r') as tar:
 		#

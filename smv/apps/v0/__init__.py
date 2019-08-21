@@ -4,7 +4,7 @@ from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
 from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
-from smv.DataDict import DataDict
+import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import json, os
 import pandas as pd
@@ -92,8 +92,7 @@ def modify_doc(doc):
 	load_cache.on_selected(cache_get)
 	@logFunctionCall(log)
 	def on_selected_trace(path):
-		df = DataDict(path)
-		df = pd.DataFrame(df)
+		df = pd.DataFrame(DataDict.from_tar(path))
 		console.write('{} records in trace'.format(len(df)))
 		state['df'] = df
 		state['path'] = path
