@@ -1,24 +1,16 @@
 import tarfile, os, shutil
 import numpy as np
 import pandas as pd
+# NOTE that pandas is used only once here
 from threading import Thread
 import time
-
-def description(f):
-	res = []
-	for k in f.attrs.keys():
-		v = f.attrs[k]
-		res.append('{}: {}'.format(k, v))
-	for k in f.keys():
-		v = f[k]
-		res.append('{}: {}'.format(k,v))
-		if isinstance(v, h5py._hl.group.Group):
-			res+=description(v)
-	return res
 
 def DataFrame(path):
 	df = {}
 	with tarfile.open(path, 'r') as tar:
+		#
+		# TODO: write a pragma parallel decorator
+		#
 		def target(tarinfo):
 			start = time.time()
 			with tarfile.open(path, 'r') as tar:
@@ -45,7 +37,7 @@ def walk_data(data, k, func_data):
 		else:
 			func_data(list(k+[myk]), v)
 
-def save(path, df):
+def to_tar(path, df):
 	with tarfile.open(path, 'w') as tar:
 		def func_data(k,v):
 			print(k,v)

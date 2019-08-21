@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import dask
 from multiprocessing import cpu_count
-from smv.DataFrame import save
+from smv.DataFrame import to_tar
 
 def dummy_lines():
 	px_height = 4
@@ -31,7 +31,7 @@ def dummy_lines():
 	df['c'] = df['c'].astype('category')
 	df.sort_values(by='x0', inplace=True)
 	df.index = np.arange(len(df))
-	# save('dummy.tar', pd.DataFrame({
+	# to_tar('dummy.tar', pd.DataFrame({
 	# 	'timestamp' : x0,
 	# 	'cpu' : y0,
 	# 	'event' : c

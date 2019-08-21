@@ -140,7 +140,7 @@ def default(o):
 	raise TypeError
 
 @log
-def save(path, state):
+def to_tar(path, state):
 	with tarfile.open(path, 'w') as tar:
 		with open('meta.json','w') as f:
 			json.dump(state['meta'], f, default=default)
@@ -171,8 +171,8 @@ def walk_data(data, k, func_data):
 @log
 def main():
 	_, hdf5, tar = sys.argv
-	state = load_any_hdf5(hdf5)
-	save(tar, state)
+	state = (hdf5)
+	to_tar(tar, state)
 	# df = load_DataFrame(hdf5)
 	# convert(tar, df)
 	# df = load_tar(tar)
