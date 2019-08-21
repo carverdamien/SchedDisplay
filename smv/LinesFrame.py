@@ -96,8 +96,9 @@ def from_df(df, config, log=default_log):
 		# assert min(df['timestamp']) == df['timestamp'][0]
 		t0 = df['timestamp'][0]
 		df['timestamp'] -= t0
-		return df['timestamp']
-	df['timestamp'] = subtract_min_timestamp(df)
+		if 'nxt_timestamp_of_same_evt_on_same_cpu' in df:
+			df['nxt_timestamp_of_same_evt_on_same_cpu'] -= t0
+	subtract_min_timestamp(df)
 	@logFunctionCall(log)
 	def array_to_dataframe(df):
 		return pd.DataFrame(df)
