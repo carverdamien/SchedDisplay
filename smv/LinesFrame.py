@@ -1,5 +1,11 @@
 import pandas as pd
-import dask
+#
+# TODO: do not import pandas
+# Try use numpy only to improve perf and memory.
+# This would imply rewrite functions:
+# * query into ==, <=, <, >=, >, |, &
+# * assign into =
+#
 from multiprocessing import cpu_count
 import numpy as np
 import time
@@ -87,6 +93,7 @@ def from_df(df, config, log=default_log):
 	@logFunctionCall(log)
 	def subtract_min_timestamp(df):
 		# return df['timestamp']-min(df['timestamp'])
+		# assert min(df['timestamp']) == df['timestamp'][0]
 		t0 = df['timestamp'][0]
 		df['timestamp'] -= t0
 		return df['timestamp']
@@ -103,6 +110,9 @@ def from_df(df, config, log=default_log):
 	# 		for i in range(len(config['c']))
 	# 	]
 	# Parallel
+	#
+	# TODO: write a pragma parallel decorator
+	#
 	@logFunctionCall(log)
 	def compute_categories(df, config):
 		sem = Semaphore(cpu_count())
@@ -137,9 +147,3 @@ def from_df(df, config, log=default_log):
 		return df
 	df = convert_c_as_CategoricalDtype(df)
 	return df
-	# @logFunctionCall(log)
-	# def dask_partition(df):
-	# 	df = dask.dataframe.from_pandas(df, npartitions=cpu_count())
-	# 	df.persist() # Persist multiple Dask collections into memory
-	# 	return df
-	# return dask_partition(df)
