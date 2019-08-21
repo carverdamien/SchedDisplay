@@ -1,12 +1,12 @@
+# NOTE that pandas is NOT used here
+# Refrain from using pandas
 import tarfile, os, shutil
 import numpy as np
-import pandas as pd
-# NOTE that pandas is used only once here
 from threading import Thread
 import time
 
-def DataFrame(path):
-	df = {}
+def DataDict(path):
+	dd = {}
 	with tarfile.open(path, 'r') as tar:
 		#
 		# TODO: write a pragma parallel decorator
@@ -16,7 +16,7 @@ def DataFrame(path):
 			with tarfile.open(path, 'r') as tar:
 				with tar.extractfile(tarinfo.name) as f:
 					npzfile = np.load(f)
-					df.update({k:npzfile[k] for k in npzfile.files})
+					dd.update({k:npzfile[k] for k in npzfile.files})
 			end = time.time()
 			print('{} loaded in {} s'.format(tarinfo.name, end-start))
 		def spawn(tarinfo):
@@ -26,8 +26,7 @@ def DataFrame(path):
 			return t
 		thread = [spawn(tarinfo) for tarinfo in tar if tarinfo.isreg() and os.path.splitext(tarinfo.name)[1] == '.npz']
 		for t in thread: t.join()
-	df = pd.DataFrame(df)
-	return df
+	return dd
 
 def walk_data(data, k, func_data):
 	for myk in data.keys():
@@ -37,7 +36,7 @@ def walk_data(data, k, func_data):
 		else:
 			func_data(list(k+[myk]), v)
 
-def to_tar(path, df):
+def to_tar(path, dd):
 	with tarfile.open(path, 'w') as tar:
 		def func_data(k,v):
 			print(k,v)
@@ -50,5 +49,5 @@ def to_tar(path, df):
 			tar.add(fname)
 			os.remove(fname)
 			pass
-		walk_data(df,[],func_data)
+		walk_data(dd,[],func_data)
 		shutil.rmtree('data')
