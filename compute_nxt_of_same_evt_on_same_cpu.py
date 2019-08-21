@@ -5,16 +5,14 @@ import smv.DataDict as DataDict
 import numpy as np
 from threading import Thread
 from multiprocessing import cpu_count, Semaphore
-import numba
 
 def log(func):
 	def f(*args, **kwargs):
 		start = time.time()
-		#print('{}({}) starts at {}'.format(func.__name__, str(args), start))
+		print('{}({}) starts at {}'.format(func.__name__, str(args), start))
 		r = func(*args, **kwargs)
 		end = time.time()
-		#print('{}({}) took {} s'.format(func.__name__, str(args), end - start))
-		print('{} took {} s'.format(func.__name__, end - start))
+		print('{}({}) took {} s'.format(func.__name__, str(args), end - start))
 		return r
 	return f
 
@@ -50,51 +48,12 @@ def nxt_of_same_evt_on_same_cpu(dd, key):
 	return nxt
 
 @log
-@numba.njit(parallel=True)
-def numba_nxt_of_same_evt_on_same_cpu(dd_key, dd_event, dd_cpu):
-	n = dd_key.shape[0]
-	nxt = np.zeros(n)
-	nxt[:]=dd_key
-	idx = np.arange(len(nxt))
-	events = np.sort(np.unique(dd_event))
-	cpus = np.sort(np.unique(dd_cpu))
-	# Compute == once only
-	sel_evt = [dd_event == events[i] for i in range(len(events))]
-	sel_cpu = [dd_cpu   == cpus[i]   for i in range(len(cpus))]
-	for i in numba.prange(len(events)):
-		for j in numba.prange(len(cpus)):
-			sel = sel_evt[i] & sel_cpu[j]
-			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
-	return nxt
-
-@log
 def main():
 	_, tar = sys.argv
 	dd = DataDict.from_tar(tar)
-	dd = {k:dd[k] for k in dd if k in ['timestamp','cpu','event']}
+	print(dd)
 	dd['nxt_timestamp_of_same_evt_on_same_cpu'] = nxt_of_same_evt_on_same_cpu(dd, 'timestamp')
-	def try_numba():
-		dd_key = dd['timestamp']
-		dd_event = dd['event']
-		dd_cpu = dd['cpu']
-		# print(dd)
-		dd['numba_nxt_timestamp_of_same_evt_on_same_cpu'] = numba_nxt_of_same_evt_on_same_cpu(
-			dd_key,
-			dd_event,
-			dd_cpu,
-		)
-		dd['numba_nxt_timestamp_of_same_evt_on_same_cpu'] = numba_nxt_of_same_evt_on_same_cpu(
-			dd_key,
-			dd_event,
-			dd_cpu,
-		)
-		print(np.sum(
-			dd['nxt_timestamp_of_same_evt_on_same_cpu'] -
-			dd['numba_nxt_timestamp_of_same_evt_on_same_cpu']
-		))
-	# I dont know why numba is twice slower
-	# try_numba()
-	# print(dd)
+	print(dd)
 	pass
 
 if __name__ == '__main__':
