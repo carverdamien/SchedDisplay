@@ -93,6 +93,7 @@ class FigureViewController(ViewController):
 		self.source = ColumnDataSource({})
 		self.segment = None
 		self.hovertool = None
+		self.hide_hovertool_for_category = None
 		self.table = None
 
 	@ViewController.logFunctionCall
@@ -137,7 +138,16 @@ class FigureViewController(ViewController):
 			"y0<={} & y1>={}".format(ymin,ymax),
 		)
 		spatial = "({})&({})".format(xspatial, yspatial)
-		lines_to_render = self.lines_to_render.query(spatial)
+		if len(self.hide_hovertool_for_category)==0:
+			query = spatial
+		else:
+			hide_hovertool = "&".join([
+				"(c!={})".format(c)
+				for c in self.hide_hovertool_for_category
+			])
+			query = "({})&({})".format(spatial, hide_hovertool)
+		self.log("HoverTool query={}".format(query))
+		lines_to_render = self.lines_to_render.query(query)
 		n = len(lines_to_render)
 		if n > MAX:
 			frac = MAX/n
@@ -247,6 +257,12 @@ class FigureViewController(ViewController):
 			msg = ['category:']+['c[{}]={}'.format(i, category[i]) for i in range(len(category))]
 			self.log('\n'.join(msg))
 			self.color_key = [c['color'] for c in category]
+			self.hide_hovertool_for_category = [
+				i
+				for i in range(len(category))
+				if 'hide_hovertool' in category[i]
+				if category[i]['hide_hovertool']
+			]
 		except Exception as e:
 			self.log(e)
 		pass

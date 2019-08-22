@@ -15,6 +15,7 @@
                 {
                         "label" : "RQ_SIZE",
                         "color" : "#ffd92f",
+                        "hide_hovertool" : true,
                         "concatenate" : [[
                                 ["query","event==13"],
                                 ["=","x0","timestamp"],
