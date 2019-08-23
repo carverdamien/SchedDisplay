@@ -4,3 +4,4 @@ pandas==0.24.2
 datashader
 cloudpickle
 fastparquet
+tqdm
