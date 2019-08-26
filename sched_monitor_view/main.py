@@ -63,6 +63,13 @@ def modify_doc(doc):
 	    callback_policy="mouseup",
 	    visible=False,
 	)
+	button_fit = Button(
+		label="Fit",
+	    align="end",
+	    button_type="success",
+	    width_policy="min",
+	    visible=False,
+	)
 	################ User View ################
 	select_hdf5 = Select(
 	    title ='Path:',
@@ -99,7 +106,7 @@ def modify_doc(doc):
 	OBJECTS[JSON_VIEW].extend([textareainput_json, button_import_json, upload_json.button])
 	################ Data View ################
 	datatable = DataTable(source=ColumnDataSource(), visible=False)
-	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
+	OBJECTS[DATA_VIEW].extend([datatable, select_lim_mode, slider_lim_cursor, textinput_lim_witdh, button_fit])
 	################ Plot View ################
 	figure_plot = figure(
 		x_range=(0,1), # datashader cannot handle 0-sized range
@@ -118,7 +125,7 @@ def modify_doc(doc):
 	figure_plot.output_backend="webgl"
 	figure_plot.visible=False
 	figure_plot.add_layout(Legend(click_policy='hide'))
-	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh])
+	OBJECTS[PLOT_VIEW].extend([figure_plot, select_lim_mode, slider_lim_cursor, textinput_lim_witdh, button_fit])
 	################ State ################
 	state = State(doc, datatable, figure_plot)
 	###########################################
@@ -159,6 +166,9 @@ def modify_doc(doc):
 			update_lim_bar()
 		except Exception as e:
 			print(e)
+	def on_click_button_fit(new):
+		state.fit()
+	button_fit.on_click(on_click_button_fit)
 	select_lim_mode.on_change('value', on_change_select_lim_mode)
 	slider_lim_cursor.on_change('value_throttled', on_change_lim)
 	textinput_lim_witdh.on_change('value', on_change_lim)
@@ -269,7 +279,7 @@ def modify_doc(doc):
 	    textareainput_json,
 	    datatable,
 	    figure_plot,
-	    row(select_lim_mode, slider_lim_cursor, textinput_lim_witdh, sizing_mode='scale_width'),
+	    row(select_lim_mode, slider_lim_cursor, textinput_lim_witdh, button_fit, sizing_mode='scale_width'),
 	    sizing_mode = 'stretch_both',
 	)
 	doc.add_root(root)

@@ -15,5 +15,5 @@ if __name__ == '__main__':
 	FORMAT = '%(asctime)-15s %(message)s'
 	logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 	logging.info('Opening Bokeh application on http://localhost:5006/')
-	server.io_loop.add_callback(server.show, "/")
+	# server.io_loop.add_callback(server.show, "/")
 	server.io_loop.start()

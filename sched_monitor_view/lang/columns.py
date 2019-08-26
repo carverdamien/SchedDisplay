@@ -2,7 +2,7 @@ import numpy as np
 from threading import Thread
 
 def compute(df, expression):
-	if len(expression) == 0:
+	if len(expression) == 0 or len(df) == 0:
 		return np.empty(len(df),dtype=bool)
 	op = expression[0]
 	args = expression[1:]
