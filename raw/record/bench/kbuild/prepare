@@ -12,5 +12,4 @@ tar -C /tmp/kbuild -xJf ${tar}
 
 make -C /tmp/kbuild/linux* defconfig
 
-mkdir ${OUTPUT}
 dmesg -C

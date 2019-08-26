@@ -5,5 +5,4 @@ ${BENCH}/engine.sh prepare
 ${BENCH}/engine.sh start
 ${BENCH}/client.sh ${TASKS} prepare
 
-mkdir ${OUTPUT}
 dmesg -C

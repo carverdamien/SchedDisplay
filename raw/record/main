@@ -1,6 +1,8 @@
 #!/bin/bash
 set -u -e -x
+rm -rf "${OUTPUT}"
 source ${BENCH}/cleanup
+mkdir -p "${OUTPUT}"
 source ${BENCH}/prepare
 source ${MONITORING}/start
 source ./time > ${OUTPUT}/time.out 2> ${OUTPUT}/time.err
@@ -10,3 +12,4 @@ source ${BENCH}/report
 source ${MONITORING}/report
 tar czf "${OUTPUT}.tgz" "${OUTPUT}"
 source ${BENCH}/cleanup
+rm -rf "${OUTPUT}"
