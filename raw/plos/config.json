@@ -35,7 +35,7 @@
 		    1200000
 		]
 	    ],
-            "label": "[1.0, 1.2] GHz",
+            "label": "1.2 GHz",
             "line_color": "#8cd0f5",
             "line_width": 2,
             "x0": "timestamp",
