@@ -1,0 +1,5 @@
+#!/bin/bash
+for m in monitoring/cpu-energy-meter monitoring/SchedLog
+do
+	source ${m}/start
+done
