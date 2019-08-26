@@ -2,7 +2,7 @@
 import sys, os, mmap, struct, json, itertools, shutil
 import numpy as np
 import pandas as pd
-from threading import Thread
+from threading import Thread, Semaphore
 from multiprocessing import cpu_count
 from tqdm import tqdm
 
