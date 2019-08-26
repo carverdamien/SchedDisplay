@@ -54,14 +54,14 @@ CLIENT_DEFAULT_ARGS="--db-driver=mysql \
 --time=${BENCHMARK_DURATION} \
 ${LUAFILE}"
 
-engine_daemon_is_ready() { ./engine.sh client -e status > /dev/null; }
-check_db_exists() { ! ./engine.sh client -e "CREATE DATABASE ${DATABASE_NAME}"; }
-cleanup_db() { ./engine.sh client -e "DROP DATABASE IF EXISTS ${DATABASE_NAME}"; }
-create_db() { ./engine.sh client -e "CREATE DATABASE ${DATABASE_NAME}; SET GLOBAL max_connections = 1024;"; }
-count_elements_in_db() { ./engine.sh client -D "${DATABASE_NAME}" -e 'select count(*) from sbtest1' | tail -n 1; }
+engine_daemon_is_ready() { ${BENCH}/engine.sh client -e status > /dev/null; }
+check_db_exists() { ! ${BENCH}/engine.sh client -e "CREATE DATABASE ${DATABASE_NAME}"; }
+cleanup_db() { ${BENCH}/engine.sh client -e "DROP DATABASE IF EXISTS ${DATABASE_NAME}"; }
+create_db() { ${BENCH}/engine.sh client -e "CREATE DATABASE ${DATABASE_NAME}; SET GLOBAL max_connections = 1024;"; }
+count_elements_in_db() { ${BENCH}/engine.sh client -D "${DATABASE_NAME}" -e 'select count(*) from sbtest1' | tail -n 1; }
 check_db_size() { [[ "${DATABASE_SIZE}" -eq "$(count_elements_in_db)" ]]; }
 client() { ${CLIENT_BIN} ${CLIENT_DEFAULT_ARGS} "--threads=${CLIENTS}" $1; }
-get_engine_daemon_config() { ./engine.sh client -e "SHOW VARIABLES;"; }
+get_engine_daemon_config() { ${BENCH}/engine.sh client -e "SHOW VARIABLES;"; }
 
 fatal() {
     echo "[FATAL]" "$@" >&2
