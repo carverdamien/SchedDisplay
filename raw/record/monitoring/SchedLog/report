@@ -1,2 +1,2 @@
 #!/bin/bash
-${MONIROTING}/report.py ${OUTPUT}/schedlog.hdf5 ${OUTPUT}
+${MONITORING}/report.py ${OUTPUT}/schedlog.hdf5 ${OUTPUT}

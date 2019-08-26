@@ -16,8 +16,9 @@ cat > ${OUTPUT}/report.main.json <<EOF
     "run"     : $(./2jsonString ${BENCH}/run)
   },
   "monitoring" : {
-    "start" : $(./2jsonString ${MONITORING}/start),
-    "stop"  : $(./2jsonString ${MONITORING}/stop)
+    "start"  : $(./2jsonString ${MONITORING}/start),
+    "stop"   : $(./2jsonString ${MONITORING}/stop),
+    "report" : $(./2jsonString ${MONITORING}/report)
   },
   "main" : $(./2jsonString <(set))
 }
