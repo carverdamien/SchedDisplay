@@ -4,6 +4,9 @@ set -x -e
 export BENCH=bench/oltp-mysql
 export PATH_TO_IPANEMA_MODULE=''
 export TIMEOUT=36000
+export MONITORING_SCHEDULED=y
+export MONITORING_START_DELAY=60
+export MONITORING_STOP_DELAY=10
 export MONITORING TASKS OUTPUT
 
 for MONITORING in monitoring/all monitoring/nop
