@@ -5,5 +5,8 @@ source ${BENCH}/prepare
 source ${MONITORING}/start
 source ./time > ${OUTPUT}/time.out 2> ${OUTPUT}/time.err
 source ${MONITORING}/stop
+source report
 source ${BENCH}/report
+source ${MONITORING}/report
+tar czf "$(date)" "${OUTPUT}"
 source ${BENCH}/cleanup

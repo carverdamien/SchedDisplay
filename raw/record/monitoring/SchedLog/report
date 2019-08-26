@@ -1,0 +1,2 @@
+#!/bin/bash
+${MONIROTING}/report.py ${OUTPUT}/schedlog.hdf5 ${OUTPUT}
