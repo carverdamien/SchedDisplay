@@ -8,5 +8,5 @@ source ${MONITORING}/stop
 source report
 source ${BENCH}/report
 source ${MONITORING}/report
-tar czf "$(date)" "${OUTPUT}"
+tar czf "${OUTPUT}.tgz" "${OUTPUT}"
 source ${BENCH}/cleanup
