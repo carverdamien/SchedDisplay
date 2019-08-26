@@ -1,0 +1,2 @@
+#!/bin/bash
+monitoring/SchedLog/report.py ${OUTPUT}/schedlog.hdf5 ${OUTPUT}

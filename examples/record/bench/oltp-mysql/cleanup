@@ -1,0 +1,3 @@
+#!/bin/bash
+${BENCH}/engine.sh stop
+until ${BENCH}/engine.sh cleanup; do  sleep 1; done

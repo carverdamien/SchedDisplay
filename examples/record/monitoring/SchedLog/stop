@@ -1,0 +1,6 @@
+#!/bin/bash
+case ${MONITORING_SCHEDULED} in
+        n) sched_monitor_stop ;;
+        y) ;;
+        *) exit 1 ;;
+esac

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cpu-energy-meter_start() {
+	cpu-energy-meter -r > ${OUTPUT}/cpu-energy-meter.out &
+	echo $! > ${OUTPUT}/cpu-energy-meter.pid
+}
+cpu-energy-meter_stop() {
+	kill -2 $(cat ${OUTPUT}/cpu-energy-meter.pid)
+}
+case ${MONITORING_SCHEDULED} in
+        n) cpu-energy-meter_start ;;
+        y) (sleep ${MONITORING_START_DELAY}; cpu-energy-meter_start; sleep ${MONITORING_STOP_DELAY}; cpu-energy-meter_stop) & ;;
+        *) exit 1 ;;
+esac

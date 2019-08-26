@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e -u
+prog="${1}"
+shift
+exec /usr/bin/time \
+     -f "%e" \
+     ${BENCH}/run -- "${prog}" "${@}"
