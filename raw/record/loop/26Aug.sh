@@ -8,7 +8,7 @@ export MONITORING TASKS OUTPUT
 
 for MONITORING in monitoring/all monitoring/nop
 do
-	for TASKS 80 160 320
+	for TASKS in 80 160 320
 	do
 		OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-$(uname -r)"
 		./entrypoint
