@@ -2,5 +2,5 @@
 case ${MONITORING_SCHEDULED} in
         n) sched_monitor_stop ;;
         y) ;;
-        *) exit 1
+        *) exit 1 ;;
 esac

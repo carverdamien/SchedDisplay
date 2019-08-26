@@ -10,5 +10,5 @@ cpu-energy-meter_stop() {
 case ${MONITORING_SCHEDULED} in
         n) cpu-energy-meter_start ;;
         y) (sleep ${MONITORING_START_DELAY}; cpu-energy-meter_start; sleep ${MONITORING_STOP_DELAY}; cpu-energy-meter_stop) & ;;
-        *) exit 1
+        *) exit 1 ;;
 esac

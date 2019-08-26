@@ -18,5 +18,5 @@ sched_monitor_stop() {
 case ${MONITORING_SCHEDULED} in
 	n) sched_monitor_start ;;
 	y) (sleep ${MONITORING_START_DELAY}; sched_monitor_start; sleep ${MONITORING_STOP_DELAY}; sched_monitor_stop) & ;;
-        *) exit 1
+        *) exit 1 ;;
 esac
