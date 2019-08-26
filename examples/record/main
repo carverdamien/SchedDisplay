@@ -11,6 +11,6 @@ source ${MONITORING}/stop
 source report
 source ${BENCH}/report
 source ${MONITORING}/report
-tar czf "${OUTPUT}.tgz" "${OUTPUT}"
+tar cf "${OUTPUT}.tar" "${OUTPUT}"
 source ${BENCH}/cleanup
 rm -rf "${OUTPUT}"

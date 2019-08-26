@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, h5py, os, mmap, struct, json, itertools
+import sys, os, mmap, struct, json, itertools, shutil
 import numpy as np
 import pandas as pd
 from threading import Thread
@@ -9,30 +9,46 @@ from tqdm import tqdm
 EXEC_EVT = 0
 
 def main():
-    o_path, i_path = sys.argv[1:3]
-    data = load_data(i_path)
-    with h5py.File(o_path, 'w') as f:
-        store(f, data)
+    _, i_path = sys.argv
+    o_path = os.path.join(i_path, 'sched_monitor', 'tracer')
+    df, comm = load_tracer_raw(os.path.join(i_path, 'sched_monitor', 'tracer-raw'))
+    os.makedirs(o_path)
+    with open(os.path.join(o_path, 'comm.json'), 'w') as f:
+        json.dump(comm,f)
+    for k in df.columns:
+        v=df[k]
+        fname = os.path.join(o_path, '{}.npz'.format(k))
+        np.savez_compressed(fname, **{k:v})
+    shutil.rmtree(i_path)
 
-def load_data(path):
-    return {
-        # 'perf_event' : load_json(os.path.join(path, 'perf_event.json')),
-        # 'summary' : load_json(os.path.join(path, 'summary.json')),
-        'sched_monitor' : load_sched_monitor(os.path.join(path,'sched_monitor')),
-    }
-
-def load_json(path):
-    with open(path) as f:
-        return json.load(f)
-
-def load_sched_monitor(path):
-    path = os.path.join(path, 'tracer-raw')
-    if not os.path.exists(path):
-        return {}
-    df, comm = load_tracer_raw(path)
-    return {
-        'tracer-raw' : { 'df' : df, 'comm':comm }
-    }
+def nxt_of_same_evt_on_same_cpu(dd, key):
+    dd_event = np.array(dd['event'])
+    dd_cpu = np.array(dd['cpu'])
+    nxt = np.array(dd[key])
+    idx = np.arange(len(nxt))
+    events = np.unique(dd_event)
+    cpus = np.unique(dd_cpu)
+    # Compute == once only
+    sel_evt = { evt : np.array(dd_event == evt) for evt in events}
+    sel_cpu = { cpu :   np.array(dd_cpu == cpu) for cpu in cpus}
+    sem = Semaphore(cpu_count())
+    def target(evt, cpu):
+        sem.acquire()
+        sel = (sel_evt[evt]) & (sel_cpu[cpu])
+        nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+        sem.release()
+    def spawn(evt, cpu):
+        t = Thread(target=target, args=(evt,cpu))
+        t.start()
+        return t
+    threads = [
+        spawn(evt,cpu)
+        for evt in events
+        for cpu in cpus
+    ]
+    for t in threads:
+        t.join()
+    return nxt
 
 def addr_2_comm(addr):
     addr = int(addr)
@@ -133,6 +149,7 @@ def load_tracer_raw(path):
     df.sort_values(by='timestamp', inplace=True)
     df.index = np.arange(len(df))
     comm = compute_dfcomm(df)
+    df['nxt_timestamp_of_same_evt_on_same_cpu'] = nxt_of_same_evt_on_same_cpu(df, 'timestamp')
     return df, comm
 
 def load_tracer_raw_per_cpu(path):
@@ -166,20 +183,6 @@ def load_tracer_raw_per_cpu(path):
             for k in entry:
                 data[k].append(entry[k])
     return data
-
-def store(grp, obj):
-    for key in obj:
-        if isinstance(obj[key], (dict, pd.DataFrame)):
-            new_grp = grp.create_group(key)
-            store(new_grp, obj[key])
-        elif isinstance(obj[key], (str,int,float)):
-            grp.attrs[key] = obj[key]
-        elif isinstance(obj[key], (np.ndarray,list)):
-            grp.create_dataset(key,data=obj[key],compression="gzip")
-        elif isinstance(obj[key], (pd.Series)):
-            grp.create_dataset(key,data=np.array(obj[key]),compression="gzip")
-        else:
-            raise Exception('Cannot store key {} (type={}) of obj {}'.format(key,type(obj[key]),obj))
 
 if __name__ == '__main__':
     main()
