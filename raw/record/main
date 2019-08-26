@@ -1,0 +1,9 @@
+#!/bin/bash
+set -u -e -x
+source ${BENCH}/cleanup
+source ${BENCH}/prepare
+source ${MONITORING}/start
+source ./time > ${OUTPUT}/time.out 2> ${OUTPUT}/time.err
+source ${MONITORING}/stop
+source ${BENCH}/report
+source ${BENCH}/cleanup

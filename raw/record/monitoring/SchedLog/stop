@@ -1,0 +1,10 @@
+#!/bin/bash
+sched_monitor_stop() {
+	sched_monitor stop idle sched fair ipanema tracer || true
+	sched_monitor dump ${OUTPUT}/sched_monitor idle sched fair ipanema tracer-raw || true
+	for f in /proc/{schedstat,sched_debug,stat}
+	do
+	    cp ${f} ${OUTPUT}/$(basename ${f}).stop
+	done
+}
+sched_monitor_stop

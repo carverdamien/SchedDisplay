@@ -1,0 +1,17 @@
+#!/bin/bash
+sched_monitor_start() {
+	for f in /proc/{schedstat,sched_debug,stat}
+		do
+    		cp ${f} ${OUTPUT}/$(basename ${f}).start
+		done
+	sched_monitor start idle sched fair ipanema tracer || true
+	sched_monitor reset idle sched fair ipanema tracer || true
+}
+case ${DELAY_MONITORING} in
+	n)
+		sched_monitor_start
+		;;
+	*)
+		(sleep ${DELAY_MONITORING}; sched_monitor_start) &
+		;;
+esac
