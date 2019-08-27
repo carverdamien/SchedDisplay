@@ -40,7 +40,7 @@ do
         do
                 echo ${NO_TURBO} | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
                 echo ${SCALING_GOVERNOR} | sudo tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
-                OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-$(uname -r)"
+                OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
                 TAR="${OUTPUT}.tar"
                 if ! [[ -e "${TAR}" ]]
                 then
