@@ -1,8 +1,7 @@
 from smv.ViewController import ViewController
 from bokeh.models.widgets import Select, Button, TextAreaInput
 from bokeh.layouts import row, column
-import os, io
-import stat
+import os, io, stat, tarfile, json
 
 def find_files(directory, ext):
 	for root, dirs, files in os.walk(directory, topdown=False):
@@ -18,6 +17,17 @@ def preview(path):
 	if ext in ['.json']:
 		with open(path, 'r') as f:
 			return f.read()
+	elif ext in ['.tar','.tgz']:
+		msg = ['File {} is {} bytes and contains:'.format(path, os.stat(path)[stat.ST_SIZE])]
+		with tarfile.open(path, 'r') as tar:
+			for tarinfo in tar:
+				extend = [tarinfo.name]
+				_, ext = os.path.splitext(tarinfo.name)
+				if tarinfo.isreg() and ext in ['.json']:
+					with tar.extractfile(tarinfo.name) as f:
+						extend.extend([str(json.load(f))])
+				msg.extend(extend)
+		return "\n".join(msg)
 	else:
 		return 'File {} is {} bytes'.format(path, os.stat(path)[stat.ST_SIZE])
 
