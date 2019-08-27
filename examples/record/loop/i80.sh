@@ -3,7 +3,7 @@
 set -x -e -u
 
 kexec_reboot() {
-if [[ "${KERNEL}" != "$(uname -r)" ]]
+if [[ ${KERNEL} != $(uname -r) ]]
 then
 VMLINUZ="/boot/vmlinuz-${KERNEL}"
 INITRD="/boot/initrd.img-${KERNEL}"
@@ -14,7 +14,7 @@ sync
 kexec -l "${VMLINUZ}" --append="$( cat /proc/cmdline )" --initrd="${INITRD}"
 kexec -e
 else
-if [[ "$(cat kexec_reboot.attempt)" == "${KERNEL}" ]]
+if [[ $(cat kexec_reboot.attempt) == ${KERNEL} ]]
 then
 echo 'Help me'
 sleep inf
