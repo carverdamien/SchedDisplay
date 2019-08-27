@@ -31,9 +31,7 @@ def main():
         },
     ]
     dd = DataDict.from_tar(tar)
-    N = 100000 * 2 * 2
-    N = min(len(dd['timestamp']),N)
-    dd = {k:dd[k][0:N] for k in dd if k in ['timestamp','event','cpu']}
+    # dd = {k:dd[k][0:10000] for k in dd if k in ['timestamp','event','cpu']}
     # dd['timestamp'] = np.sort(dd['timestamp'])
     dd['timestamp'] -= dd['timestamp'][0]
     # dd['timestamp'] -= min(dd['timestamp'])
@@ -46,7 +44,6 @@ def main():
     if n != 0:
         print(pd.DataFrame(dict(new=new,old=old,b=result['b'],**dd)))
         print('len !=',n)
-    print(N)
     pass
 
 if __name__ == "__main__":

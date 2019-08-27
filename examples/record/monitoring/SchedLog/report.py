@@ -11,7 +11,8 @@ EXEC_EVT = 0
 def main():
     _, i_path = sys.argv
     o_path = os.path.join(i_path, 'sched_monitor', 'tracer')
-    df, comm = load_tracer_raw(os.path.join(i_path, 'sched_monitor', 'tracer-raw'))
+    i_path = os.path.join(i_path, 'sched_monitor', 'tracer-raw')
+    df, comm = load_tracer_raw(i_path)
     os.makedirs(o_path)
     with open(os.path.join(o_path, 'comm.json'), 'w') as f:
         json.dump(comm,f)

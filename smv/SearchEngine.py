@@ -2,13 +2,7 @@
 import numpy as np
 import operator
 import time
-
-try:
-    from tqdm import tqdm
-except Exception as e:
-    def tqdm(X):
-        for x in X:
-            yield x
+from tqdm import tqdm
 
 def log(func):
     def f(*args, **kwargs):
@@ -78,86 +72,11 @@ def search_root(results, keep, dd, idx, root):
     results[root_name][keep] = idx[keep]
     return keep
 
-CACHE_UNORDERED = {}
-def cache_unordered(k,op,A,b):
-    if k not in CACHE_UNORDERED:
-        print('CACHING UNORDERED {}'.format(k))
-        CACHE_UNORDERED[k] = op(A,b)
-    return CACHE_UNORDERED[k]
-
-def inverse(a,i):
-    return a[i]
-
-def cut(a,i,N):
-    if i == 0:
-        a[:] = True
-    elif i == N:
-        a[:] = False
-    else:
-        a[:i] = False
-        a[i:] = True
-
-# CACHE_ORDERED = {}
-# def cache_ordered(k,op,A,b):
-#     N = len(A)
-#     if k not in CACHE_ORDERED:
-#         print('CACHING ORDERED {}'.format(k))
-#         argsort = np.argsort(A)
-#         inverse_argsort = np.arange(len(A))[argsort]
-#         sort = A[argsort]
-#         private = np.empty(N, dtype=bool)
-#         CACHE_ORDERED[k] = argsort, inverse_argsort, sort, private
-#     else:
-#         argsort, inverse_argsort, sort, private = CACHE_ORDERED[k]
-#     if op in [operator.__ge__, operator.__lt__, operator.__le__]:
-#         raise Exception('TODO')
-#     elif op in [operator.__gt__]:
-#         i = np.searchsorted(sort, b, side='right')
-#         cut(private,i,N)
-#         # inverse takes too much time
-#         return inverse(private,inverse_argsort)
-#     else:
-#         raise Exception('Ooops!')
-
-CACHE_ORDERED = {}
-def cache_ordered(k,op,A,b):
-    N = len(A)
-    if k not in CACHE_ORDERED:
-        print('CACHING ORDERED {}'.format(k))
-        is_sorted = np.sum(~(np.diff(A) >= 0)) == 0
-        private = np.empty(N, dtype=bool)
-        if not is_sorted:
-            print('ordered operation on unsorted array')
-            raise Exception('ordered operation on unsorted array')
-        CACHE_ORDERED[k] = is_sorted, private
-    else:
-        is_sorted, private = CACHE_ORDERED[k]
-    if op in [operator.__ge__, operator.__lt__, operator.__le__]:
-        raise Exception('TODO')
-    elif op in [operator.__gt__]:
-        i = np.searchsorted(A, b, side='right')
-        cut(private,i,N)
-        return private
-    else:
-        raise Exception('Ooops!')
-
 def __set_constaint_op__(op):
     def f(dd, a, b, row=None):
-        # Slowest part! maybe when op == __and__?
         if isinstance(a, str) and not isinstance(b, str):
-            if f in SET_CONSTRAINT_COMPARE_UNORDERED.values():
-                # CACHE ME
-                k = "{}{}{}".format(op,a,b)
-                return cache_unordered(k,op,dd[a],b)
-            elif f in SET_CONSTRAINT_COMPARE_ORDERED.values():
-                # SORT ME
-                k = a
-                return cache_ordered(k,op,dd[a],b)
-            else:
-                print(op)
-                raise Exception('Ooops!')
+            return op(dd[a], b)
         elif not isinstance(a, str) and isinstance(b, str):
-            # CACHE ME
             return op(a, dd[b])
         elif isinstance(a, str) and isinstance(b, str):
             return op(dd[a], dd[b])
@@ -166,21 +85,13 @@ def __set_constaint_op__(op):
     return f
 
 
-SET_CONSTRAINT_COMPARE_UNORDERED = {
+SET_CONSTRAINT_COMPARE = {
     "==":__set_constaint_op__(operator.__eq__),
     "!=":__set_constaint_op__(operator.__ne__),
-}
-
-SET_CONSTRAINT_COMPARE_ORDERED = {
     "<" :__set_constaint_op__(operator.__lt__),
     ">" :__set_constaint_op__(operator.__gt__),
     "<=":__set_constaint_op__(operator.__le__),
     ">=":__set_constaint_op__(operator.__ge__),
-}
-
-SET_CONSTRAINT_COMPARE = {
-    **SET_CONSTRAINT_COMPARE_UNORDERED,
-    **SET_CONSTRAINT_COMPARE_ORDERED,
 }
 
 SET_CONSTRAINT_LOGICAL = {
