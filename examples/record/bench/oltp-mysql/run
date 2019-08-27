@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e -u
+exec ${BENCH}/client.sh ${TASKS} run >${OUTPUT}/run.out 2>${OUTPUT}/run.err

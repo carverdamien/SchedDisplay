@@ -1,0 +1,2 @@
+#!/bin/bash
+monitoring/SchedLog/report.py ${OUTPUT}

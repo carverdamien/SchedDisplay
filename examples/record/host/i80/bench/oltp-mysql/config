@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Variables and oneliners ONLY
+
+LUAFILE=/usr/local/share/sysbench/oltp_read_write.lua
+
+DATABASE_NAME=dbtest
+DATABASE_SIZE=1000000
+BENCHMARK_DURATION=120
+
+ENGINE_VERSION="8.0.15"
+ENGINE_DAEMON_USER=mysql
+ENGINE_DAEMON_GROUP=mysql
+ENGINE_DAEMON_NAME=mysqld
+ENGINE_DAEMON_BIN=/mnt/data/mysqld/mysqld-8.0.15/bin/mysqld
+ENGINE_BASE_DIR=/tmp/mysql/8.0.15
+ENGINE_DATA_DIR="${ENGINE_BASE_DIR}/data"
+ENGINE_DAEMON_PID_FILE="${ENGINE_BASE_DIR}/mysql.pid"
+ENGINE_DAEMON_DEFAULT_ARGS="--no-defaults \
+--user=mysql \
+--basedir=${ENGINE_BASE_DIR} \
+--datadir=${ENGINE_DATA_DIR} \
+--pid-file=${ENGINE_DAEMON_PID_FILE} \
+--log-error=${ENGINE_BASE_DIR}/mysqld.err \
+--socket=${ENGINE_BASE_DIR}/mysqld.sock"
+
+ENGINE_INIT_BIN="${ENGINE_DAEMON_BIN}"
+ENGINE_INIT_DEFAULT_ARGS="--no-defaults \
+--initialize-insecure \
+--user=mysql \
+--basedir=${ENGINE_BASE_DIR} \
+--datadir=${ENGINE_DATA_DIR}"
+
+ENGINE_CLIENT_NAME=mysql
+ENGINE_CLIENT_BIN=/mnt/data/mysqld/mysqld-8.0.15/bin/mysql
+ENGINE_CLIENT_DEFAULT_ARGS="--no-defaults \
+--socket=${ENGINE_BASE_DIR}/mysqld.sock \
+-u root \
+--password="
+
+TEST_IF_FILES_EXIST='ENGINE_CLIENT_BIN ENGINE_DAEMON_BIN ENGINE_INIT_BIN LUAFILE'
+MKDIR_CHOWN_IF_DIRS_DO_NOT_EXIST='ENGINE_BASE_DIR ENGINE_DATA_DIR'
+TOUCH_CHOWN_IF_FILES_DO_NOT_EXIST=''
+
+CLIENT_NAME=sysbench
+CLIENT_BIN=/usr/local/bin/sysbench
+CLIENT_VERSION=1.1.0
+CLIENT_DEFAULT_ARGS="--db-driver=mysql \
+--mysql-db=${DATABASE_NAME} \
+--mysql-user=root \
+--mysql-password= \
+--mysql-socket=${ENGINE_BASE_DIR}/mysqld.sock \
+--table-size=${DATABASE_SIZE} \
+--time=${BENCHMARK_DURATION} \
+${LUAFILE}"
+
+engine_daemon_is_ready() { ${BENCH}/engine.sh client -e status > /dev/null; }
+check_db_exists() { ! ${BENCH}/engine.sh client -e "CREATE DATABASE ${DATABASE_NAME}"; }
+cleanup_db() { ${BENCH}/engine.sh client -e "DROP DATABASE IF EXISTS ${DATABASE_NAME}"; }
+create_db() { ${BENCH}/engine.sh client -e "CREATE DATABASE ${DATABASE_NAME}; SET GLOBAL max_connections = 1024;"; }
+count_elements_in_db() { ${BENCH}/engine.sh client -D "${DATABASE_NAME}" -e 'select count(*) from sbtest1' | tail -n 1; }
+check_db_size() { [[ "${DATABASE_SIZE}" -eq "$(count_elements_in_db)" ]]; }
+client() { ${CLIENT_BIN} ${CLIENT_DEFAULT_ARGS} "--threads=${CLIENTS}" $1; }
+get_engine_daemon_config() { ${BENCH}/engine.sh client -e "SHOW VARIABLES;"; }
+
+fatal() {
+    echo "[FATAL]" "$@" >&2
+    exit 1
+}
+
+ok() {
+    echo "[OK]" "$@" >&2
+    exit 0
+}
+
+info() {
+    echo "[INFO]" "$@" >&2
+}
+
+debug() {
+    [[ ${VERBOSE:=0} -eq 0 ]] ||
+	echo "[DEBUG]" "$@" >&2
+}

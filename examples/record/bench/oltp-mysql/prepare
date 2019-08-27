@@ -1,0 +1,8 @@
+#!/bin/bash
+: ${TASKS}
+${BENCH}/engine.sh cleanup || true
+${BENCH}/engine.sh prepare
+${BENCH}/engine.sh start
+${BENCH}/client.sh ${TASKS} prepare
+
+dmesg -C

@@ -1,0 +1,6 @@
+#!/bin/bash
+case ${MONITORING_SCHEDULED} in
+        n) cpu-energy-meter_stop ;;
+        y) ;;
+        *) exit 1 ;;
+esac
