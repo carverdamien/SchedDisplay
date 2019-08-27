@@ -22,6 +22,7 @@ do
                 if ! [ -e "${TAR}" ]
                 then
 		    echo ./entrypoint
+                    sleep 10
                 fi
         done
 done
