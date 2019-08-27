@@ -48,6 +48,7 @@ class SelectFileViewController(ViewController):
 			value=preview(options0),
 			sizing_mode='stretch_both',
 			max_length=2**20,
+			disabled=True,
 		)
 		view = column(
 			row(select, select_button, sizing_mode = 'scale_width',),
