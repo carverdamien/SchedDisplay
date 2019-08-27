@@ -21,8 +21,7 @@ do
                 TAR="${OUTPUT}.tar"
                 if ! [ -e "${TAR}" ]
                 then
-		    echo ./entrypoint
-                    sleep 10
+		    ./entrypoint
                 fi
         done
 done
