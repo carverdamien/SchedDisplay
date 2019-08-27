@@ -2,6 +2,7 @@ from smv.ViewController import ViewController
 from bokeh.models.widgets import Select, Button, TextAreaInput
 from bokeh.layouts import row, column
 import os, io
+import stat
 
 def find_files(directory, ext):
 	for root, dirs, files in os.walk(directory, topdown=False):
@@ -13,7 +14,12 @@ def find_files(directory, ext):
 def preview(path):
 	if path is None:
 		return 'There is nothing to preview'
-	return 'This is a preview of {}'.format(path)
+	_, ext = os.path.splitext(path)
+	if ext in ['.json']:
+		with open(path, 'r') as f:
+			return f.read()
+	else:
+		return 'File {} is {} bytes'.format(path, os.stat(path)[stat.ST_SIZE])
 
 class SelectFileViewController(ViewController):
 	"""docstring for SelectFileViewController"""
@@ -50,10 +56,14 @@ class SelectFileViewController(ViewController):
 		)
 		super(SelectFileViewController, self).__init__(view, doc, log)
 		self.select = select
+		self.select.on_change('value', self.select_changed_valued)
 		self.select_button = select_button
 		self.on_selected_callback = None
 		self.select_button.on_click(self.select_on_click)
 		self.file_preview = file_preview
+
+	def select_changed_valued(self, attr, old, new):
+		self.file_preview.value = preview(self.select.value)
 
 	def on_selected(self, callback):
 		self.on_selected_callback = callback
