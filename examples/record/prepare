@@ -1,0 +1,3 @@
+modprobe msr
+modprobe cpuid
+mkdir -p "${OUTPUT}"
