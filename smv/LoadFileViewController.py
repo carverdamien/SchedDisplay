@@ -1,16 +1,9 @@
-from smv.ViewController import ViewController
+from smv.SelectFileViewController import SelectFileViewController
 from bokeh.models import ColumnDataSource, CustomJS
 from bokeh.models.widgets import Select, Button
-from bokeh.layouts import row
+from bokeh.layouts import row, column
 import os, io, base64
 from threading import Thread
-
-def find_files(directory, ext):
-	for root, dirs, files in os.walk(directory, topdown=False):
-		for name in files:
-			path = os.path.join(root, name)
-			if ext == os.path.splitext(name)[1]:
-				yield path
 
 # Special thanks to Kevin Anderson
 CUSTOM_JS_CODE = """
@@ -79,29 +72,9 @@ input.onchange = function(){
 input.click();
 """
 
-class LoadFileViewController(ViewController):
+class LoadFileViewController(SelectFileViewController):
 	"""docstring for LoadFileViewController"""
 	def __init__(self, directory, ext, doc=None, log=None):
-		options=sorted(list(find_files(directory,ext)))
-		options0 = None
-		if len(options) > 0:
-			options0 = options[0]
-		select = Select(
-			title="Select File:",
-			value=options0,
-			options=options,
-			height=40,
-			height_policy="fixed",
-		)
-		select_button = Button(
-			label='Select',
-			align="end",
-			button_type="success",
-			width=100,
-			width_policy="fixed",
-			height=40,
-			height_policy="fixed",
-		)
 		upload_button = Button(
 			label='Upload',
 			align="end",
@@ -111,10 +84,13 @@ class LoadFileViewController(ViewController):
 			height=40,
 			height_policy="fixed",
 	    )
-		view = row(select, select_button, upload_button, sizing_mode = 'scale_width',)
-		super(LoadFileViewController, self).__init__(view, doc, log)
-		self.select = select
-		self.select_button = select_button
+		super(LoadFileViewController, self).__init__(directory, ext, doc, log)
+		# Override view
+		self.view = column(
+			row(self.select, self.select_button, upload_button, sizing_mode = 'scale_width',),
+			self.file_preview,
+			sizing_mode='stretch_both',
+		)
 		self.upload_button = upload_button
 		# self.datasource = ColumnDataSource({'file_contents':[], 'file_name':[]})
 		# self.datasource = ColumnDataSource({'file_contents':[]})
@@ -127,6 +103,7 @@ class LoadFileViewController(ViewController):
 	def on_loaded(self, callback):
 		self.on_loaded_callback = callback
 
+	# Override select_on_click
 	def select_on_click(self):
 		if self.on_loaded_callback is None:
 			return

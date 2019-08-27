@@ -1,6 +1,6 @@
 from smv.ViewController import ViewController
-from bokeh.models.widgets import Select, Button
-from bokeh.layouts import row
+from bokeh.models.widgets import Select, Button, TextAreaInput
+from bokeh.layouts import row, column
 import os, io
 
 def find_files(directory, ext):
@@ -9,6 +9,11 @@ def find_files(directory, ext):
 			path = os.path.join(root, name)
 			if ext == os.path.splitext(name)[1]:
 				yield path
+
+def preview(path):
+	if path is None:
+		return 'There is nothing to preview'
+	return 'This is a preview of {}'.format(path)
 
 class SelectFileViewController(ViewController):
 	"""docstring for SelectFileViewController"""
@@ -33,12 +38,22 @@ class SelectFileViewController(ViewController):
 			height=40,
 			height_policy="fixed",
 		)
-		view = row(select, select_button, sizing_mode = 'scale_width',)
+		file_preview = TextAreaInput(
+			value=preview(options0),
+			sizing_mode='stretch_both',
+			max_length=2**20,
+		)
+		view = column(
+			row(select, select_button, sizing_mode = 'scale_width',),
+			file_preview,
+			sizing_mode='stretch_both',
+		)
 		super(SelectFileViewController, self).__init__(view, doc, log)
 		self.select = select
 		self.select_button = select_button
 		self.on_selected_callback = None
 		self.select_button.on_click(self.select_on_click)
+		self.file_preview = file_preview
 
 	def on_selected(self, callback):
 		self.on_selected_callback = callback
