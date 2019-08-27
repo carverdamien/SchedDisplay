@@ -23,9 +23,17 @@ def preview(path):
 			for tarinfo in tar:
 				extend = [tarinfo.name]
 				_, ext = os.path.splitext(tarinfo.name)
-				if tarinfo.isreg() and ext in ['.json']:
-					with tar.extractfile(tarinfo.name) as f:
-						extend.extend([str(json.load(f))])
+				if tarinfo.isreg():
+					if ext in ['.json']:
+						with tar.extractfile(tarinfo.name) as f:
+							extend.extend([str(json.load(f))])
+					else:
+						try:
+							size = min(tarinfo.size, 2**10)
+							with tar.extractfile(tarinfo.name) as f:
+								extend.extend([f.read(size).decode()])
+						except Exception as e:
+							pass
 				msg.extend(extend)
 		return "\n".join(msg)
 	else:
