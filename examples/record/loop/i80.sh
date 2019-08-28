@@ -12,6 +12,7 @@ INITRD="/boot/initrd.img-${KERNEL}"
 echo "${KERNEL}" > kexec_reboot.attempt
 sync
 kexec -l "${VMLINUZ}" --append="$( cat /proc/cmdline )" --initrd="${INITRD}"
+rm -f "./loop/${KERNEL}.lock"
 kexec -e
 else
 if [[ $(cat kexec_reboot.attempt) != ${KERNEL} ]]
