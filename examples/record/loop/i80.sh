@@ -13,7 +13,7 @@ echo "${KERNEL}" > kexec_reboot.attempt
 kexec -l "${VMLINUZ}" --append="$( cat /proc/cmdline )" --initrd="${INITRD}"
 rm -f "./loop/${KERNEL}.lock"
 sync
-sleep inf # debug
+# sleep inf # debug
 kexec -e
 else
 if [[ -f kexec_reboot.attempt ]] && [[ $(cat kexec_reboot.attempt) != ${KERNEL} ]]
