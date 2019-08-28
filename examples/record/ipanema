@@ -19,11 +19,11 @@ main() {
 	    # Check if module description match pattern
 	    IPANEMA_POLICY_NAME=$(modinfo -F name "${PATH_TO_IPANEMA_MODULE}")
 	    IPANEMA_POLICY_DESCRIPTION=$(modinfo -F description "${PATH_TO_IPANEMA_MODULE}")
-	    [[ ${IPANEMA_POLICY_DESCRIPTION} = "${IPANEMA_POLICY_NAME} scheduling policy" ]]
+	    # [[ ${IPANEMA_POLICY_DESCRIPTION} = "${IPANEMA_POLICY_NAME} scheduling policy" ]]
 
 	    # Check if module is compiled for current kernel
 	    IPANEMA_POLICY_KERNEL=$(modinfo -F vermagic "${PATH_TO_IPANEMA_MODULE}" | awk '{print $1}')
-	    [[ $(uname -r) = ${IPANEMA_POLICY_KERNEL} ]]
+	    # [[ $(uname -r) = ${IPANEMA_POLICY_KERNEL} ]]
 
 	    # Unload module first if already loaded.
 	    if lsmod | grep -q "${IPANEMA_POLICY_NAME}"
