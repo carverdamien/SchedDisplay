@@ -4,91 +4,42 @@ set -e -u
 main() {
     prog="$1"
     shift
-    remove_all_ipanema_policies
-    unload_all_ipanema_modules
     
     case "${PATH_TO_IPANEMA_MODULE}" in
     	"")
 	    exec "${prog}" "${@}"
 	    ;;
 	*)
+	    # Check if kernel support ipanema API
+	    [[ -f /proc/ipanema/policies ]]
+
+	    # Check if module.ko exists
+	    [[ -f "${PATH_TO_IPANEMA_MODULE}" ]]
+
+	    # Check if module description match pattern
+	    IPANEMA_POLICY_NAME=$(modinfo -F name "${PATH_TO_IPANEMA_MODULE}")
+	    IPANEMA_POLICY_DESCRIPTION=$(modinfo -F description "${PATH_TO_IPANEMA_MODULE}")
+	    [[ ${IPANEMA_POLICY_DESCRIPTION} = "${IPANEMA_POLICY_NAME} scheduling policy" ]]
+
+	    # Check if module is compiled for current kernel
+	    IPANEMA_POLICY_KERNEL=$(modinfo -F vermagic "${PATH_TO_IPANEMA_MODULE}" | awk '{print $1}')
+	    [[ $(uname -r) = ${IPANEMA_POLICY_KERNEL} ]]
+
+	    # Unload module first if already loaded.
+	    if lsmod | grep -q "${IPANEMA_POLICY_NAME}"
+	    then
+		until rmmod "${PATH_TO_IPANEMA_MODULE}"
+		do
+		    echo 'Could not unload module'
+		    sleep 10
+		done
+	    fi
 	    insmod "${PATH_TO_IPANEMA_MODULE}"
-	    info "IPANEMA_POLICY_NAME=${IPANEMA_POLICY_NAME:=$(cat /proc/ipanema/modules)}"
-	    info "IPANEMA_POLICY_ID=${IPANEMA_POLICY_ID:=$(IPANEMA_POLICY_ID)}"
+
+	    # Get ID
+	    grep -q "${IPANEMA_POLICY_NAME}" /proc/ipanema/policies
+	    IPANEMA_POLICY_ID=$(grep "${IPANEMA_POLICY_NAME}" /proc/ipanema/policies | awk '{print $1}')
 	    exec ipastart "${IPANEMA_POLICY_ID}" "${prog}" "${@}"
 	    ;;
     esac
 }
-
-IPANEMA_POLICY_ID() {
-    echo "*:${IPANEMA_POLICY_NAME}" |
-    	tee /proc/ipanema/policies > /dev/null
-    [[ "$(wc -l < /proc/ipanema/policies)" -lt 1 ]] &&
-	fatal "Unable to define an ipanema policy"
-    [[ "$(wc -l < /proc/ipanema/policies)" -gt 1 ]] &&
-	fatal "Multiple ipanema policies defined"
-    awk '{print $1}' /proc/ipanema/policies
-}
-
-list_active_ipanema_policies() {
-    if [[ -f /proc/ipanema/policies ]]
-    then
-	awk '{print $1}' /proc/ipanema/policies
-    else
-	echo '/proc/ipanema/policies not found' >&2
-    fi
-}
-ipanema_policy_is_active() { list_active_ipanema_policies | grep -q "$1"; }
-remove_ipanema_policy() {
-    policy=$1
-    # FIXME: remove the follow line.
-    # The API is not coherent (See https://gitlab.inria.fr/ipanema/ipanema-kernel/issues/12)
-    policy=$(awk '{print $1 " " $2}' /proc/ipanema/policies | grep -E "^${policy}" | awk '{print $2}')
-    echo "r:${policy}" | tee /proc/ipanema/policies > /dev/null
-}
-remove_all_ipanema_policies() {
-    for policy in $(list_active_ipanema_policies)
-    do
-	remove_ipanema_policy "${policy}"
-	while ipanema_policy_is_active "${policy}"
-	do
-	    info "Trying to remove ipanema policy ${policy}"
-	    sleep 1
-	    remove_ipanema_policy "${policy}"
-	done
-    done
-}
-
-list_loaded_ipanema_modules() {
-    if [[ -f /proc/ipanema/modules ]]
-    then
-	cat /proc/ipanema/modules
-    else
-	echo '/proc/ipanema/modules not found' >&2
-    fi
-}
-ipanema_module_is_loaded() { grep -q "$1" /proc/ipanema/modules; }
-
-unload_all_ipanema_modules() {
-    for mod in $(list_loaded_ipanema_modules)
-    do
-	rmmod "${mod}"
-		      while ipanema_module_is_loaded "${mod}"
-		      do
-			  info "Trying to remove ipanema module ${mod}"
-			  sleep 1
-			  rmmod "${mod}"
-		      done
-    done
-}
-
-fatal() {
-    echo "[FATAL]" "$@" >&2
-    exit 1
-}
-
-info() {
-    echo "[INFO]" "$@" >&2
-}
-
-main "$@"
