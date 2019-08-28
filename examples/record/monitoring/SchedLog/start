@@ -1,6 +1,6 @@
 #!/bin/bash
 sched_monitor_start() {
-    mount --bind ./realproc /proc
+    mount --bind ./rootproc /proc
     ps -eLfwc > ${OUTPUT}/ps.start
     umount /proc
     for f in /proc/{schedstat,sched_debug,stat}
@@ -17,7 +17,7 @@ sched_monitor_stop() {
     do
         cp ${f} ${OUTPUT}/$(basename ${f}).stop
     done
-    mount --bind ./realproc /proc
+    mount --bind ./rootproc /proc
     ps -eLfwc > ${OUTPUT}/ps.stop
     umount /proc
 }
