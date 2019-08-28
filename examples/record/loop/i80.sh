@@ -51,6 +51,8 @@ done
 done
 done
 
+exit 0
+
 # IPANEMA
 build_ipanema_module() {
     (cd $(dirname ${PATH_TO_IPANEMA_MODULE}); make KERNEL=../..)
