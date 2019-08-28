@@ -36,17 +36,44 @@ for KERNEL in 4.19.0-ipanema-g131fda29324a 4.19.0-ipanema-g9ee5320702ba 4.19.0-i
 do
 for MONITORING in monitoring/all monitoring/cpu-energy-meter monitoring/nop
 do
-        for TASKS in 80 160 320
-        do
-                echo ${NO_TURBO} | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
-                echo ${SCALING_GOVERNOR} | sudo tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
-                OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
-                TAR="${OUTPUT}.tar"
-                if ! [[ -e "${TAR}" ]]
-                then
-		    kexec_reboot
-		    ./entrypoint
-                fi
-        done
+for TASKS in 80 160 320
+do
+    echo ${NO_TURBO} | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+    echo ${SCALING_GOVERNOR} | sudo tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
+    OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
+    TAR="${OUTPUT}.tar"
+    if ! [[ -e "${TAR}" ]]
+    then
+	kexec_reboot
+	./entrypoint
+    fi
+done
+done
+done
+
+# IPANEMA
+build_ipanema_module() {
+    (cd $(dirname ${PATH_TO_IPANEMA_MODULE}); make)
+}
+for KERNEL in 4.19.0-ipanema-g8acfcf3f3364
+do
+for PATH_TO_IPANEMA_MODULE in "/lib/modules/$(uname -r)/source/ipanema/modules/cfs_wwc_local_new_unblock.ko"
+do
+for MONITORING in monitoring/all monitoring/cpu-energy-meter monitoring/nop
+do
+for TASKS in 80 160 320
+do
+    echo ${NO_TURBO} | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+    echo ${SCALING_GOVERNOR} | sudo tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
+    OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/IPANEMA=$(basename ${PATH_TO_IPANEMA_MODULE} .ko)/${TASKS}-${KERNEL}"
+    TAR="${OUTPUT}.tar"
+    if ! [[ -e "${TAR}" ]]
+    then
+	kexec_reboot
+	build_ipanema_module
+	./entrypoint
+    fi
+done
+done
 done
 done
