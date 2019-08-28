@@ -53,7 +53,7 @@ done
 
 # IPANEMA
 build_ipanema_module() {
-    (cd $(dirname ${PATH_TO_IPANEMA_MODULE}); make)
+    (cd $(dirname ${PATH_TO_IPANEMA_MODULE}); make KERNEL=../..)
 }
 for KERNEL in 4.19.0-ipanema-g8acfcf3f3364
 do
