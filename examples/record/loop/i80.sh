@@ -57,7 +57,7 @@ build_ipanema_module() {
 }
 for KERNEL in 4.19.0-ipanema-g8acfcf3f3364
 do
-for PATH_TO_IPANEMA_MODULE in "/lib/modules/$(uname -r)/source/ipanema/modules/cfs_wwc_local_new_unblock.ko"
+for PATH_TO_IPANEMA_MODULE in "/lib/modules/$(uname -r)/source/ipanema/modules/cfs_wwc.ko" "/lib/modules/$(uname -r)/source/ipanema/modules/ule_wwc.ko"
 do
 for MONITORING in monitoring/all monitoring/cpu-energy-meter monitoring/nop
 do
