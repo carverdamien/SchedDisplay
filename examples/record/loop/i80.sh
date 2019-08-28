@@ -52,7 +52,7 @@ done
 done
 done
 
-exit 0
+# exit 0
 
 # IPANEMA
 build_ipanema_module() {
