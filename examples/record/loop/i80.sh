@@ -15,7 +15,7 @@ kexec -l "${VMLINUZ}" --append="$( cat /proc/cmdline )" --initrd="${INITRD}"
 rm -f "./loop/${KERNEL}.lock"
 kexec -e
 else
-if [[ $(cat kexec_reboot.attempt) != ${KERNEL} ]]
+if [[ -f kexec_reboot.attempt ]] && [[ $(cat kexec_reboot.attempt) != ${KERNEL} ]]
 then
 echo 'Help me'
 sleep inf
