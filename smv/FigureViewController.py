@@ -282,14 +282,16 @@ class FigureViewController(ViewController):
 
 	def configure(self, config):
 		try:
-			category = [c for c in config['c'] if c['len'] > 0]
+			category = config['c']
 			self.legend.text = '\n'.join(
 				['Categories:<ul style="list-style: none;padding-left: 0;">']+
-				['<li><span style="color: {};">◼</span>c[{}]={}</li>'.format(category[i]['color'], i, category[i]['label']) for i in range(len(category))]+
+				[
+					'<li><span style="color: {};">◼</span>c[{}]={}</li>'.format(category[i]['color'], i, category[i]['label'])
+					for i in range(len(category))
+					if category[i]['len'] > 0
+				]+
 				["</ul>"]
 			)
-			msg = ['category:']+['c[{}]={}'.format(i, category[i]) for i in range(len(category))]
-			self.log('\n'.join(msg))
 			self.color_key = [c['color'] for c in category]
 			self.hide_hovertool_for_category = [
 				i
