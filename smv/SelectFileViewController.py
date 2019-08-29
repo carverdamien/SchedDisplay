@@ -29,7 +29,7 @@ def preview(path):
 							extend.extend([str(json.load(f))])
 					else:
 						try:
-							size = min(tarinfo.size, 2**10)
+							size = min(tarinfo.size, 2**20)
 							with tar.extractfile(tarinfo.name) as f:
 								extend.extend([f.read(size).decode()])
 						except Exception as e:
@@ -65,8 +65,8 @@ class SelectFileViewController(ViewController):
 		file_preview = TextAreaInput(
 			value=preview(options0),
 			sizing_mode='stretch_both',
-			max_length=2**20,
-			disabled=True,
+			max_length=16*2**20,
+			disabled=False,
 		)
 		view = column(
 			row(select, select_button, sizing_mode = 'scale_width',),
