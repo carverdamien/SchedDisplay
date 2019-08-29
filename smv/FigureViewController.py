@@ -1,5 +1,5 @@
 from smv.ViewController import ViewController
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 from functools import partial
 from tornado import gen
 from threading import Thread
@@ -12,6 +12,8 @@ import numpy as np
 from bokeh.plotting import figure
 from bokeh.models.widgets import TextInput
 from bokeh.models.widgets import TableColumn
+from bokeh.models.widgets import TextAreaInput
+from bokeh.models.widgets import Dropdown
 from bokeh.models import ColumnDataSource
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
@@ -71,6 +73,12 @@ class FigureViewController(ViewController):
 			y_range=y_range,
 			sizing_mode='stretch_both',
 		)
+		legend = TextAreaInput(
+			title="Legend",
+			visible=False,
+			width_policy='min',
+			height_policy='max',
+		)
 		# fig.add_layout(Legend(click_policy='hide'))
 		query_textinput = TextInput(
 			title="query",
@@ -78,9 +86,22 @@ class FigureViewController(ViewController):
 			value='',
 			width=100
 		)
-		view = column(fig, query_textinput, sizing_mode='stretch_both')
+		dropdown = Dropdown(
+			label='Options',
+			sizing_mode='fixed',
+			menu=[('Show/Hide Legend','legend')]
+		)
+		view = column(
+			dropdown,
+			row(legend, fig, sizing_mode='stretch_both',),
+			query_textinput,
+			sizing_mode='stretch_both',
+		)
 		super(FigureViewController, self).__init__(view, doc, log)
+		self.dropdown = dropdown
+		self.dropdown.on_click(self.on_click_dropdown)
 		self.fig = fig
+		self.legend = legend
 		self.query_textinput = query_textinput
 		# Has to be executed before inserting fig in doc
 		self.fig.on_event(LODEnd, self.callback_LODEnd)
@@ -95,6 +116,12 @@ class FigureViewController(ViewController):
 		self.hovertool = None
 		self.hide_hovertool_for_category = None
 		self.table = None
+
+	def on_click_dropdown(self, new):
+		if new.item == 'legend':
+			self.legend.visible = not self.legend.visible
+		else:
+			raise Exception('Exception in on_click_dropdown: {}'.format(new.item))
 
 	@ViewController.logFunctionCall
 	def update_source(self, df):
