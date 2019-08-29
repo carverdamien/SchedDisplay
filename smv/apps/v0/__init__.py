@@ -76,6 +76,7 @@ def modify_doc(doc):
 			with open('./examples/cache/{}.json'.format(key),'w') as f:
 				json.dump({k:state[k] for k in state if k not in ['df','lines']},f)
 				log('Saved: {}'.format(key))
+			del state['df'] # Save memory
 		except Exception as e:
 			log(e)
 	@logFunctionCall(log)
@@ -106,9 +107,8 @@ def modify_doc(doc):
 			if 'df' not in state:
 				on_selected_trace(state['path'])
 			state['lines'] = LinesFrame_from_df(state['df'], state['config'])
-			Thread(target=cache_put).start()
-			del state['df'] # Save memory
 			figure.plot(state['config'], state['width'], state['height'], state['lines'])
+			Thread(target=cache_put).start()
 		except Exception as e:
 			console.write(e)
 	load_config.on_loaded(on_loaded_config)
