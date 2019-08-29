@@ -96,7 +96,6 @@ class LoadFileViewController(SelectFileViewController):
 		# self.datasource = ColumnDataSource({'file_contents':[]})
 		self.datasource = ColumnDataSource({'i':[], 'block':[],'remaining':[]})
 		self.on_loaded_callback = None
-		self.select_button.on_click(self.select_on_click)
 		self.upload_button.callback = (CustomJS(args=dict(file_source=self.datasource), code=CUSTOM_JS_CODE))
 		self.datasource.on_change('data', self.file_callback)
 
