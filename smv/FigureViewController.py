@@ -139,12 +139,6 @@ class FigureViewController(ViewController):
 	def compute_lines_to_render(self, ranges):
 		self.lines_to_render = self.lines
 		self.lines_to_render = self.apply_query()
-		def target():
-			try:
-				self.compute_hovertool(ranges)
-			except Exception as e:
-				print(e)
-		Thread(target=target).start()
 
 	@ViewController.logFunctionCall
 	def compute_hovertool(self, ranges):
@@ -198,7 +192,15 @@ class FigureViewController(ViewController):
 	def _update_image(self):
 		ranges = self.get_image_ranges(self)
 		self.compute_lines_to_render(ranges)
+		def target():
+			try:
+				self.compute_hovertool(ranges)
+			except Exception as e:
+				print(e)
+		t = Thread(target=target)
+		t.start()
 		self.img.update_image(ranges)
+		t.join()
 
 	@ViewController.logFunctionCall
 	def apply_query(self):
