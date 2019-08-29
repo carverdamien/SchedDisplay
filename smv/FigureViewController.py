@@ -205,6 +205,7 @@ class FigureViewController(ViewController):
 		try:
 			if self.query.strip() == '':
 				return self.lines
+			self.log('Applying query {}'.format(self.query))
 			lines = self.lines.query(self.query)
 			if len(lines) == 0:
 				raise Exception(
