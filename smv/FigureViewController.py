@@ -394,9 +394,6 @@ class FigureViewController(ViewController):
 
 	@ViewController.logFunctionCall
 	def update_image(self):
-		self._update_image()
-
-	def _update_image(self):
 		ranges = {
 			'xmin' : self.fig.x_range.start,
 			'xmax' : self.fig.x_range.end,
