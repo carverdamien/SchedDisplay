@@ -8,6 +8,8 @@ import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import json, os
 import pandas as pd
+from tornado import gen
+from functools import partial
 # import dask
 # from multiprocessing import cpu_count
 from threading import Thread
@@ -110,6 +112,11 @@ def modify_doc(doc):
 			if 'df' not in state:
 				on_selected_trace(state['path'])
 			state['lines'] = LinesFrame_from_df(state['df'], state['config'])
+			# FIXME: Quick And Dirty set fig.title
+			@gen.coroutine
+			def coroutine():
+				figure.fig.title.text = state['path']
+			doc.add_next_tick_callback(partial(coroutine))
 			figure.plot(state['config'], state['width'], state['height'], state['lines'])
 			Thread(target=cache_put).start()
 		except Exception as e:
