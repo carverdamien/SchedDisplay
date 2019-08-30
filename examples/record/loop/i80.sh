@@ -34,7 +34,7 @@ export MONITORING TASKS OUTPUT KERNEL
 NO_TURBO=0
 SCALING_GOVERNOR='powersave' # or performance
 
-for KERNEL in 4.19.0-ipanema-g131fda29324a 4.19.0-ipanema-g9ee5320702ba 4.19.0-ipanema-g8acfcf3f3364 4.19.0-ipanema-sched-freq-g710892956166
+for KERNEL in 4.19.0-linux-4.19-ipanema-gd6437e6b2bdd 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166
 do
 for MONITORING in monitoring/all monitoring/cpu-energy-meter monitoring/nop
 do
