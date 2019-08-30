@@ -242,10 +242,18 @@ class FigureViewController(ViewController):
 			self.fig.y_range.end = ymax
 			self.fig.plot_width = width
 			self.fig.plot_height = height
-			category = [c for c in config['c'] if c['len'] > 0]
+			category = config['c']
 			self.legend.text = '\n'.join(
 				['Categories:<ul style="list-style: none;padding-left: 0;">']+
-				['<li><span style="color: {};">◼</span>c[{}]={}</li>'.format(category[i]['color'], i, category[i]['label']) for i in range(len(category))]+
+				[
+					'<li><span style="color: {};">◼</span>c[{}]={}</li>'.format(
+						category[i]['color'],
+						i,
+						category[i]['label']
+					)
+					for i in range(len(category))
+					if category[i]['len'] > 0
+				]+
 				["</ul>"]
 			)
 			self.color_key = [c['color'] for c in category]
