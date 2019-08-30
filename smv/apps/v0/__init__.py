@@ -32,8 +32,7 @@ def modify_doc(doc):
 		xmax = FVC.fig.x_range.end
 		# ymin = FVC.fig.y_range.start
 		# ymax = FVC.fig.y_range.end
-		ymin = -1
-		ymax = nr_cpu+1
+
 		if FVC.fig.y_range.end > ymax:
 			FVC.fig.y_range.end = ymax
 		if FVC.fig.y_range.start < ymin:
@@ -48,13 +47,17 @@ def modify_doc(doc):
 			'w':w,
 			'h':h,
 		}
+	def customize_ranges(ranges):
+		ranges['ymax'] = min(ranges['ymax'], nr_cpu+1)
+		ranges['ymin'] = max(ranges['ymin'], -1)
+		return ranges
 	@logFunctionCall(log)
 	def LinesFrame_from_df(df, config):
 		return LinesFrame.from_df(df, config, log)
 	load_cache = SelectFileViewController('./examples/cache','.json',doc=doc, log=log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_config = LoadFileViewController('./examples/config','.json',doc=doc, log=log)
-	figure = FigureViewController(get_image_ranges=get_image_ranges, doc=doc, log=log)
+	figure = FigureViewController(customize_ranges=customize_ranges, doc=doc, log=log)
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),

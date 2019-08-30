@@ -2,7 +2,8 @@ from smv.ViewController import ViewController
 from bokeh.layouts import column, row
 from functools import partial
 from tornado import gen
-from threading import Thread
+from threading import Thread, Lock
+from queue import Queue
 
 import dask
 from multiprocessing import cpu_count
@@ -38,20 +39,10 @@ def empty_lines():
 	df['c'] = df['c'].astype('category')
 	return df
 
-def get_image_ranges(FVC):
-	xmin = FVC.fig.x_range.start
-	xmax = FVC.fig.x_range.end
-	ymin = FVC.fig.y_range.start
-	ymax = FVC.fig.y_range.end
-	w = FVC.fig.plot_width
-	h = FVC.fig.plot_height
+def customize_ranges(ranges):
 	return {
-		'xmin':xmin,
-		'xmax':xmax,
-		'ymin':ymin,
-		'ymax':ymax,
-		'w':w,
-		'h':h,
+		k:ranges[k]
+		for k in ['xmin', 'xmax', 'ymin', 'ymax', 'w', 'h']
 	}
 
 class FigureViewController(ViewController):
@@ -60,14 +51,14 @@ class FigureViewController(ViewController):
 			x_range=(0,1), # datashader cannot handle 0-sized range
 			y_range=(0,1), # datashader cannot handle 0-sized range
 			lines=empty_lines(), 
-			get_image_ranges=get_image_ranges,
+			customize_ranges=customize_ranges,
 			doc=None,
 			log=None,
 		):
 		self.query = ''
 		self.lines = lines
 		self.lines_to_render = lines
-		self.get_image_ranges = get_image_ranges
+		self.customize_ranges = customize_ranges
 		fig = figure(
 			x_range=x_range,
 			y_range=y_range,
@@ -106,7 +97,9 @@ class FigureViewController(ViewController):
 		self.fig.on_event(LODEnd, self.callback_LODEnd)
 		# Has to be executed before inserting fig in doc
 		self.color_key = datashader_color
-		self.img = InteractiveImage(self.fig, self.callback_InteractiveImage)
+		self.img = Queue(maxsize=1)
+		self.interactiveImage = InteractiveImage(self.fig, self.callback_InteractiveImage)
+		self.user_lock = Lock()
 		self.query_textinput.on_change('value', self.on_change_query_textinput)
 		assert(len(self.fig.renderers) == 1)
 		self.datashader = self.fig.renderers[0]
@@ -116,24 +109,200 @@ class FigureViewController(ViewController):
 		self.hide_hovertool_for_category = None
 		self.table = None
 
+	#######################################
+	# Functions triggered by User actions #
+	#######################################
+
+	# Forbid user to trigger more than one action
+
 	def on_click_dropdown(self, new):
+		# Very short, no need to spawn a Thread
 		if new.item == 'legend':
 			self.legend.visible = not self.legend.visible
 		else:
 			raise Exception('Exception in on_click_dropdown: {}'.format(new.item))
 
-	@ViewController.logFunctionCall
-	def update_source(self, df):
-		self.source.data = ColumnDataSource.from_df(df)
-		if self.table is not None:
-			self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
+	# TODO decorator
+
+	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
+		fname = self.plot.__name__
+		if not self.user_lock.acquire(False):
+			self.log('Could not acquire user_lock in {}'.format(fname))
+			return
+		def target(config, width, height, lines, xmin, xmax, ymin, ymax):
+			try:
+				lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
+				lines.persist()
+				self.lines = lines
+				self.lines_to_render = lines
+				if xmin is None:
+					xmin = min(*dask.compute((self.lines['x0'].min(),self.lines['x1'].min())))
+				if xmax is None:
+					xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
+				if ymin is None:
+					ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
+				if ymax is None:
+					ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
+				self._plot(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+			else:
+				self.user_lock.release()
+		args = config, width, height, lines, xmin, xmax, ymin, ymax
+		Thread(target=target, args=args).start()
 
 	def on_change_query_textinput(self, attr, old, new):
-		self.query = self.query_textinput.value
-		self.update_image()
+		fname = self.on_change_query_textinput.__name__
+		if not self.user_lock.acquire(False):
+			self.log('Could not acquire user_lock in {}'.format(fname))
+			return
+		def target():
+			try:
+				self.query = self.query_textinput.value
+				self.update_image()
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+			else:
+				self.user_lock.release()
+		Thread(target=target).start()
 
 	def callback_LODEnd(self, event):
-		self.update_image()
+		fname = self.callback_LODEnd.__name__
+		if not self.user_lock.acquire(False):
+			self.log('Could not acquire user_lock in {}'.format(fname))
+			return
+		def target():
+			try:
+				self.update_image()
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+			else:
+				self.user_lock.release()
+		Thread(target=target).start()
+
+	####################################
+	# Functions modifying the document #
+	####################################
+
+	# Try to avoid intensive computation
+	# Must use coroutine
+
+	@ViewController.logFunctionCall
+	def _plot(self, config, width, height, xmin, xmax, ymin, ymax):
+		@gen.coroutine
+		def coroutine(config, width, height, xmin, xmax, ymin, ymax):
+			self.fig.x_range.start = xmin
+			self.fig.x_range.end = xmax
+			self.fig.y_range.start = ymin
+			self.fig.y_range.end = ymax
+			self.fig.plot_width = width
+			self.fig.plot_height = height
+			category = [c for c in config['c'] if c['len'] > 0]
+			self.legend.text = '\n'.join(
+				['Categories:<ul style="list-style: none;padding-left: 0;">']+
+				['<li><span style="color: {};">◼</span>c[{}]={}</li>'.format(category[i]['color'], i, category[i]['label']) for i in range(len(category))]+
+				["</ul>"]
+			)
+			self.color_key = [c['color'] for c in category]
+			self.hide_hovertool_for_category = [
+				i
+				for i in range(len(category))
+				if 'hide_hovertool' in category[i]
+				if category[i]['hide_hovertool']
+			]
+			df = pd.DataFrame({k:[] for k in self.lines.columns})
+			self.source.data = ColumnDataSource.from_df(df)
+			if self.table is not None:
+				self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
+			glyph = Segment(
+				x0='x0',
+				x1='x1',
+				y0='y0',
+				y1='y1',
+				line_alpha=0,
+			)
+			self.segment = self.fig.add_glyph(self.source, glyph)
+			if self.hovertool is None:
+				tooltips = [
+					("(x,y)","($x, $y)"),
+				]
+				for k in self.lines.columns:
+					tooltips.append((k,"@"+str(k)))
+				self.hovertool = HoverTool(tooltips = tooltips)
+				self.fig.add_tools(self.hovertool)
+			self.update_image()
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine, config, width, height, xmin, xmax, ymin, ymax))
+
+	@ViewController.logFunctionCall
+	def update_source(self, df):
+		@gen.coroutine
+		def coroutine(df):
+			self.source.data = ColumnDataSource.from_df(df)
+			if self.table is not None:
+				self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
+		if self.doc is not None:
+			self.doc.add_next_tick_callback(partial(coroutine, df))
+
+	@ViewController.logFunctionCall
+	def callback_InteractiveImage(self, x_range, y_range, plot_width, plot_height, name=None):
+		fname = self.callback_InteractiveImage.__name__
+		try:
+			img = self.img.get(block=False)
+		except Exception as e:
+			self.log('Exception({}) in {}: {}'.format(type(e), fname, e))
+			img = self._callback_InteractiveImage(x_range, y_range, plot_width, plot_height, name)
+		return img
+
+	@ViewController.logFunctionCall
+	def fit_figure(self, ranges):
+		@gen.coroutine
+		def coroutine(ranges):
+			self.fig.x_range.start = ranges['xmin']
+			self.fig.x_range.end = ranges['xmax']
+			self.fig.y_range.start = ranges['ymin']
+			self.fig.y_range.end = ranges['ymax']
+			self.fig.plot_width = ranges['w']
+			self.fig.plot_height = ranges['h']
+		if self.doc is not None:
+			self.doc.add_next_tick_callback(partial(coroutine, ranges))
+
+	###############################
+	# Compute intensive functions #
+	###############################
+
+	# Should not be ran in the interactive thread
+
+	@ViewController.logFunctionCall
+	def apply_query(self):
+		fname = self.apply_query.__name__
+		try:
+			if self.query.strip() == '':
+				return self.lines
+			self.log('Applying query {}'.format(self.query))
+			lines = self.lines.query(self.query)
+			if len(lines) == 0:
+				raise Exception(
+					'QUERY ERROR',
+					'{} => len(lines) == 0'.format(self.query)
+				)
+			return lines
+		except Exception as e:
+			self.log('Exception({}) in {}: {}'.format(type(e), fname, e))
+		return self.lines
+
+	@ViewController.logFunctionCall
+	def _callback_InteractiveImage(self, x_range, y_range, plot_width, plot_height, name=None):
+		cvs = ds.Canvas(
+			plot_width=plot_width, plot_height=plot_height,
+			x_range=x_range, y_range=y_range,
+		)
+		agg = cvs.line(self.lines_to_render,
+			x=['x0','x1'], y=['y0','y1'],
+			agg=ds.count_cat('c'), axis=1,
+		)
+		img = tf.shade(agg,min_alpha=255,color_key=self.color_key)
+		return img
 
 	@ViewController.logFunctionCall
 	def compute_lines_to_render(self, ranges):
@@ -176,127 +345,45 @@ class FigureViewController(ViewController):
 		else:
 			self.log('Full hovertool')
 		df = dask.compute(lines_to_render)[0]
-		@gen.coroutine
-		def coroutine(df):
-			self.update_source(df)
-		if self.doc is not None:
-			self.doc.add_next_tick_callback(partial(coroutine, df))
+		self.update_source(df)
 
 	@ViewController.logFunctionCall
 	def update_image(self):
-		try:
-			self._update_image()
-		except Exception as e:
-			self.log(e)
+		self._update_image()
 
 	def _update_image(self):
-		ranges = self.get_image_ranges(self)
+		ranges = {
+			'xmin' : self.fig.x_range.start,
+			'xmax' : self.fig.x_range.end,
+			'ymin' : self.fig.y_range.start,
+			'ymax' : self.fig.y_range.end,
+			'w' : self.fig.plot_width,
+			'h' : self.fig.plot_height,
+		}
+		ranges = self.customize_ranges(ranges)
 		self.compute_lines_to_render(ranges)
-		def target():
+		def target0():
 			try:
 				self.compute_hovertool(ranges)
 			except Exception as e:
-				print(e)
-		t = Thread(target=target)
-		t.start()
-		self.img.update_image(ranges)
-		t.join()
-
-	@ViewController.logFunctionCall
-	def apply_query(self):
-		try:
-			if self.query.strip() == '':
-				return self.lines
-			self.log('Applying query {}'.format(self.query))
-			lines = self.lines.query(self.query)
-			if len(lines) == 0:
-				raise Exception(
-					'QUERY ERROR',
-					'{} => len(lines) == 0'.format(self.query)
-				)
-			return lines
-		except Exception as e:
-			self.log(e)
-		return self.lines
-
-	@ViewController.logFunctionCall
-	def callback_InteractiveImage(self, x_range, y_range, plot_width, plot_height, name=None):
-		cvs = ds.Canvas(
-			plot_width=plot_width, plot_height=plot_height,
-			x_range=x_range, y_range=y_range,
-		)
-		agg = cvs.line(self.lines_to_render,
-			x=['x0','x1'], y=['y0','y1'],
-			agg=ds.count_cat('c'), axis=1,
-		)
-		img = tf.shade(agg,min_alpha=255,color_key=self.color_key)
-		return img
-
-	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
-		lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
-		lines.persist()
-		if self.doc is not None:
-			@gen.coroutine
-			def coroutine():
-				self._plot(config, width, height, lines=lines, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-			self.doc.add_next_tick_callback(partial(coroutine))
-
-	@ViewController.logFunctionCall
-	def _plot(self, config, width, height, lines, xmin=None, xmax=None, ymin=None, ymax=None):
-		self.configure(config)
-		if xmin is None:
-			xmin = min(*dask.compute((lines['x0'].min(),lines['x1'].min())))
-		if xmax is None:
-			xmax = max(*dask.compute((lines['x0'].max(),lines['x1'].max())))
-		if ymin is None:
-			ymin = min(*dask.compute((lines['y0'].min(),lines['y1'].min())))
-		if ymax is None:
-			ymax = max(*dask.compute((lines['y0'].max(),lines['y1'].max())))
-		self.fig.x_range.start = xmin
-		self.fig.x_range.end = xmax
-		self.fig.y_range.start = ymin
-		self.fig.y_range.end = ymax
-		self.fig.plot_width = width
-		self.fig.plot_height = height
-		self.lines = lines
-		self.update_source(pd.DataFrame({k:[] for k in lines.columns}))
-		glyph = Segment(
-				x0='x0',
-				x1='x1',
-				y0='y0',
-				y1='y1',
-				line_alpha=0,
-			)
-		self.segment = self.fig.add_glyph(self.source, glyph)
-		self.update_image()
-		if self.hovertool is None:
-			tooltips = [
-				("(x,y)","($x, $y)"),
-			]
-			for k in lines.columns:
-				tooltips.append((k,"@"+str(k)))
-			self.hovertool = HoverTool(tooltips = tooltips)
-			self.fig.add_tools(self.hovertool)
-			# self.fig.legend.items = [LegendItem(label='Datashader', renderers=[self.datashader], index=0)]
-		pass
-
-	def configure(self, config):
-		try:
-			category = [c for c in config['c'] if c['len'] > 0]
-			self.legend.text = '\n'.join(
-				['Categories:<ul style="list-style: none;padding-left: 0;">']+
-				['<li><span style="color: {};">◼</span>c[{}]={}</li>'.format(category[i]['color'], i, category[i]['label']) for i in range(len(category))]+
-				["</ul>"]
-			)
-			msg = ['category:']+['c[{}]={}'.format(i, category[i]) for i in range(len(category))]
-			self.log('\n'.join(msg))
-			self.color_key = [c['color'] for c in category]
-			self.hide_hovertool_for_category = [
-				i
-				for i in range(len(category))
-				if 'hide_hovertool' in category[i]
-				if category[i]['hide_hovertool']
-			]
-		except Exception as e:
-			self.log(e)
-		pass
+				self.log('Exception({}) in {}:{}'.format(type(e),target0.__name__,e))
+		def target1():
+			try:
+				xmin, xmax, ymin, ymax, w, h = [
+					ranges[k] for k in ['xmin', 'xmax', 'ymin', 'ymax', 'w', 'h']
+				]
+				self.log(ranges) # debug
+				self.img.put(self._callback_InteractiveImage((xmin,xmax), (ymin,ymax), w, h))
+				@gen.coroutine
+				def coroutine():
+					self.interactiveImage.update_image(ranges)
+				if self.doc:
+					self.doc.add_next_tick_callback(partial(coroutine))
+			except Exception as e:
+				 self.log('Exception({}) in {}:{}'.format(type(e),target1.__name__,e))
+		threads = [Thread(target=target0), Thread(target=target1)]
+		for t in threads:
+			t.start()
+		for t in threads:
+			t.join()
+		self.fit_figure(ranges)
