@@ -80,10 +80,10 @@ class FigureViewController(ViewController):
 		dropdown = Dropdown(
 			label='Options',
 			sizing_mode='fixed',
-			menu=[('Show/Hide Legend','legend')]
+			menu=[('Show/Hide Legend','legend'),('Enable/Disable Auto Update','auto')]
 		)
 		status_button = Button(
-			label='Done',
+			label='Auto Update',
 			sizing_mode='fixed',
 			#sizing_mode='stretch_width',
 			width_policy='min',
@@ -95,9 +95,11 @@ class FigureViewController(ViewController):
 			sizing_mode='stretch_both',
 		)
 		super(FigureViewController, self).__init__(view, doc, log)
+		self.auto_update_image = True
 		self.dropdown = dropdown
 		self.dropdown.on_click(self.on_click_dropdown)
 		self.status_button = status_button
+		self.status_button.on_click(self.on_click_status_button)
 		self.fig = fig
 		self.legend = legend
 		self.query_textinput = query_textinput
@@ -123,10 +125,29 @@ class FigureViewController(ViewController):
 
 	# Forbid user to trigger more than one action
 
+	def on_click_status_button(self, new):
+		fname = self.on_click_status_button.__name__
+		if not self.user_lock.acquire(False):
+			self.log('Could not acquire user_lock in {}'.format(fname))
+			return
+		def target():
+			try:
+				self.set_busy()
+				self.update_image()
+				self.set_update()
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.set_failed()
+			else:
+				self.user_lock.release()
+		Thread(target=target).start()
+
 	def on_click_dropdown(self, new):
 		# Very short, no need to spawn a Thread
 		if new.item == 'legend':
 			self.legend.visible = not self.legend.visible
+		elif new.item == 'auto':
+			self.auto_update_image = not self.auto_update_image
 		else:
 			raise Exception('Exception in on_click_dropdown: {}'.format(new.item))
 
@@ -153,7 +174,7 @@ class FigureViewController(ViewController):
 				if ymax is None:
 					ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
 				self._plot(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-				self.set_done()
+				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
 				self.set_failed()
@@ -164,6 +185,8 @@ class FigureViewController(ViewController):
 
 	def on_change_query_textinput(self, attr, old, new):
 		fname = self.on_change_query_textinput.__name__
+		if not self.auto_update_image:
+			return
 		if not self.user_lock.acquire(False):
 			self.log('Could not acquire user_lock in {}'.format(fname))
 			return
@@ -172,7 +195,7 @@ class FigureViewController(ViewController):
 				self.set_busy()
 				self.query = self.query_textinput.value
 				self.update_image()
-				self.set_done()
+				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
 				self.set_failed()
@@ -182,6 +205,8 @@ class FigureViewController(ViewController):
 
 	def callback_LODEnd(self, event):
 		fname = self.callback_LODEnd.__name__
+		if not self.auto_update_image:
+			return
 		if not self.user_lock.acquire(False):
 			self.log('Could not acquire user_lock in {}'.format(fname))
 			return
@@ -189,7 +214,7 @@ class FigureViewController(ViewController):
 			try:
 				self.set_busy()
 				self.update_image()
-				self.set_done()
+				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
 				self.set_failed()
@@ -223,11 +248,14 @@ class FigureViewController(ViewController):
 			self.doc.add_next_tick_callback(partial(coroutine))
 
 
-	def set_done(self):
+	def set_update(self):
 		@gen.coroutine
 		def coroutine():
 			self.visible = True
-			self.status_button.label = "Done"
+			if self.auto_update_image:
+				self.status_button.label = "Auto Update"
+			else:
+				self.status_button.label = "Update"
 			self.status_button.button_type = "success"
 		if self.doc:
 			self.doc.add_next_tick_callback(partial(coroutine))
