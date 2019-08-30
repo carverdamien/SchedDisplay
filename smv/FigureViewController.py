@@ -1,5 +1,5 @@
 from smv.ViewController import ViewController
-from bokeh.layouts import column, row
+from bokeh.layouts import column, row, Spacer
 from functools import partial
 from tornado import gen
 from threading import Thread, Lock
@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 
 from bokeh.plotting import figure
+from bokeh.models.widgets import Button
 from bokeh.models.widgets import TextInput
 from bokeh.models.widgets import TableColumn
 from bokeh.models.widgets import Div
@@ -81,8 +82,14 @@ class FigureViewController(ViewController):
 			sizing_mode='fixed',
 			menu=[('Show/Hide Legend','legend')]
 		)
+		status_button = Button(
+			label='Done',
+			sizing_mode='fixed',
+			#sizing_mode='stretch_width',
+			width_policy='min',
+		)
 		view = column(
-			dropdown,
+			row(dropdown, Spacer(sizing_mode='stretch_width', width_policy='max'), status_button, sizing_mode='stretch_width',),
 			row(legend, fig, sizing_mode='stretch_both',),
 			query_textinput,
 			sizing_mode='stretch_both',
@@ -90,6 +97,7 @@ class FigureViewController(ViewController):
 		super(FigureViewController, self).__init__(view, doc, log)
 		self.dropdown = dropdown
 		self.dropdown.on_click(self.on_click_dropdown)
+		self.status_button = status_button
 		self.fig = fig
 		self.legend = legend
 		self.query_textinput = query_textinput
@@ -131,6 +139,7 @@ class FigureViewController(ViewController):
 			return
 		def target(config, width, height, lines, xmin, xmax, ymin, ymax):
 			try:
+				self.set_busy()
 				lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
 				lines.persist()
 				self.lines = lines
@@ -144,8 +153,10 @@ class FigureViewController(ViewController):
 				if ymax is None:
 					ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
 				self._plot(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+				self.set_done()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.set_failed()
 			else:
 				self.user_lock.release()
 		args = config, width, height, lines, xmin, xmax, ymin, ymax
@@ -158,10 +169,13 @@ class FigureViewController(ViewController):
 			return
 		def target():
 			try:
+				self.set_busy()
 				self.query = self.query_textinput.value
 				self.update_image()
+				self.set_done()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.set_failed()
 			else:
 				self.user_lock.release()
 		Thread(target=target).start()
@@ -173,9 +187,12 @@ class FigureViewController(ViewController):
 			return
 		def target():
 			try:
+				self.set_busy()
 				self.update_image()
+				self.set_done()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.set_failed()
 			else:
 				self.user_lock.release()
 		Thread(target=target).start()
@@ -186,6 +203,34 @@ class FigureViewController(ViewController):
 
 	# Try to avoid intensive computation
 	# Must use coroutine
+
+	def set_failed(self):
+		@gen.coroutine
+		def coroutine():
+			self.visible = True
+			self.status_button.label = "Failed"
+			self.status_button.button_type = "failure"
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine))
+
+	def set_busy(self):
+		@gen.coroutine
+		def coroutine():
+			self.visible = True
+			self.status_button.label = "Busy"
+			self.status_button.button_type = "warning"
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine))
+
+
+	def set_done(self):
+		@gen.coroutine
+		def coroutine():
+			self.visible = True
+			self.status_button.label = "Done"
+			self.status_button.button_type = "success"
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine))
 
 	@ViewController.logFunctionCall
 	def _plot(self, config, width, height, xmin, xmax, ymin, ymax):
