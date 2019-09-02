@@ -66,7 +66,7 @@ class FigureViewController(ViewController):
 			sizing_mode='stretch_both',
 		)
 		legend = Div(
-			visible=False,
+			visible=True,
 			width_policy='min',
 			height_policy='max',
 		)
