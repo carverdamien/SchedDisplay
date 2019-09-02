@@ -19,7 +19,8 @@ from bokeh.models.widgets import Dropdown
 from bokeh.models import ColumnDataSource
 from bokeh.models.glyphs import Segment
 from bokeh.models import Legend, LegendItem
-from bokeh.events import LODEnd
+from bokeh.events import LODEnd as LODEnd_event
+from bokeh.events import Reset as Reset_event
 from bokeh.models.tools import HoverTool
 
 import datashader as ds
@@ -117,7 +118,9 @@ class FigureViewController(ViewController):
 		self.legend = legend
 		self.query_textinput = query_textinput
 		# Has to be executed before inserting fig in doc
-		self.fig.on_event(LODEnd, self.callback_LODEnd)
+		self.fig.on_event(LODEnd_event, self.callback_LODEnd)
+		# Has to be executed before inserting fig in doc
+		self.fig.on_event(Reset_event, self.callback_Reset)
 		# Has to be executed before inserting fig in doc
 		self.color_key = datashader_color
 		self.img = Queue(maxsize=1)
@@ -259,6 +262,28 @@ class FigureViewController(ViewController):
 			try:
 				self.set_busy()
 				self.update_image()
+				self.set_update()
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.set_failed()
+			else:
+				self.user_lock.release()
+		Thread(target=target).start()
+
+	def callback_Reset(self, event):
+		fname = self.callback_Reset.__name__
+		if not self.user_lock.acquire(False):
+			self.log('Could not acquire user_lock in {}'.format(fname))
+			return
+		def target():
+			try:
+				self.set_busy()
+				xmin = min(*dask.compute((self.lines['x0'].min(),self.lines['x1'].min())))
+				xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
+				ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
+				ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
+				self.fit_window(xmin, xmax, ymin, ymax)
+				self.update_image(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
@@ -490,7 +515,7 @@ class FigureViewController(ViewController):
 		self.update_source(df)
 
 	@ViewController.logFunctionCall
-	def update_image(self):
+	def update_image(self, **kwargs):
 		ranges = {
 			'xmin' : self.fig.x_range.start,
 			'xmax' : self.fig.x_range.end,
@@ -499,6 +524,9 @@ class FigureViewController(ViewController):
 			'w' : self.fig.plot_width,
 			'h' : self.fig.plot_height,
 		}
+		for k in ['xmin', 'xmax', 'ymin', 'ymax', 'w', 'h']:
+			if k in kwargs:
+				ranges[k] = kwargs[k]
 		ranges = self.customize_ranges(ranges)
 		self.compute_lines_to_render(ranges)
 		def target0():
