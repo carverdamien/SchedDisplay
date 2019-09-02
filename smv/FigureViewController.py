@@ -77,7 +77,7 @@ class FigureViewController(ViewController):
 			value='',
 			width=100
 		)
-		dropdown = Dropdown(
+		options_dropdown = Dropdown(
 			label='Options',
 			sizing_mode='fixed',
 			menu=[('Show/Hide Legend','legend'),('Enable/Disable Auto Update','auto')]
@@ -89,15 +89,15 @@ class FigureViewController(ViewController):
 			width_policy='min',
 		)
 		view = column(
-			row(dropdown, Spacer(sizing_mode='stretch_width', width_policy='max'), status_button, sizing_mode='stretch_width',),
+			row(options_dropdown, Spacer(sizing_mode='stretch_width', width_policy='max'), status_button, sizing_mode='stretch_width',),
 			row(legend, fig, sizing_mode='stretch_both',),
 			query_textinput,
 			sizing_mode='stretch_both',
 		)
 		super(FigureViewController, self).__init__(view, doc, log)
 		self.auto_update_image = True
-		self.dropdown = dropdown
-		self.dropdown.on_click(self.on_click_dropdown)
+		self.options_dropdown = options_dropdown
+		self.options_dropdown.on_click(self.on_click_options_dropdown)
 		self.status_button = status_button
 		self.status_button.on_click(self.on_click_status_button)
 		self.fig = fig
@@ -142,14 +142,14 @@ class FigureViewController(ViewController):
 				self.user_lock.release()
 		Thread(target=target).start()
 
-	def on_click_dropdown(self, new):
+	def on_click_options_dropdown(self, new):
 		# Very short, no need to spawn a Thread
 		if new.item == 'legend':
 			self.legend.visible = not self.legend.visible
 		elif new.item == 'auto':
 			self.auto_update_image = not self.auto_update_image
 		else:
-			raise Exception('Exception in on_click_dropdown: {}'.format(new.item))
+			raise Exception('Exception in on_click_options_dropdown: {}'.format(new.item))
 
 	# TODO decorator
 
