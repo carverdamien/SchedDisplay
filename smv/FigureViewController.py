@@ -82,6 +82,11 @@ class FigureViewController(ViewController):
 			sizing_mode='fixed',
 			menu=[('Show/Hide Legend','legend'),('Enable/Disable Auto Update','auto')]
 		)
+		actions_dropdown = Dropdown(
+			label='Actions',
+			sizing_mode='fixed',
+			menu=[('Fit Window','fit')],
+		)
 		status_button = Button(
 			label='Auto Update',
 			sizing_mode='fixed',
@@ -89,7 +94,12 @@ class FigureViewController(ViewController):
 			width_policy='min',
 		)
 		view = column(
-			row(options_dropdown, Spacer(sizing_mode='stretch_width', width_policy='max'), status_button, sizing_mode='stretch_width',),
+			row(
+				options_dropdown,
+				actions_dropdown,
+				Spacer(sizing_mode='stretch_width', width_policy='max'),
+				status_button, sizing_mode='stretch_width',
+			),
 			row(legend, fig, sizing_mode='stretch_both',),
 			query_textinput,
 			sizing_mode='stretch_both',
@@ -98,6 +108,8 @@ class FigureViewController(ViewController):
 		self.auto_update_image = True
 		self.options_dropdown = options_dropdown
 		self.options_dropdown.on_click(self.on_click_options_dropdown)
+		self.actions_dropdown = actions_dropdown
+		self.actions_dropdown.on_click(self.on_click_actions_dropdown)
 		self.status_button = status_button
 		self.status_button.on_click(self.on_click_status_button)
 		self.fig = fig
@@ -123,8 +135,6 @@ class FigureViewController(ViewController):
 	# Functions triggered by User actions #
 	#######################################
 
-	# Forbid user to trigger more than one action
-
 	def on_click_status_button(self, new):
 		fname = self.on_click_status_button.__name__
 		if not self.user_lock.acquire(False):
@@ -142,6 +152,13 @@ class FigureViewController(ViewController):
 				self.user_lock.release()
 		Thread(target=target).start()
 
+	def on_click_actions_dropdown(self, new):
+		if new.item == 'fit':
+			self.action_fit_window()
+			pass
+		else:
+			raise Exception('Exception in on_click_actions_dropdown: {}'.format(new.item))
+
 	def on_click_options_dropdown(self, new):
 		# Very short, no need to spawn a Thread
 		if new.item == 'legend':
@@ -150,8 +167,29 @@ class FigureViewController(ViewController):
 			self.auto_update_image = not self.auto_update_image
 		else:
 			raise Exception('Exception in on_click_options_dropdown: {}'.format(new.item))
+		pass
 
-	# TODO decorator
+	def action_fit_window(self):
+		fname = self.fit_window.__name__
+		if not self.user_lock.acquire(False):
+			self.log('Could not acquire user_lock in {}'.format(fname))
+			return
+		def target():
+			try:
+				self.set_busy()
+				xmin = min(*dask.compute((self.lines_to_render['x0'].min(),self.lines_to_render['x1'].min())))
+				xmax = max(*dask.compute((self.lines_to_render['x0'].max(),self.lines_to_render['x1'].max())))
+				ymin = min(*dask.compute((self.lines_to_render['y0'].min(),self.lines_to_render['y1'].min())))
+				ymax = max(*dask.compute((self.lines_to_render['y0'].max(),self.lines_to_render['y1'].max())))
+				self.fit_window(xmin, xmax, ymin, ymax)
+				self.set_update()
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.set_failed()
+			else:
+				self.user_lock.release()
+		Thread(target=target).start()
+
 
 	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
 		fname = self.plot.__name__
@@ -228,6 +266,16 @@ class FigureViewController(ViewController):
 
 	# Try to avoid intensive computation
 	# Must use coroutine
+
+	def fit_window(self, xmin, xmax, ymin, ymax):
+		@gen.coroutine
+		def coroutine(xmin, xmax, ymin, ymax):
+			self.fig.x_range.start = xmin
+			self.fig.x_range.end = xmax
+			self.fig.y_range.start = ymin
+			self.fig.y_range.end = ymax
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine, xmin, xmax, ymin, ymax))
 
 	def set_failed(self):
 		@gen.coroutine
