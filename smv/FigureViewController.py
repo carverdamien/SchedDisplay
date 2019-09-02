@@ -63,6 +63,7 @@ class FigureViewController(ViewController):
 		fig = figure(
 			x_range=x_range,
 			y_range=y_range,
+			reset_policy="event_only",
 			sizing_mode='stretch_both',
 		)
 		legend = Div(
