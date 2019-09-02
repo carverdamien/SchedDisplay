@@ -122,6 +122,13 @@ class FigureViewController(ViewController):
 		self.img = Queue(maxsize=1)
 		self.interactiveImage = InteractiveImage(self.fig, self.callback_InteractiveImage)
 		self.user_lock = Lock()
+		# Forbid widget changes when busy
+		self.user_widgets = [
+			self.query_textinput,
+			self.status_button,
+			self.options_dropdown,
+			self.actions_dropdown,
+		]
 		self.query_textinput.on_change('value', self.on_change_query_textinput)
 		assert(len(self.fig.renderers) == 1)
 		self.datashader = self.fig.renderers[0]
@@ -223,8 +230,6 @@ class FigureViewController(ViewController):
 
 	def on_change_query_textinput(self, attr, old, new):
 		fname = self.on_change_query_textinput.__name__
-		if not self.auto_update_image:
-			return
 		if not self.user_lock.acquire(False):
 			self.log('Could not acquire user_lock in {}'.format(fname))
 			return
@@ -232,7 +237,8 @@ class FigureViewController(ViewController):
 			try:
 				self.set_busy()
 				self.query = self.query_textinput.value
-				self.update_image()
+				if self.auto_update_image:
+					self.update_image()
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
@@ -280,6 +286,8 @@ class FigureViewController(ViewController):
 	def set_failed(self):
 		@gen.coroutine
 		def coroutine():
+			for e in self.user_widgets:
+				e.disabled= False
 			self.visible = True
 			self.status_button.label = "Failed"
 			self.status_button.button_type = "failure"
@@ -289,6 +297,8 @@ class FigureViewController(ViewController):
 	def set_busy(self):
 		@gen.coroutine
 		def coroutine():
+			for e in self.user_widgets:
+				e.disabled= True
 			self.visible = True
 			self.status_button.label = "Busy"
 			self.status_button.button_type = "warning"
@@ -299,6 +309,8 @@ class FigureViewController(ViewController):
 	def set_update(self):
 		@gen.coroutine
 		def coroutine():
+			for e in self.user_widgets:
+				e.disabled= False
 			self.visible = True
 			if self.auto_update_image:
 				self.status_button.label = "Auto Update"
