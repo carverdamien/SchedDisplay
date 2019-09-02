@@ -87,7 +87,12 @@ class LoadFileViewController(SelectFileViewController):
 		super(LoadFileViewController, self).__init__(directory, ext, doc, log)
 		# Override view
 		self.view = column(
-			row(self.select, self.select_button, upload_button, sizing_mode = 'scale_width',),
+			row(self.select,
+			    self.preview_button,
+			    self.select_button,
+			    upload_button,
+			    sizing_mode = 'scale_width',
+			),
 			self.file_preview,
 			sizing_mode='stretch_both',
 		)
