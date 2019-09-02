@@ -344,7 +344,7 @@ class FigureViewController(ViewController):
 				]+
 				["</ul>"]
 			)
-			self.color_key = [c['color'] for c in category]
+			self.color_key = [c['color'] for c in category if c['len'] > 0]
 			self.hide_hovertool_for_category = [
 				i
 				for i in range(len(category))
