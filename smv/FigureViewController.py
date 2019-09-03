@@ -19,6 +19,7 @@ from bokeh.models.widgets import Div
 from bokeh.models.widgets import Dropdown
 from bokeh.models import ColumnDataSource
 from bokeh.models.glyphs import Segment
+from bokeh.models.markers import X as Marker
 from bokeh.models import Legend, LegendItem
 from bokeh.events import LODEnd as LODEnd_event
 from bokeh.events import Reset as Reset_event
@@ -152,7 +153,6 @@ class FigureViewController(ViewController):
 		assert(len(self.fig.renderers) == 1)
 		self.datashader = self.fig.renderers[0]
 		self.source = ColumnDataSource({})
-		self.segment = None
 		self.hovertool = None
 		self.hide_hovertool_for_category = None
 		self.table = None
@@ -209,6 +209,11 @@ class FigureViewController(ViewController):
 					xmax = max(*dask.compute((self.lines_to_render['x0'].max(),self.lines_to_render['x1'].max())))
 					ymin = min(*dask.compute((self.lines_to_render['y0'].min(),self.lines_to_render['y1'].min())))
 					ymax = max(*dask.compute((self.lines_to_render['y0'].max(),self.lines_to_render['y1'].max())))
+				elif self.mode == 'points':
+					xmin = dask.compute(self.points_to_render['x'].min())[0]
+					xmax = dask.compute(self.points_to_render['x'].max())[0]
+					ymin = dask.compute(self.points_to_render['y'].min())[0]
+					ymax = dask.compute(self.points_to_render['y'].max())[0]
 				else:
 					raise Exception('Not Yet Implemented')
 				self.fit_window(xmin, xmax, ymin, ymax)
@@ -244,9 +249,23 @@ class FigureViewController(ViewController):
 						ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
 					if ymax is None:
 						ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
-					self.plot_lines(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+				elif mode == 'points':
+					self.mode = mode
+					points = dask.dataframe.from_pandas(points, npartitions=cpu_count())
+					points.persist()
+					self.points = points
+					self.points_to_render = points
+					if xmin is None:
+						xmin = dask.compute(self.points['x'].min())[0]
+					if xmax is None:
+						xmax = dask.compute(self.points['x'].max())[0]
+					if ymin is None:
+						ymin = dask.compute(self.points['y'].min())[0]
+					if ymax is None:
+						ymax = dask.compute(self.points['y'].max())[0]
 				else:
 					raise Exception('Not Yet Implemented')
+				self._plot(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
@@ -309,6 +328,11 @@ class FigureViewController(ViewController):
 					xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
 					ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
 					ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
+				elif self.mode == 'points':
+					xmin = dask.compute(self.points['x'].min())[0]
+					xmax = dask.compute(self.points['x'].max())[0]
+					ymin = dask.compute(self.points['y'].min())[0]
+					ymax = dask.compute(self.points['y'].max())[0]
 				else:
 					raise Exception('Not Yet Implemented')
 				self.fit_window(xmin, xmax, ymin, ymax)
@@ -376,7 +400,7 @@ class FigureViewController(ViewController):
 			self.doc.add_next_tick_callback(partial(coroutine))
 
 	@ViewController.logFunctionCall
-	def plot_lines(self, config, width, height, xmin, xmax, ymin, ymax):
+	def _plot(self, config, width, height, xmin, xmax, ymin, ymax):
 		@gen.coroutine
 		def coroutine(config, width, height, xmin, xmax, ymin, ymax):
 			self.fig.x_range.start = xmin
@@ -406,36 +430,42 @@ class FigureViewController(ViewController):
 				if 'hide_hovertool' in category[i]
 				if category[i]['hide_hovertool']
 			]
-			df = pd.DataFrame({k:[] for k in self.lines.columns})
-			self.source.data = ColumnDataSource.from_df(df)
+			if self.mode == 'lines':
+				df = self.lines
+			elif self.mode == 'points':
+				df = self.points
+			else:
+				raise Exception('Not Yet Implemented')
+			_df = pd.DataFrame({k:[] for k in df.columns})
+			self.source.data = ColumnDataSource.from_df(_df)
 			if self.table is not None:
-				self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
-			glyph = Segment(
-				x0='x0',
-				x1='x1',
-				y0='y0',
-				y1='y1',
-				line_alpha=0,
-			)
-			self.segment = self.fig.add_glyph(self.source, glyph)
+				self.table.columns = [TableColumn(field=c, title=c) for c in _df.columns]
+			if self.mode == 'lines':
+				glyph = Segment(
+					x0='x0',
+					x1='x1',
+					y0='y0',
+					y1='y1',
+					line_alpha=0,
+				)
+			elif self.mode == 'points':
+				glyph = Marker(
+					x='x',
+					y='y',
+					line_alpha=0,
+				)
+			else:
+				raise Exception('Not Yet Implemented')
+			renderer = self.fig.add_glyph(self.source, glyph)
 			if self.hovertool is None:
 				tooltips = [
 					("(x,y)","($x, $y)"),
 				]
-				for k in self.lines.columns:
+				for k in df.columns:
 					tooltips.append((k,"@"+str(k)))
 				self.hovertool = HoverTool(tooltips = tooltips)
 				self.fig.add_tools(self.hovertool)
 			self.update_image()
-		if self.doc:
-			self.doc.add_next_tick_callback(partial(coroutine, config, width, height, xmin, xmax, ymin, ymax))
-
-	@ViewController.logFunctionCall
-	def plot_points(self, config, width, height, xmin, xmax, ymin, ymax):
-		@gen.coroutine
-		def coroutine(config, width, height, xmin, xmax, ymin, ymax):
-			# TODO
-			pass
 		if self.doc:
 			self.doc.add_next_tick_callback(partial(coroutine, config, width, height, xmin, xmax, ymin, ymax))
 
@@ -482,21 +512,27 @@ class FigureViewController(ViewController):
 	@ViewController.logFunctionCall
 	def apply_query(self):
 		fname = self.apply_query.__name__
+		if self.mode == 'lines':
+			no_query = self.lines
+		elif self.mode == 'points':
+			no_query = self.points
+		else:
+			raise Exception('Not Yet Implemented')
 		try:
 			if self.query.strip() == '':
-				return self.lines
+				return no_query
 			self.log('Applying query {}'.format(self.query))
-			lines = self.lines.query(self.query)
-			if len(lines) == 0:
+			query = no_query.query(self.query)
+			if len(query) == 0:
 				raise Exception(
 					'QUERY ERROR',
 					'{} => len(lines) == 0'.format(self.query)
 				)
-			return lines
+			return query
 		except Exception as e:
 			self.log('Exception({}) in {}: {}'.format(type(e), fname, e))
 			self.log(traceback.format_exc())
-		return self.lines
+		return no_query
 
 	@ViewController.logFunctionCall
 	def _callback_InteractiveImage(self, x_range, y_range, plot_width, plot_height, name=None):
@@ -509,15 +545,26 @@ class FigureViewController(ViewController):
 				x=['x0','x1'], y=['y0','y1'],
 				agg=ds.count_cat('c'), axis=1,
 			)
+		elif self.mode == 'points':
+			agg = cvs.points(self.points_to_render,
+				'x','y',
+				agg=ds.count_cat('c'),
+			)
 		else:
 			raise Exception('Not Yet Implemented')
 		img = tf.shade(agg,min_alpha=255,color_key=self.color_key)
 		return img
 
 	@ViewController.logFunctionCall
-	def compute_lines_to_render(self, ranges):
-		self.lines_to_render = self.lines
-		self.lines_to_render = self.apply_query()
+	def compute_to_render(self, ranges):
+		if self.mode == 'lines':
+			self.lines_to_render = self.lines
+			self.lines_to_render = self.apply_query()
+		elif self.mode == 'points':
+			self.points_to_render = self.points
+			self.points_to_render = self.apply_query()
+		else:
+			raise Exception('Not Yet Implemented')
 
 	@ViewController.logFunctionCall
 	def compute_hovertool(self, ranges):
@@ -537,6 +584,9 @@ class FigureViewController(ViewController):
 				"y1>={} & y1<={}".format(ymin,ymax),
 				"y0<={} & y1>={}".format(ymin,ymax),
 			)
+		elif self.mode == 'points':
+			xspatial = "x>={} & x<={}".format(xmin, xmax)
+			yspatial = "y>={} & y<={}".format(ymin, ymax)
 		else:
 			raise Exception('Not Yet Implemented')
 		spatial = "({})&({})".format(xspatial, yspatial)
@@ -549,15 +599,18 @@ class FigureViewController(ViewController):
 			])
 			query = "({})&({})".format(spatial, hide_hovertool)
 		self.log("HoverTool query={}".format(query))
-		lines_to_render = self.lines_to_render.query(query)
-		n = len(lines_to_render)
+		if self.mode == 'lines':
+			to_render = self.lines_to_render.query(query)
+		elif self.mode == 'points':
+			to_render = self.points_to_render.query(query)
+		n = len(to_render)
 		if n > MAX:
 			frac = MAX/n
 			self.log('Sampling hovertool frac={}'.format(frac))
-			lines_to_render = lines_to_render.sample(frac=frac)
+			to_render = to_render.sample(frac=frac)
 		else:
 			self.log('Full hovertool')
-		df = dask.compute(lines_to_render)[0]
+		df = dask.compute(to_render)[0]
 		self.update_source(df)
 
 	@ViewController.logFunctionCall
@@ -574,7 +627,7 @@ class FigureViewController(ViewController):
 			if k in kwargs:
 				ranges[k] = kwargs[k]
 		ranges = self.customize_ranges(ranges)
-		self.compute_lines_to_render(ranges)
+		self.compute_to_render(ranges)
 		def target0():
 			try:
 				self.compute_hovertool(ranges)

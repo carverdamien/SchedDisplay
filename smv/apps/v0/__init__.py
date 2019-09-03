@@ -8,6 +8,7 @@ import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import json, os
 import pandas as pd
+import numpy as np
 from tornado import gen
 from functools import partial
 # import dask
@@ -20,7 +21,7 @@ def modify_doc(doc):
 	nr_cpu = 160
 	px_height = 4
 	height = (nr_cpu+2)*px_height
-	width = 1080 # May want to make width custumizable?
+	width = 800 # May want to make width custumizable?
 	state = {
 		'nr_cpu' : nr_cpu,
 		'px_height' : px_height,
@@ -29,10 +30,6 @@ def modify_doc(doc):
 		'y0_shift' : 0. / float(px_height),
 		'y1_shift' : 2. / float(px_height),
 	}
-	def customize_ranges(ranges):
-		ranges['ymax'] = min(ranges['ymax'], nr_cpu+1)
-		ranges['ymin'] = max(ranges['ymin'], -1)
-		return ranges
 	@logFunctionCall(log)
 	def LinesFrame_from_df(df, config):
 		return LinesFrame.from_df(df, config, log)
@@ -40,7 +37,7 @@ def modify_doc(doc):
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_line_config = LoadFileViewController('./examples/line','.json',doc=doc, log=log)
 	load_point_config = LoadFileViewController('./examples/point','.json',doc=doc, log=log)
-	figure = FigureViewController(customize_ranges=customize_ranges, doc=doc, log=log)
+	figure = FigureViewController(doc=doc, log=log)
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
@@ -102,6 +99,13 @@ def modify_doc(doc):
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['lines'] = LinesFrame_from_df(state['df'], state['line_config'])
+			nr_lines = len(np.unique(state['lines']['y0']))
+			state['height'] = (nr_lines+2)*px_height
+			def customize_ranges(ranges):
+				ranges['ymax'] = min(ranges['ymax'], nr_lines+1)
+				ranges['ymin'] = max(ranges['ymin'], -1)
+				return ranges
+			figure.customize_ranges = customize_ranges
 			# FIXME: Quick And Dirty set fig.title
 			@gen.coroutine
 			def coroutine():
@@ -130,6 +134,13 @@ def modify_doc(doc):
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])
+			# state['height'] = 600
+			# state['height'] = (len(np.unique(state['points']['y']))+2)*px_height
+			# state['height'] = int(state['points']['y'].max() - state['points']['y'].min())
+			state['height'] = state['width']
+			def customize_ranges(ranges):
+				return ranges
+			figure.customize_ranges = customize_ranges
 			log(state['points'])
 			# FIXME: Quick And Dirty set fig.title
 			@gen.coroutine
