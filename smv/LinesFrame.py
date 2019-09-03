@@ -1,3 +1,8 @@
+#
+# TODO: rename this file.
+# It allows users to process the trace into something else
+# A LinesFrame, A PointsFrame
+#
 import pandas as pd
 #
 # TODO: do not import pandas
