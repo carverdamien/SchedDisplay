@@ -5,12 +5,19 @@ import numpy as np
 from threading import Thread
 import time
 
-def from_tar(path):
+def from_tar(path, only=None):
 	dd = {}
 	with tarfile.open(path, 'r') as tar:
 		#
 		# TODO: write a pragma parallel decorator
 		#
+		def filter(tarinfo, only=None):
+			if only is None:
+				return tarinfo.isreg() and os.path.splitext(tarinfo.name)[1] == '.npz'
+			elif isinstance(only, list):
+				return filter(tarinfo) and os.path.splitext(os.path.basename(tarinfo.name))[0] in only
+			else:
+				raise Exception('Exception: only must be None or list')
 		def target(tarinfo):
 			start = time.time()
 			with tarfile.open(path, 'r') as tar:
@@ -24,7 +31,7 @@ def from_tar(path):
 			t = Thread(target=target, args=args)
 			t.start()
 			return t
-		thread = [spawn(tarinfo) for tarinfo in tar if tarinfo.isreg() and os.path.splitext(tarinfo.name)[1] == '.npz']
+		thread = [spawn(tarinfo) for tarinfo in tar if filter(tarinfo, only)]
 		for t in thread: t.join()
 	return dd
 
