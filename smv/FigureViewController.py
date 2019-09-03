@@ -9,6 +9,7 @@ import dask
 from multiprocessing import cpu_count
 import pandas as pd
 import numpy as np
+import traceback
 
 from bokeh.plotting import figure
 from bokeh.models.widgets import Button
@@ -41,6 +42,15 @@ def empty_lines():
 	df['c'] = df['c'].astype('category')
 	return df
 
+def empty_points():
+	df = pd.DataFrame({
+		'x':[0,1],
+		'y':[0,1],
+		'c':[0,1],
+	})
+	df['c'] = df['c'].astype('category')
+	return df
+
 def customize_ranges(ranges):
 	return {
 		k:ranges[k]
@@ -49,17 +59,22 @@ def customize_ranges(ranges):
 
 class FigureViewController(ViewController):
 	"""docstring for FigureViewController"""
-	def __init__(self, 
+	def __init__(self,
+			mode='lines',
 			x_range=(0,1), # datashader cannot handle 0-sized range
 			y_range=(0,1), # datashader cannot handle 0-sized range
-			lines=empty_lines(), 
+			lines=empty_lines(),
+			points=empty_points(),
 			customize_ranges=customize_ranges,
 			doc=None,
 			log=None,
 		):
 		self.query = ''
+		self.mode = mode
 		self.lines = lines
 		self.lines_to_render = lines
+		self.points = points
+		self.points_to_render = points
 		self.customize_ranges = customize_ranges
 		fig = figure(
 			x_range=x_range,
@@ -158,6 +173,7 @@ class FigureViewController(ViewController):
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
 				self.set_failed()
 			else:
 				self.user_lock.release()
@@ -188,49 +204,57 @@ class FigureViewController(ViewController):
 		def target():
 			try:
 				self.set_busy()
-				xmin = min(*dask.compute((self.lines_to_render['x0'].min(),self.lines_to_render['x1'].min())))
-				xmax = max(*dask.compute((self.lines_to_render['x0'].max(),self.lines_to_render['x1'].max())))
-				ymin = min(*dask.compute((self.lines_to_render['y0'].min(),self.lines_to_render['y1'].min())))
-				ymax = max(*dask.compute((self.lines_to_render['y0'].max(),self.lines_to_render['y1'].max())))
+				if self.mode == 'lines':
+					xmin = min(*dask.compute((self.lines_to_render['x0'].min(),self.lines_to_render['x1'].min())))
+					xmax = max(*dask.compute((self.lines_to_render['x0'].max(),self.lines_to_render['x1'].max())))
+					ymin = min(*dask.compute((self.lines_to_render['y0'].min(),self.lines_to_render['y1'].min())))
+					ymax = max(*dask.compute((self.lines_to_render['y0'].max(),self.lines_to_render['y1'].max())))
+				else:
+					raise Exception('Not Yet Implemented')
 				self.fit_window(xmin, xmax, ymin, ymax)
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
 				self.set_failed()
 			else:
 				self.user_lock.release()
 		Thread(target=target).start()
 
 
-	def plot(self, config, width, height, lines=empty_lines(), xmin=None, xmax=None, ymin=None, ymax=None):
+	def plot(self, **kwargs):
 		fname = self.plot.__name__
 		if not self.user_lock.acquire(False):
 			self.log('Could not acquire user_lock in {}'.format(fname))
 			return
-		def target(config, width, height, lines, xmin, xmax, ymin, ymax):
+		def target(mode=None, config=None, width=None, height=None, lines=empty_lines(), points=empty_points(), xmin=None, xmax=None, ymin=None, ymax=None):
 			try:
 				self.set_busy()
-				lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
-				lines.persist()
-				self.lines = lines
-				self.lines_to_render = lines
-				if xmin is None:
-					xmin = min(*dask.compute((self.lines['x0'].min(),self.lines['x1'].min())))
-				if xmax is None:
-					xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
-				if ymin is None:
-					ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
-				if ymax is None:
-					ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
-				self._plot(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+				if mode == 'lines':
+					self.mode = mode
+					lines = dask.dataframe.from_pandas(lines, npartitions=cpu_count())
+					lines.persist()
+					self.lines = lines
+					self.lines_to_render = lines
+					if xmin is None:
+						xmin = min(*dask.compute((self.lines['x0'].min(),self.lines['x1'].min())))
+					if xmax is None:
+						xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
+					if ymin is None:
+						ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
+					if ymax is None:
+						ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
+					self.plot_lines(config, width, height, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+				else:
+					raise Exception('Not Yet Implemented')
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
 				self.set_failed()
 			else:
 				self.user_lock.release()
-		args = config, width, height, lines, xmin, xmax, ymin, ymax
-		Thread(target=target, args=args).start()
+		Thread(target=target, kwargs=kwargs).start()
 
 	def on_change_query_textinput(self, attr, old, new):
 		fname = self.on_change_query_textinput.__name__
@@ -246,6 +270,7 @@ class FigureViewController(ViewController):
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
 				self.set_failed()
 			else:
 				self.user_lock.release()
@@ -265,6 +290,7 @@ class FigureViewController(ViewController):
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
 				self.set_failed()
 			else:
 				self.user_lock.release()
@@ -278,15 +304,19 @@ class FigureViewController(ViewController):
 		def target():
 			try:
 				self.set_busy()
-				xmin = min(*dask.compute((self.lines['x0'].min(),self.lines['x1'].min())))
-				xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
-				ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
-				ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
+				if self.mode == 'lines':
+					xmin = min(*dask.compute((self.lines['x0'].min(),self.lines['x1'].min())))
+					xmax = max(*dask.compute((self.lines['x0'].max(),self.lines['x1'].max())))
+					ymin = min(*dask.compute((self.lines['y0'].min(),self.lines['y1'].min())))
+					ymax = max(*dask.compute((self.lines['y0'].max(),self.lines['y1'].max())))
+				else:
+					raise Exception('Not Yet Implemented')
 				self.fit_window(xmin, xmax, ymin, ymax)
 				self.update_image(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 				self.set_update()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
 				self.set_failed()
 			else:
 				self.user_lock.release()
@@ -331,7 +361,6 @@ class FigureViewController(ViewController):
 		if self.doc:
 			self.doc.add_next_tick_callback(partial(coroutine))
 
-
 	def set_update(self):
 		@gen.coroutine
 		def coroutine():
@@ -347,7 +376,7 @@ class FigureViewController(ViewController):
 			self.doc.add_next_tick_callback(partial(coroutine))
 
 	@ViewController.logFunctionCall
-	def _plot(self, config, width, height, xmin, xmax, ymin, ymax):
+	def plot_lines(self, config, width, height, xmin, xmax, ymin, ymax):
 		@gen.coroutine
 		def coroutine(config, width, height, xmin, xmax, ymin, ymax):
 			self.fig.x_range.start = xmin
@@ -402,6 +431,15 @@ class FigureViewController(ViewController):
 			self.doc.add_next_tick_callback(partial(coroutine, config, width, height, xmin, xmax, ymin, ymax))
 
 	@ViewController.logFunctionCall
+	def plot_points(self, config, width, height, xmin, xmax, ymin, ymax):
+		@gen.coroutine
+		def coroutine(config, width, height, xmin, xmax, ymin, ymax):
+			# TODO
+			pass
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine, config, width, height, xmin, xmax, ymin, ymax))
+
+	@ViewController.logFunctionCall
 	def update_source(self, df):
 		@gen.coroutine
 		def coroutine(df):
@@ -418,6 +456,7 @@ class FigureViewController(ViewController):
 			img = self.img.get(block=False)
 		except Exception as e:
 			self.log('Exception({}) in {}: {}'.format(type(e), fname, e))
+			self.log(traceback.format_exc())
 			img = self._callback_InteractiveImage(x_range, y_range, plot_width, plot_height, name)
 		return img
 
@@ -456,6 +495,7 @@ class FigureViewController(ViewController):
 			return lines
 		except Exception as e:
 			self.log('Exception({}) in {}: {}'.format(type(e), fname, e))
+			self.log(traceback.format_exc())
 		return self.lines
 
 	@ViewController.logFunctionCall
@@ -464,10 +504,13 @@ class FigureViewController(ViewController):
 			plot_width=plot_width, plot_height=plot_height,
 			x_range=x_range, y_range=y_range,
 		)
-		agg = cvs.line(self.lines_to_render,
-			x=['x0','x1'], y=['y0','y1'],
-			agg=ds.count_cat('c'), axis=1,
-		)
+		if self.mode == 'lines':
+			agg = cvs.line(self.lines_to_render,
+				x=['x0','x1'], y=['y0','y1'],
+				agg=ds.count_cat('c'), axis=1,
+			)
+		else:
+			raise Exception('Not Yet Implemented')
 		img = tf.shade(agg,min_alpha=255,color_key=self.color_key)
 		return img
 
@@ -481,18 +524,21 @@ class FigureViewController(ViewController):
 		MAX = 100000.
 		xmin = ranges['xmin']
 		xmax = ranges['xmax']
-		xspatial = "({})|({})|({})".format(
-			"x0>={} & x0<={}".format(xmin,xmax),
-			"x1>={} & x1<={}".format(xmin,xmax),
-			"x0<={} & x1>={}".format(xmin,xmax),
-		)
 		ymin = ranges['ymin']
 		ymax = ranges['ymax']
-		yspatial = "({})|({})|({})".format(
-			"y0>={} & y0<={}".format(ymin,ymax),
-			"y1>={} & y1<={}".format(ymin,ymax),
-			"y0<={} & y1>={}".format(ymin,ymax),
-		)
+		if self.mode == 'lines':
+			xspatial = "({})|({})|({})".format(
+				"x0>={} & x0<={}".format(xmin,xmax),
+				"x1>={} & x1<={}".format(xmin,xmax),
+				"x0<={} & x1>={}".format(xmin,xmax),
+			)
+			yspatial = "({})|({})|({})".format(
+				"y0>={} & y0<={}".format(ymin,ymax),
+				"y1>={} & y1<={}".format(ymin,ymax),
+				"y0<={} & y1>={}".format(ymin,ymax),
+			)
+		else:
+			raise Exception('Not Yet Implemented')
 		spatial = "({})&({})".format(xspatial, yspatial)
 		if len(self.hide_hovertool_for_category)==0:
 			query = spatial
@@ -534,6 +580,7 @@ class FigureViewController(ViewController):
 				self.compute_hovertool(ranges)
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e),target0.__name__,e))
+				self.log(traceback.format_exc())
 		def target1():
 			try:
 				xmin, xmax, ymin, ymax, w, h = [
@@ -547,7 +594,8 @@ class FigureViewController(ViewController):
 				if self.doc:
 					self.doc.add_next_tick_callback(partial(coroutine))
 			except Exception as e:
-				 self.log('Exception({}) in {}:{}'.format(type(e),target1.__name__,e))
+				self.log('Exception({}) in {}:{}'.format(type(e),target1.__name__,e))
+				self.log(traceback.format_exc())
 		threads = [Thread(target=target0), Thread(target=target1)]
 		for t in threads:
 			t.start()

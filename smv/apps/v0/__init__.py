@@ -94,7 +94,13 @@ def modify_doc(doc):
 				state = json.load(f)
 				state['lines'] = pd.read_parquet(lines_path)
 				state['lines']['c'] = state['lines']['c'].astype(pd.CategoricalDtype(ordered=True))
-				figure.plot(state['line_config'], state['width'], state['height'], state['lines'])
+				figure.plot(
+					mode='lines',
+					config=state['line_config'],
+					width=state['width'],
+					height=state['height'],
+					lines=state['lines']
+				)
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_cache.on_selected(cache_get)
@@ -119,7 +125,13 @@ def modify_doc(doc):
 			def coroutine():
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
-			figure.plot(state['line_config'], state['width'], state['height'], state['lines'])
+			figure.plot(
+					mode='lines',
+					config=state['line_config'],
+					width=state['width'],
+					height=state['height'],
+					lines=state['lines']
+				)
 			Thread(target=cache_put).start()
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
