@@ -29,42 +29,24 @@ def modify_doc(doc):
 		'y0_shift' : 0. / float(px_height),
 		'y1_shift' : 2. / float(px_height),
 	}
-	def get_image_ranges(FVC):
-		xmin = FVC.fig.x_range.start
-		xmax = FVC.fig.x_range.end
-		# ymin = FVC.fig.y_range.start
-		# ymax = FVC.fig.y_range.end
-
-		if FVC.fig.y_range.end > ymax:
-			FVC.fig.y_range.end = ymax
-		if FVC.fig.y_range.start < ymin:
-			FVC.fig.y_range.start = ymin
-		w = FVC.fig.plot_width
-		h = FVC.fig.plot_height
-		return {
-			'xmin':xmin,
-			'xmax':xmax,
-			'ymin':FVC.fig.y_range.start,
-			'ymax':FVC.fig.y_range.end,
-			'w':w,
-			'h':h,
-		}
 	def customize_ranges(ranges):
 		ranges['ymax'] = min(ranges['ymax'], nr_cpu+1)
 		ranges['ymin'] = max(ranges['ymin'], -1)
 		return ranges
 	@logFunctionCall(log)
-	def LinesFrame_from_df(df, line_config):
-		return LinesFrame.from_df(df, line_config, log)
+	def LinesFrame_from_df(df, config):
+		return LinesFrame.from_df(df, config, log)
 	load_cache = SelectFileViewController('./examples/cache','.json',doc=doc, log=log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
 	load_line_config = LoadFileViewController('./examples/line','.json',doc=doc, log=log)
+	load_point_config = LoadFileViewController('./examples/point','.json',doc=doc, log=log)
 	figure = FigureViewController(customize_ranges=customize_ranges, doc=doc, log=log)
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
-		Panel(child=load_line_config.view,  title='Select JSON'),
-		Panel(child=load_cache.view,  title='Cache'),
+		Panel(child=load_line_config.view,  title='Plot lines'),
+		Panel(child=load_point_config.view,  title='Plot points'),
+		#Panel(child=load_cache.view,  title='Cache'),
 		Panel(child=figure.view,     title='Figure'),
 		# Panel(child=figure.table,    title='Sample'),
 		Panel(child=console.view,    title='Console'),
@@ -132,9 +114,25 @@ def modify_doc(doc):
 					height=state['height'],
 					lines=state['lines']
 				)
-			Thread(target=cache_put).start()
+			# Thread(target=cache_put).start()
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_line_config.on_loaded(on_loaded_line_config)
+	@logFunctionCall(log)
+	def on_loaded_point_config(io):
+		fname = "on_loaded_point_config"
+		point_config = io.read()
+		log('point_config:{}'.format(point_config))
+		try:
+			state['point_config'] = json.loads(point_config)
+			if 'df' not in state:
+				df = pd.DataFrame(DataDict.from_tar(state['path'], state['point_config']['input']))
+				log('{} records in trace'.format(len(df)))
+				state['df'] = df
+			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])
+			log(state['points'])
+		except Exception as e:
+			log('Exception({}) in {}: {}'.format(type(e), fname, e))
+	load_point_config.on_loaded(on_loaded_point_config)
 	doc.add_root(tab)
 	pass

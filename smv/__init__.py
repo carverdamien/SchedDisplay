@@ -5,7 +5,6 @@ from smv.apps.test_ConsoleView import modify_doc as test_ConsoleView
 from smv.apps.test_LoadFileView import modify_doc as test_LoadFileView
 from smv.apps.test_FigureViewController import modify_doc as test_FigureViewController
 from smv.apps.v0 import modify_doc as v0
-from smv.apps.point import modify_doc as point
 
 class StaticHandler(RequestHandler):
     def initialize(self, path):
@@ -23,7 +22,6 @@ def main():
 		'/test_LoadFileView'         : test_LoadFileView,
 		'/test_FigureViewController' : test_FigureViewController,
 		'/v0'                        : v0,
-		'/point'                     : point,
 	},
 	extra_patterns=[('/static/js/worker.js', StaticHandler, {"path":'./static/js/worker.js'})],
 	)
