@@ -71,6 +71,7 @@ def modify_doc(doc):
 	])
 	@logFunctionCall(log)
 	def cache_put():
+		fname = "cache_put"
 		try:
 			key = hash(state['path'] + json.dumps({k:state[k] for k in state if k not in ['df','lines']}))
 			log('Saving: {}'.format(key))
@@ -83,9 +84,10 @@ def modify_doc(doc):
 				log('Saved: {}'.format(key))
 			del state['df'] # Save memory
 		except Exception as e:
-			log(e)
+			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	@logFunctionCall(log)
 	def cache_get(path):
+		fname = "cache_get"
 		try:
 			lines_path = os.path.splitext(path)[0] + '.lines.parquet'
 			with open(path) as f:
@@ -94,23 +96,23 @@ def modify_doc(doc):
 				state['lines']['c'] = state['lines']['c'].astype(pd.CategoricalDtype(ordered=True))
 				figure.plot(state['config'], state['width'], state['height'], state['lines'])
 		except Exception as e:
-			log(e)
+			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_cache.on_selected(cache_get)
 	@logFunctionCall(log)
 	def on_selected_trace(path):
-		df = pd.DataFrame(DataDict.from_tar(path))
-		console.write('{} records in trace'.format(len(df)))
-		state['df'] = df
 		state['path'] = path
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_config(io):
+		fname = "on_loaded_config"
 		config = io.read()
-		console.write('config:{}'.format(config))
+		log('config:{}'.format(config))
 		try:
 			state['config'] = json.loads(config)
 			if 'df' not in state:
-				on_selected_trace(state['path'])
+				df = pd.DataFrame(DataDict.from_tar(state['path'], state['config']['input']))
+				log('{} records in trace'.format(len(df)))
+				state['df'] = df
 			state['lines'] = LinesFrame_from_df(state['df'], state['config'])
 			# FIXME: Quick And Dirty set fig.title
 			@gen.coroutine
@@ -120,7 +122,7 @@ def modify_doc(doc):
 			figure.plot(state['config'], state['width'], state['height'], state['lines'])
 			Thread(target=cache_put).start()
 		except Exception as e:
-			console.write(e)
+			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_config.on_loaded(on_loaded_config)
 	doc.add_root(tab)
 	pass
