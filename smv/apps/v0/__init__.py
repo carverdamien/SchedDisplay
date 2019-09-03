@@ -108,12 +108,12 @@ def modify_doc(doc):
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
 			figure.plot(
-					mode='lines',
-					config=state['line_config'],
-					width=state['width'],
-					height=state['height'],
-					lines=state['lines']
-				)
+				mode='lines',
+				config=state['line_config'],
+				width=state['width'],
+				height=state['height'],
+				lines=state['lines']
+			)
 			# Thread(target=cache_put).start()
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
@@ -131,6 +131,18 @@ def modify_doc(doc):
 				state['df'] = df
 			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])
 			log(state['points'])
+			# FIXME: Quick And Dirty set fig.title
+			@gen.coroutine
+			def coroutine():
+				figure.fig.title.text = state['path']
+			doc.add_next_tick_callback(partial(coroutine))
+			figure.plot(
+				mode='points',
+				config=state['point_config'],
+				width=state['width'],
+				height=state['height'],
+				points=state['points']
+			)
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_point_config.on_loaded(on_loaded_point_config)
