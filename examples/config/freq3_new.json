@@ -1,4 +1,5 @@
 {
+	"input"  : ["timestamp","cpu","event","pid","arg0","arg1","nxt_timestamp_of_same_evt_on_same_cpu"],
 	"output" : ["x0","y0","x1","y1","c","pid","arg0","arg1"],
         "c" : [
                 {

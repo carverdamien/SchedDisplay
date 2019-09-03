@@ -1,4 +1,5 @@
 {
+        "input"  : ["timestamp","cpu","event"],
         "output" : ["x0","y0","x1","y1","c"],
         "c" : [
                 {
