@@ -76,18 +76,18 @@ def apply(df, op):
 		raise Exception('Cannot handle {}'.format(op))
 
 # @debug
-def one(df, i, operators, shape, log=default_log):
+def one(df, i, operators, output, log=default_log):
 	for op in operators:
 		log('c[{}] Processing {}'.format(i, op))
 		df = apply(df, op)
-	return df.assign(c=i)[shape]
+	return df.assign(c=i)[output]
 
 # @debug
 def category(df, i, config, log=default_log):
-	shape = config['shape']
+	output = config['output']
 	c = config['c'][i]
 	log('c[{}] Processing {}'.format(i, c))
-	return pd.concat([one(df, i, o, shape, log=log) for o in c['concatenate']])
+	return pd.concat([one(df, i, o, output, log=log) for o in c['concatenate']])
 
 def from_df(df, config, log=default_log):
 	@logFunctionCall(log)

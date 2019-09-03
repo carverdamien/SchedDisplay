@@ -1,5 +1,5 @@
 {
-        "shape" : ["x0","y0","x1","y1","c","arg0","arg1"],
+        "output" : ["x0","y0","x1","y1","c","arg0","arg1"],
         "c" : [
                 {
                         "label" : "RQ_SIZE",
