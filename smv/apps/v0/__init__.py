@@ -54,16 +54,16 @@ def modify_doc(doc):
 		ranges['ymin'] = max(ranges['ymin'], -1)
 		return ranges
 	@logFunctionCall(log)
-	def LinesFrame_from_df(df, config):
-		return LinesFrame.from_df(df, config, log)
+	def LinesFrame_from_df(df, line_config):
+		return LinesFrame.from_df(df, line_config, log)
 	load_cache = SelectFileViewController('./examples/cache','.json',doc=doc, log=log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
-	load_config = LoadFileViewController('./examples/config','.json',doc=doc, log=log)
+	load_line_config = LoadFileViewController('./examples/line','.json',doc=doc, log=log)
 	figure = FigureViewController(customize_ranges=customize_ranges, doc=doc, log=log)
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
-		Panel(child=load_config.view,  title='Select JSON'),
+		Panel(child=load_line_config.view,  title='Select JSON'),
 		Panel(child=load_cache.view,  title='Cache'),
 		Panel(child=figure.view,     title='Figure'),
 		# Panel(child=figure.table,    title='Sample'),
@@ -94,7 +94,7 @@ def modify_doc(doc):
 				state = json.load(f)
 				state['lines'] = pd.read_parquet(lines_path)
 				state['lines']['c'] = state['lines']['c'].astype(pd.CategoricalDtype(ordered=True))
-				figure.plot(state['config'], state['width'], state['height'], state['lines'])
+				figure.plot(state['line_config'], state['width'], state['height'], state['lines'])
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_cache.on_selected(cache_get)
@@ -103,26 +103,26 @@ def modify_doc(doc):
 		state['path'] = path
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
-	def on_loaded_config(io):
-		fname = "on_loaded_config"
-		config = io.read()
-		log('config:{}'.format(config))
+	def on_loaded_line_config(io):
+		fname = "on_loaded_line_config"
+		line_config = io.read()
+		log('line_config:{}'.format(line_config))
 		try:
-			state['config'] = json.loads(config)
+			state['line_config'] = json.loads(line_config)
 			if 'df' not in state:
-				df = pd.DataFrame(DataDict.from_tar(state['path'], state['config']['input']))
+				df = pd.DataFrame(DataDict.from_tar(state['path'], state['line_config']['input']))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
-			state['lines'] = LinesFrame_from_df(state['df'], state['config'])
+			state['lines'] = LinesFrame_from_df(state['df'], state['line_config'])
 			# FIXME: Quick And Dirty set fig.title
 			@gen.coroutine
 			def coroutine():
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
-			figure.plot(state['config'], state['width'], state['height'], state['lines'])
+			figure.plot(state['line_config'], state['width'], state['height'], state['lines'])
 			Thread(target=cache_put).start()
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
-	load_config.on_loaded(on_loaded_config)
+	load_line_config.on_loaded(on_loaded_line_config)
 	doc.add_root(tab)
 	pass
