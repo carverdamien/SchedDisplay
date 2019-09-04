@@ -105,7 +105,7 @@ def one(df, i, operators, output, log=default_log):
 	for op in operators:
 		log('c[{}] Processing {}'.format(i, op))
 		df = apply(df, op)
-	return df.assign(c=i)[output]
+	return df.assign(c=i)[output].dropna(how='any')
 
 # @debug
 def category(df, i, config, log=default_log):

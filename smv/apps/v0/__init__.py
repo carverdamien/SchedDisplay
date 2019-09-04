@@ -4,6 +4,7 @@ from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
 from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
+from smv.ImageModel import PointImageModel, SegmentImageModel
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import json, os
@@ -99,6 +100,7 @@ def modify_doc(doc):
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['lines'] = LinesFrame_from_df(state['df'], state['line_config'])
+			model = SegmentImageModel(data=state['lines'],category=state['line_config']['c'])
 			nr_lines = len(np.unique(state['lines']['y0']))
 			state['height'] = (nr_lines+2)*px_height
 			def customize_ranges(ranges):
@@ -112,11 +114,10 @@ def modify_doc(doc):
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
 			figure.plot(
-				mode='lines',
+				model=model,
 				config=state['line_config'],
 				width=state['width'],
 				height=state['height'],
-				lines=state['lines']
 			)
 			# Thread(target=cache_put).start()
 		except Exception as e:
@@ -134,6 +135,7 @@ def modify_doc(doc):
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])
+			model = PointImageModel(data=state['points'],category=state['point_config']['c'])
 			# state['height'] = 600
 			# state['height'] = (len(np.unique(state['points']['y']))+2)*px_height
 			# state['height'] = int(state['points']['y'].max() - state['points']['y'].min())
@@ -148,11 +150,10 @@ def modify_doc(doc):
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
 			figure.plot(
-				mode='points',
+				model=model,
 				config=state['point_config'],
 				width=state['width'],
 				height=state['height'],
-				points=state['points']
 			)
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
