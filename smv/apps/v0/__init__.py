@@ -21,7 +21,7 @@ def modify_doc(doc):
 	nr_cpu = 160
 	px_height = 4
 	height = (nr_cpu+2)*px_height
-	width = 800 # May want to make width custumizable?
+	width = 1024 # May want to make width custumizable?
 	state = {
 		'nr_cpu' : nr_cpu,
 		'px_height' : px_height,
