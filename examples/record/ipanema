@@ -5,7 +5,7 @@ main() {
     prog="$1"
     shift
     
-    case "${PATH_TO_IPANEMA_MODULE}" in
+    case "${IPANEMA_MODULE}" in
     	"")
 	    exec "${prog}" "${@}"
 	    ;;
@@ -14,32 +14,32 @@ main() {
 	    [[ -f /proc/ipanema/policies ]]
 
 	    # Check if module.ko exists
-	    [[ -f "${PATH_TO_IPANEMA_MODULE}" ]]
+	    [[ -f "/lib/modules/${KERNEL}/kernel/kernel/sched/ipanema/${IPANEMA_MODULE}.ko" ]]
 
 	    # Check if module description match pattern
-	    IPANEMA_POLICY_NAME=$(modinfo -F name "${PATH_TO_IPANEMA_MODULE}")
-	    IPANEMA_POLICY_DESCRIPTION=$(modinfo -F description "${PATH_TO_IPANEMA_MODULE}")
+	    # IPANEMA_POLICY_NAME=$(modinfo -F name "${PATH_TO_IPANEMA_MODULE}")
+	    # IPANEMA_POLICY_DESCRIPTION=$(modinfo -F description "${PATH_TO_IPANEMA_MODULE}")
 	    # [[ ${IPANEMA_POLICY_DESCRIPTION} = "${IPANEMA_POLICY_NAME} scheduling policy" ]]
 
 	    # Check if module is compiled for current kernel
-	    IPANEMA_POLICY_KERNEL=$(modinfo -F vermagic "${PATH_TO_IPANEMA_MODULE}" | awk '{print $1}')
+	    # IPANEMA_POLICY_KERNEL=$(modinfo -F vermagic "${PATH_TO_IPANEMA_MODULE}" | awk '{print $1}')
 	    # [[ $(uname -r) = ${IPANEMA_POLICY_KERNEL} ]]
 
 	    # Unload module first if already loaded.
-	    if lsmod | grep -q "${IPANEMA_POLICY_NAME}"
+	    if lsmod | grep -q "${IPANEMA_MODULE}"
 	    then
-		until rmmod "${PATH_TO_IPANEMA_MODULE}"
+		until rmmod "${IPANEMA_MODULE}"
 		do
 		    echo 'Could not unload module'
 		    sleep 10
 		done
 	    fi
 	    # insmod "${PATH_TO_IPANEMA_MODULE}"
-	    modprobe "${IPANEMA_POLICY_NAME}"
+	    modprobe "${IPANEMA_MODULE}"
 
 	    # Get ID
-	    grep -q "${IPANEMA_POLICY_NAME}" /proc/ipanema/policies
-	    IPANEMA_POLICY_ID=$(grep "${IPANEMA_POLICY_NAME}" /proc/ipanema/policies | awk '{print $1}')
+	    grep -q "${IPANEMA_MODULE}" /proc/ipanema/policies
+	    IPANEMA_POLICY_ID=$(grep "${IPANEMA_MODULE}" /proc/ipanema/policies | awk '{print $1}')
 	    exec ipastart "${IPANEMA_POLICY_ID}" "${prog}" "${@}"
 	    ;;
     esac
