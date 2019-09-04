@@ -1,0 +1,51 @@
+{
+        "input"  : ["timestamp","event","arg1"],
+        "output" : ["x","y","c"],
+        "c" : [
+                {
+                        "label" : "Freq (GHz)",
+                        "color" : "#e02424",
+                        "concatenate" : [[
+                                ["query","event==10"],
+                                ["=","x","timestamp"],
+                                ["=","y","arg1"]
+                        ]]
+                },
+                {
+                        "label" : "Freq.rolling(160).mean() (GHz)",
+                        "color" : "#e09e24",
+                        "concatenate" : [[
+                                ["query","event==10"],
+                                ["=","x",["rolling",160,"mean","timestamp"]],
+                                ["=","y",["rolling",160,"mean","arg1"]]
+                        ]]
+                },
+                {
+                        "label" : "Freq.rolling(1600).mean() (GHz)",
+                        "color" : "#d6ed6d",
+                        "concatenate" : [[
+                                ["query","event==10"],
+                                ["=","x",["rolling",1600,"mean","timestamp"]],
+                                ["=","y",["rolling",1600,"mean","arg1"]]
+                        ]]
+                },
+                {
+                        "label" : "Freq.rolling(16000).mean() (GHz)",
+                        "color" : "#8ded6d",
+                        "concatenate" : [[
+                                ["query","event==10"],
+                                ["=","x",["rolling",16000,"mean","timestamp"]],
+                                ["=","y",["rolling",16000,"mean","arg1"]]
+                        ]]
+                },
+                {
+                        "label" : "Freq.rolling(32000).mean() (GHz)",
+                        "color" : "#8cd0f5",
+                        "concatenate" : [[
+                                ["query","event==10"],
+                                ["=","x",["rolling",32000,"mean","timestamp"]],
+                                ["=","y",["rolling",32000,"mean","arg1"]]
+                        ]]
+                }
+        ]
+}
