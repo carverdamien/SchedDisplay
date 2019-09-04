@@ -89,9 +89,8 @@ done
 # Running kbuild sched
 #################################################
 BENCH=bench/kbuild
-export TARGET=sched
-MONITORING_START_DELAY=0
-MONITORING_STOP_DELAY=100000
+export TARGET=kernel/sched/
+MONITORING_SCHEDULED=n
 for KERNEL in ${KERNELS}
 do
     for MONITORING in ${MONITORINGS}
