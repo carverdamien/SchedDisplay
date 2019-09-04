@@ -58,10 +58,30 @@ def add(df, *args):
 		s += a
 	return s
 
+def div(df, *args):
+	args = list(args)
+	INSTANCE=(int, float, np.ndarray, pd.Series)
+	for i in range(len(args)):
+		if not isinstance(args[i], INSTANCE):
+			args[i] = apply(df, args[i])
+		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
+	s = args[0]
+	for a in args[1:]:
+		s /= a
+	return s
+
+def rolling(df, window, op, key):
+	rolling_op = ['sum','mean','median'] # etc...
+	assert isinstance(window, int), f"{window} must be int"
+	assert op in rolling_op, f"{op} must be in {rolling_op}"
+	return df[key].rolling(window).agg({key:op})[key]
+
 OP = {
 	'query':query,
 	'=':assign,
 	'+':add,
+	'/':div,
+	'rolling': rolling,
 }
 
 # @debug
