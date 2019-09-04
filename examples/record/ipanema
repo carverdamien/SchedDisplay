@@ -34,7 +34,8 @@ main() {
 		    sleep 10
 		done
 	    fi
-	    insmod "${PATH_TO_IPANEMA_MODULE}"
+	    # insmod "${PATH_TO_IPANEMA_MODULE}"
+	    modprobe "${IPANEMA_POLICY_NAME}"
 
 	    # Get ID
 	    grep -q "${IPANEMA_POLICY_NAME}" /proc/ipanema/policies
