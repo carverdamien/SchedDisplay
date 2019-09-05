@@ -6,6 +6,7 @@ import pandas as pd
 from tornado import gen
 from functools import partial
 from threading import Lock, Thread
+import traceback
 
 class StatsViewController(ViewController):
 	"""docstring for StatsViewController"""
@@ -39,7 +40,6 @@ class StatsViewController(ViewController):
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
 				self.log(traceback.format_exc())
-				self.set_failed()
 			else:
 				self.lock.release()
 		Thread(target=target, kwargs=kwargs).start()
@@ -61,6 +61,6 @@ class StatsViewController(ViewController):
 	###############################
 
 	def compute_stats(self, data):
-		# TODO
-		df = pd.DataFrame({'a':[0,1],'b':[2,3]})
+		df = data.groupby('c').agg(['min','mean','max']).compute()
+		df = pd.DataFrame({"{}.{}".format(i,j):df[i][j] for i,j in df.columns})
 		return df
