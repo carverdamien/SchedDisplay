@@ -16,6 +16,7 @@ import numpy as np
 import time
 from smv.ConsoleViewController import logFunctionCall
 from threading import Thread, Semaphore
+import traceback
 
 def default_log(*args):
 	pass
@@ -55,7 +56,20 @@ def add(df, *args):
 		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
 	s = args[0]
 	for a in args[1:]:
-		s += a
+		s = s + a
+	return s
+
+# @debug
+def sub(df, *args):
+	args = list(args)
+	INSTANCE=(int, float, np.ndarray, pd.Series)
+	for i in range(len(args)):
+		if not isinstance(args[i], INSTANCE):
+			args[i] = apply(df, args[i])
+		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
+	s = args[0]
+	for a in args[1:]:
+		s = s-a
 	return s
 
 def div(df, *args):
@@ -67,7 +81,7 @@ def div(df, *args):
 		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
 	s = args[0]
 	for a in args[1:]:
-		s /= a
+		s = s/a
 	return s
 
 def rolling(df, window, op, key):
@@ -80,6 +94,7 @@ OP = {
 	'query':query,
 	'=':assign,
 	'+':add,
+	'-':sub,
 	'/':div,
 	'rolling': rolling,
 }
@@ -145,7 +160,10 @@ def from_df(df, config, log=default_log):
 		result = [None]*len(config['c'])
 		def target(df, i, config, log):
 			sem.acquire()
-			result[i] = category(df, i, config, log=log)
+			try:
+				result[i] = category(df, i, config, log=log)
+			except Exception as e:
+				log(traceback.format_exc())
 			sem.release()
 		def spawn(*args):
 			t = Thread(target=target,args=args)
