@@ -91,13 +91,14 @@ done
 BENCH=bench/kbuild
 export TARGET=kernel/sched/
 MONITORING_SCHEDULED=n
+IPANEMA_MODULE=
 for KERNEL in ${KERNELS}
 do
     for MONITORING in ${MONITORINGS}
     do
 	for TASKS in 32
 	do
-	    OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
+	    OUTPUT="output/BENCH=$(basename ${BENCH})-$(basename ${TARGET})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
 	    run_bench
 	done
     done
