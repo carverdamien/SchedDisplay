@@ -10,6 +10,12 @@ def find_files(directory, ext):
 			if ext == os.path.splitext(name)[1]:
 				yield path
 
+def preview_size(path):
+	if path is None:
+		return 'There is nothing to preview'
+	else:
+		return 'File {} is {} bytes'.format(path, os.stat(path)[stat.ST_SIZE])
+
 def preview(path):
 	if path is None:
 		return 'There is nothing to preview'
@@ -37,7 +43,7 @@ def preview(path):
 				msg.extend(extend)
 		return "\n".join(msg)
 	else:
-		return 'File {} is {} bytes'.format(path, os.stat(path)[stat.ST_SIZE])
+		return preview_size(path)
 
 class SelectFileViewController(ViewController):
 	"""docstring for SelectFileViewController"""
@@ -62,26 +68,44 @@ class SelectFileViewController(ViewController):
 			height=40,
 			height_policy="fixed",
 		)
+		preview_button = Button(
+			label='Preview',
+			align="end",
+			button_type="success",
+			width=100,
+			width_policy="fixed",
+			height=40,
+			height_policy="fixed",
+		)
 		file_preview = TextAreaInput(
-			value=preview(options0),
+			value=preview_size(options0),
 			sizing_mode='stretch_both',
 			max_length=16*2**20,
 			disabled=False,
 		)
 		view = column(
-			row(select, select_button, sizing_mode = 'scale_width',),
+			row(select,
+			    preview_button,
+			    select_button,
+			    sizing_mode = 'scale_width',
+			),
 			file_preview,
 			sizing_mode='stretch_both',
 		)
 		super(SelectFileViewController, self).__init__(view, doc, log)
 		self.select = select
 		self.select.on_change('value', self.select_changed_valued)
+		self.preview_button = preview_button
+		self.preview_button.on_click(self.preview_button_on_click)
 		self.select_button = select_button
 		self.on_selected_callback = None
 		self.select_button.on_click(self.select_on_click)
 		self.file_preview = file_preview
 
 	def select_changed_valued(self, attr, old, new):
+		self.file_preview.value = preview_size(self.select.value)
+
+	def preview_button_on_click(self, new):
 		self.file_preview.value = preview(self.select.value)
 
 	def on_selected(self, callback):

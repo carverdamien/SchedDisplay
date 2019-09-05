@@ -1,0 +1,131 @@
+{
+	"input"  : ["timestamp","cpu","event","pid","arg0","arg1","nxt_timestamp_of_same_evt_on_same_cpu"],
+	"output" : ["x0","y0","x1","y1","c","pid","arg0","arg1"],
+        "c" : [
+                {
+                        "label" : "WAKEUP",
+                        "color" : "#4daf4a",
+                        "concatenate" : [[
+                                ["query","event==2"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK",
+                        "color" : "#ff7f00",
+                        "concatenate" : [[
+                                ["query","event==4"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK_IO",
+                        "color" : "#ffff33",
+                        "concatenate" : [[
+                                ["query","event==5"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE",
+                        "color" : "#444444",
+                        "hide_hovertool" : true,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0==1"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.0]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE",
+                        "color" : "#ff0000",
+                        "hide_hovertool" : true,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>1"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.0]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE",
+                        "color" : "#444444",
+                        "concatenate" : [[
+                                ["query","event==13"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+		{
+                        "label" : "[0.0, 1.2] GHz",
+                        "color" : "#8cd0f5",
+                        "concatenate" : [[
+                                ["query","event==10 & arg1<=1200000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[1.2, 1.7] GHz",
+                        "color" : "#8ded6d",
+                        "concatenate" : [[
+                                ["query","event==10 & arg1>1200000 & arg1<=1700000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[1.7, 2.1] GHz",
+                        "color" : "#d6ed6d",
+                        "concatenate" : [[
+                                ["query","event==10 & arg1>1700000 & arg1<=2100000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[2.1, 2.6] GHz",
+                        "color" : "#e03030",
+                        "concatenate" : [[
+                                ["query","event==10 & arg1>2100000 & arg1<=2600000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[2.6, inf] GHz",
+                        "color" : "#f00000",
+                        "concatenate" : [[
+                                ["query","event==10 & arg1>2600000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                }
+
+        ]
+
+ }

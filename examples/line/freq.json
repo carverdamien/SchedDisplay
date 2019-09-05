@@ -1,5 +1,6 @@
 {
-        "shape" : ["x0","y0","x1","y1","c","pid","arg0","arg1"],
+        "input"  : ["timestamp","cpu","event","pid","arg0","arg1"],
+        "output" : ["x0","y0","x1","y1","c","pid","arg0","arg1"],
         "c" : [
                 {
                         "label" : "EXEC_EVT",

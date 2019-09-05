@@ -1,4 +1,6 @@
 from bokeh.models.widgets import TextAreaInput
+from bokeh.models.widgets import Button
+from bokeh.layouts import column, row
 import logging, datetime
 from threading import Lock
 from functools import partial
@@ -21,15 +23,34 @@ def logFunctionCall(log):
 
 class ConsoleViewController(ViewController):
 	def __init__(self, max_length=1024, doc=None, log=None):
-		view = TextAreaInput(
+		clear_button = Button(
+			label='Clear',
+			sizing_mode='fixed',
+			width_policy='min',
+		)
+		text = TextAreaInput(
 			value='',
 			sizing_mode='stretch_both',
 			max_length=2**20,
 		)
+		view = column(
+			row(clear_button, sizing_mode='stretch_width'),
+			text,
+			sizing_mode='stretch_both',
+		)
 		super(ConsoleViewController, self).__init__(view, doc, log)
+		self.text = text
+		self.clear_button = clear_button
+		self.clear_button.on_click(self.clear_button_on_click)
 		self.max_length = max_length
 		self.buffer = []
 		self.lock = Lock()
+
+	def clear_button_on_click(self, new):
+		self.lock.acquire()
+		self.buffer.clear()
+		self.text.value = ''
+		self.lock.release()
 
 	def write(self, *args):
 		self.lock.acquire()
@@ -42,6 +63,6 @@ class ConsoleViewController(ViewController):
 		if self.doc is not None:
 			@gen.coroutine
 			def coroutine():
-				self.view.value = '\n'.join(reversed(self.buffer))
+				self.text.value = '\n'.join(reversed(self.buffer))
 			self.doc.add_next_tick_callback(partial(coroutine))
 		self.lock.release()

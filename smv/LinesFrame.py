@@ -1,3 +1,8 @@
+#
+# TODO: rename this file.
+# It allows users to process the trace into something else
+# A LinesFrame, A PointsFrame
+#
 import pandas as pd
 #
 # TODO: do not import pandas
@@ -53,10 +58,30 @@ def add(df, *args):
 		s += a
 	return s
 
+def div(df, *args):
+	args = list(args)
+	INSTANCE=(int, float, np.ndarray, pd.Series)
+	for i in range(len(args)):
+		if not isinstance(args[i], INSTANCE):
+			args[i] = apply(df, args[i])
+		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
+	s = args[0]
+	for a in args[1:]:
+		s /= a
+	return s
+
+def rolling(df, window, op, key):
+	rolling_op = ['sum','mean','median'] # etc...
+	assert isinstance(window, int), f"{window} must be int"
+	assert op in rolling_op, f"{op} must be in {rolling_op}"
+	return df[key].rolling(window).agg({key:op})[key]
+
 OP = {
 	'query':query,
 	'=':assign,
 	'+':add,
+	'/':div,
+	'rolling': rolling,
 }
 
 # @debug
@@ -76,18 +101,18 @@ def apply(df, op):
 		raise Exception('Cannot handle {}'.format(op))
 
 # @debug
-def one(df, i, operators, shape, log=default_log):
+def one(df, i, operators, output, log=default_log):
 	for op in operators:
 		log('c[{}] Processing {}'.format(i, op))
 		df = apply(df, op)
-	return df.assign(c=i)[shape]
+	return df.assign(c=i)[output].dropna(how='any')
 
 # @debug
 def category(df, i, config, log=default_log):
-	shape = config['shape']
+	output = config['output']
 	c = config['c'][i]
 	log('c[{}] Processing {}'.format(i, c))
-	return pd.concat([one(df, i, o, shape, log=log) for o in c['concatenate']])
+	return pd.concat([one(df, i, o, output, log=log) for o in c['concatenate']])
 
 def from_df(df, config, log=default_log):
 	@logFunctionCall(log)

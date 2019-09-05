@@ -5,6 +5,8 @@ from bokeh.layouts import row, column
 import os, io, base64
 from threading import Thread
 
+# TODO: use FileInput widget
+
 # Special thanks to Kevin Anderson
 CUSTOM_JS_CODE = """
 console.log(file_source)
@@ -87,7 +89,12 @@ class LoadFileViewController(SelectFileViewController):
 		super(LoadFileViewController, self).__init__(directory, ext, doc, log)
 		# Override view
 		self.view = column(
-			row(self.select, self.select_button, upload_button, sizing_mode = 'scale_width',),
+			row(self.select,
+			    self.preview_button,
+			    self.select_button,
+			    upload_button,
+			    sizing_mode = 'scale_width',
+			),
 			self.file_preview,
 			sizing_mode='stretch_both',
 		)
@@ -96,7 +103,6 @@ class LoadFileViewController(SelectFileViewController):
 		# self.datasource = ColumnDataSource({'file_contents':[]})
 		self.datasource = ColumnDataSource({'i':[], 'block':[],'remaining':[]})
 		self.on_loaded_callback = None
-		self.select_button.on_click(self.select_on_click)
 		self.upload_button.callback = (CustomJS(args=dict(file_source=self.datasource), code=CUSTOM_JS_CODE))
 		self.datasource.on_change('data', self.file_callback)
 
