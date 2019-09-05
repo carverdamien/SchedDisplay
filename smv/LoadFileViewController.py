@@ -5,6 +5,8 @@ from bokeh.layouts import row, column
 import os, io, base64
 from threading import Thread
 
+# TODO: use FileInput widget
+
 # Special thanks to Kevin Anderson
 CUSTOM_JS_CODE = """
 console.log(file_source)
