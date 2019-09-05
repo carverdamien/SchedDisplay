@@ -5,8 +5,8 @@ source ${BENCH}/cleanup
 source prepare
 source ${BENCH}/prepare
 source ${MONITORING}/start
-source ./time ${BENCH}/run > ${OUTPUT}/time.out 2> ${OUTPUT}/time.err &
-wait
+(source ./time ${BENCH}/run > ${OUTPUT}/time.out 2> ${OUTPUT}/time.err) &
+wait $!
 source ${MONITORING}/stop
 source report
 source ${BENCH}/report
