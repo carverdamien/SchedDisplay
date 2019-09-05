@@ -77,7 +77,7 @@ do
 	do
 	    for TASKS in 80 160 320
 	    do
-		OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/IPANEMA=$(basename ${MODULE})/${TASKS}-${KERNEL}"
+		OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/IPANEMA=$(basename ${IPANEMA_MODULE})/${TASKS}-${KERNEL}"
 		run_bench
 	    done
 	done
