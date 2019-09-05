@@ -8,7 +8,7 @@ from smv.StatsViewController import StatsViewController
 from smv.ImageModel import PointImageModel, SegmentImageModel
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
-import json, os
+import json, os, traceback
 import pandas as pd
 import numpy as np
 from tornado import gen
@@ -127,6 +127,7 @@ def modify_doc(doc):
 			# Thread(target=cache_put).start()
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
+			log(traceback.format_exc())
 	load_line_config.on_loaded(on_loaded_line_config)
 	@logFunctionCall(log)
 	def on_loaded_point_config(io):
@@ -164,6 +165,7 @@ def modify_doc(doc):
 			model.on_apply_query(stats.update_stats)
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
+			log(traceback.format_exc())
 	load_point_config.on_loaded(on_loaded_point_config)
 	doc.add_root(tab)
 	pass
