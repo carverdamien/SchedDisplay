@@ -2,6 +2,8 @@ from smv.ViewController import ViewController
 from bokeh.models.widgets import DataTable
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import TableColumn
+from bokeh.models.widgets import Div
+from bokeh.layouts import column, row
 import pandas as pd
 from tornado import gen
 from functools import partial
@@ -12,6 +14,8 @@ class StatsViewController(ViewController):
 	"""docstring for StatsViewController"""
 	def __init__(self, **kwargs):
 		# Provide source. (Do not use defaut)
+		self.title = ''
+		self.info = ''
 		self.lock = Lock()
 		self.source = kwargs.get('source', ColumnDataSource({}))
 		self.table = DataTable(
@@ -19,7 +23,16 @@ class StatsViewController(ViewController):
 			sizing_mode='stretch_both',
 			width_policy='max',
 		)
-		view = self.table
+		self.div = Div(
+			visible=True,
+			width_policy='max',
+			height_policy='min',
+		)
+		view = column(
+			self.div,
+			self.table,
+			sizing_mode='stretch_both',
+		)
 		super(StatsViewController, self).__init__(view, **kwargs)
 
 
@@ -35,8 +48,10 @@ class StatsViewController(ViewController):
 		def target(**kwargs):
 			try:
 				data = kwargs['data']
+				self.info = kwargs.get('query', self.info)
 				df = self.compute_stats(data)
 				self.update_source(df)
+				self.update_div()
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
 				self.log(traceback.format_exc())
@@ -55,6 +70,13 @@ class StatsViewController(ViewController):
 			self.source.data = ColumnDataSource.from_df(df)
 		if self.doc:
 			self.doc.add_next_tick_callback(partial(coroutine, df))
+
+	def update_div(self):
+		@gen.coroutine
+		def coroutine():
+			self.div.text = f"{self.title} {self.info}"
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine))
 
 	###############################
 	# Compute intensive functions #

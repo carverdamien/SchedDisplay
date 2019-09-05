@@ -116,6 +116,7 @@ def modify_doc(doc):
 			def coroutine():
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
+			stats.title = state['path']
 			figure.plot(
 				model=model,
 				config=state['line_config'],
@@ -153,6 +154,7 @@ def modify_doc(doc):
 			def coroutine():
 				figure.fig.title.text = state['path']
 			doc.add_next_tick_callback(partial(coroutine))
+			stats.title = state['path']
 			figure.plot(
 				model=model,
 				config=state['point_config'],
