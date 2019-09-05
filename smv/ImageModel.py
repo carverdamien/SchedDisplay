@@ -6,8 +6,12 @@ import datashader.transfer_functions as tf
 from bokeh.models.glyphs import Segment
 from bokeh.models.markers import X as Marker
 from multiprocessing import cpu_count
+from bokeh.models import ColumnDataSource
 
 class AbstractImageModel(Exception):
+	pass
+
+class QueryNoResult(Exception):
 	pass
 
 class ImageModel(object):
@@ -21,6 +25,7 @@ class ImageModel(object):
 		self.result = kwargs.get('result', self.data)
 		self.log = kwargs.get('log', print)
 		self.color_key =  [c['color'] for c in self.category if c['len'] > 0]
+		self.callback_apply_query = []
 
 	def bokeh_glyph(self):
 		raise AbstractImageModel()
@@ -37,25 +42,25 @@ class ImageModel(object):
 	def generate_intersection_query(self, xmin, xmax, ymin, ymax):
 		raise AbstractImageModel()
 
+	def on_apply_query(self, callback):
+		self.callback_apply_query.append(callback)
+
 	def apply_query(self, query):
-		try:
-			self.query = query
-			if self.query.strip() == '':
-				self.result = self.data
-				return
-			self.log('Applying query {}'.format(self.query))
-			result = self.data.query(self.query)
-			if len(query) == 0:
-				raise Exception(
-					'QUERY ERROR',
-					'{} => len(lines) == 0'.format(self.query)
-				)
-			self.result = result
-			return
-		except Exception as e:
-			self.log('Exception({}): {}'.format(type(e), e))
-			self.log(traceback.format_exc())
+		self.query = query
 		self.result = self.data
+		if self.query.strip() != '':
+			try:
+				self.log('Applying query {}'.format(self.query))
+				result = self.data.query(self.query)
+				if len(result) == 0:
+					raise QueryNoResult(self.query)
+				self.result = result
+			except Exception as e:
+				# Note: This does not only catches QueryNoResult
+				self.log('Exception({}): {}'.format(type(e), e))
+				self.log(traceback.format_exc())
+		for callback in self.callback_apply_query:
+			callback(data=self.result, query=self.query)
 		return
 
 class PointImageModel(ImageModel):

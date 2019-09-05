@@ -4,6 +4,7 @@ from smv.ConsoleViewController import ConsoleViewController, logFunctionCall
 from smv.LoadFileViewController import LoadFileViewController
 from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
+from smv.StatsViewController import StatsViewController
 from smv.ImageModel import PointImageModel, SegmentImageModel
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
@@ -39,6 +40,7 @@ def modify_doc(doc):
 	load_line_config = LoadFileViewController('./examples/line','.json',doc=doc, log=log)
 	load_point_config = LoadFileViewController('./examples/point','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc, log=log)
+	stats = StatsViewController(doc=doc, log=log)
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
@@ -47,6 +49,7 @@ def modify_doc(doc):
 		#Panel(child=load_cache.view,  title='Cache'),
 		Panel(child=figure.view,     title='Figure'),
 		# Panel(child=figure.table,    title='Sample'),
+		Panel(child=stats.view, title='Stats'),
 		Panel(child=console.view,    title='Console'),
 	])
 	@logFunctionCall(log)
@@ -119,6 +122,7 @@ def modify_doc(doc):
 				width=state['width'],
 				height=state['height'],
 			)
+			model.on_apply_query(stats.update_stats)
 			# Thread(target=cache_put).start()
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
@@ -155,6 +159,7 @@ def modify_doc(doc):
 				width=state['width'],
 				height=state['height'],
 			)
+			model.on_apply_query(stats.update_stats)
 		except Exception as e:
 			log('Exception({}) in {}: {}'.format(type(e), fname, e))
 	load_point_config.on_loaded(on_loaded_point_config)
