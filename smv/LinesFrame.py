@@ -90,6 +90,9 @@ def rolling(df, window, op, key):
 	assert op in rolling_op, f"{op} must be in {rolling_op}"
 	return df[key].rolling(window).agg({key:op})[key]
 
+def argsort(df, key):
+	return np.argsort(df[key])
+
 OP = {
 	'query':query,
 	'=':assign,
@@ -97,6 +100,7 @@ OP = {
 	'-':sub,
 	'/':div,
 	'rolling': rolling,
+	'argsort': argsort,
 }
 
 # @debug
