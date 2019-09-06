@@ -8,9 +8,9 @@
                         "hide_hovertool" : true,
                         "concatenate" : [[
                                 ["query","event==13 & arg0==1"],
-                                ["=","y",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
-                                ["=","x",["argsort","y"]],
-                                ["=","x",["argsort","x"]]
+                                ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
                         ]]
                 },
                 {
@@ -19,9 +19,9 @@
                         "hide_hovertool" : true,
                         "concatenate" : [[
                                 ["query","event==13 & arg0>1"],
-                                ["=","y",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
-                                ["=","x",["argsort","y"]],
-                                ["=","x",["argsort","x"]]
+                                ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
                         ]]
                 },
                 {
@@ -30,9 +30,9 @@
                         "hide_hovertool" : true,
                         "concatenate" : [[
                                 ["query","event==13 & arg0==0"],
-                                ["=","y",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
-                                ["=","x",["argsort","y"]],
-                                ["=","x",["argsort","x"]]
+                                ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
                         ]]
                 },
                 {
@@ -41,9 +41,9 @@
                         "hide_hovertool" : true,
                         "concatenate" : [[
                                 ["query","event==13 & arg0>0"],
-                                ["=","y",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
-                                ["=","x",["argsort","y"]],
-                                ["=","x",["argsort","x"]]
+                                ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
                         ]]
                 },
                 {
@@ -52,9 +52,9 @@
                         "hide_hovertool" : true,
                         "concatenate" : [[
                                 ["query","event==13"],
-                                ["=","y",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
-                                ["=","x",["argsort","y"]],
-                                ["=","x",["argsort","x"]]
+                                ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
                         ]]
                 }
 
