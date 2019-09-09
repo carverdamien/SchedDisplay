@@ -103,3 +103,24 @@ do
 	done
     done
 done
+
+
+#################################################
+# Running cg.C from NAS
+#################################################
+BENCH=bench/kbuild
+export TARGET=kernel/nas_cg.C
+MONITORING_SCHEDULED=n
+IPANEMA_MODULE=
+for KERNEL in ${KERNELS}
+do
+    for MONITORING in ${MONITORINGS}
+    do
+	for TASKS in 160
+	do
+	    OUTPUT="output/BENCH=$(basename ${BENCH})-$(basename ${TARGET})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
+	    run_bench
+	done
+    done
+done
+
