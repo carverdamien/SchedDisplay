@@ -48,6 +48,13 @@ class FigureViewController(ViewController):
 			doc=None,
 			log=None,
 		):
+		self.customize_ranges = customize_ranges
+		self.height_textinput = TextInput(
+			# value="100",
+			width_policy="min",
+			# height_policy="min",
+			sizing_mode='stretch_width',
+		)
 		self.query = ''
 		self.model = model
 		fig = figure(
@@ -58,7 +65,6 @@ class FigureViewController(ViewController):
 		)
 		legend = Div(
 			visible=True,
-			width_policy='min',
 			height_policy='max',
 		)
 		# fig.add_layout(Legend(click_policy='hide'))
@@ -86,6 +92,7 @@ class FigureViewController(ViewController):
 		)
 		view = column(
 			row(
+				self.height_textinput,
 				options_dropdown,
 				actions_dropdown,
 				Spacer(sizing_mode='stretch_width', width_policy='max'),
@@ -96,6 +103,7 @@ class FigureViewController(ViewController):
 			sizing_mode='stretch_both',
 		)
 		super(FigureViewController, self).__init__(view, doc, log)
+		self.height_textinput.on_change('value', self.on_change_height_textinput)
 		self.auto_update_image = True
 		self.options_dropdown = options_dropdown
 		self.options_dropdown.on_click(self.on_click_options_dropdown)
@@ -133,6 +141,14 @@ class FigureViewController(ViewController):
 	#######################################
 	# Functions triggered by User actions #
 	#######################################
+
+	def on_change_height_textinput(self, attr, old, new):
+		fname = self.on_change_height_textinput.__name__
+		try:
+			self.fig.plot_height = int(self.height_textinput.value)
+		except Exception as e:
+			self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+			self.log(traceback.format_exc())
 
 	def on_click_status_button(self, new):
 		fname = self.on_click_status_button.__name__
@@ -402,9 +418,13 @@ class FigureViewController(ViewController):
 			self.fig.y_range.start = ranges['ymin']
 			self.fig.y_range.end = ranges['ymax']
 			self.fig.plot_width = ranges['w']
-			self.fig.plot_height = ranges['h']
+			self.set_fig_height(ranges['h'])
 		if self.doc is not None:
 			self.doc.add_next_tick_callback(partial(coroutine, ranges))
+
+	def set_fig_height(self, height):
+		height = int(height)
+		self.height_textinput.value = str(height)
 
 	###############################
 	# Compute intensive functions #
