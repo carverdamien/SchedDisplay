@@ -1,5 +1,6 @@
 #!/bin/bash
-. inc
+
+. $(dirname "$0")/inc
 
 set -e -u
 OMP_NUM_THREADS=${TASKS} exec ${exe} > ${OUTPUT}/run.out 2> ${OUTPUT}/run.err
