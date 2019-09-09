@@ -110,7 +110,7 @@ def modify_doc(doc):
 				ranges['ymax'] = min(ranges['ymax'], nr_lines+1)
 				ranges['ymin'] = max(ranges['ymin'], -1)
 				return ranges
-			figure.customize_ranges = customize_ranges
+			# figure.customize_ranges = customize_ranges
 			# FIXME: Quick And Dirty set fig.title
 			@gen.coroutine
 			def coroutine():
