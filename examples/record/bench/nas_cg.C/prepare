@@ -8,10 +8,17 @@ then
     wget --quiet https://www.nas.nasa.gov/assets/npb/NPB3.4.tar.gz -O ${tar}
 fi
 
-if ! [ -f ${exe} ]
+if ! [ -f ${bench_dir} ]
 then
     tar -C ${base_dir} -xvzf ${tar}
-    cp $bench_dir/config/make.def.template $bench_dir/config/make.def
+fi
+
+if ! [ -f ${bench_dir}/config/make.def ]
+then
+    cp ${bench_dir}/config/make.def.template ${bench_dir}/config/make.def
+fi
+
+if ! [ -f ${exe} ]
     cd $bench_dir
     make cg CLASS=C
 fi
