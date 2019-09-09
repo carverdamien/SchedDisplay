@@ -50,10 +50,14 @@ def sequential_compute(dd):
 	# TODO
 	nxt = np.array(dd['timestamp'])
 	idx = np.arange(len(nxt))
+	pid = np.unique(dd['pid'])
 	sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
-	sel_pid = dd['pid'] == 0
-	sel = sel_evt & sel_pid
-	nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	def per_pid(p):
+		sel_pid = dd['pid'] == p
+		sel = sel_evt & sel_pid
+		nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	for p in pid:
+		per_pid(p)
 	return nxt
 
 def dummy_data():
@@ -74,9 +78,9 @@ def dummy_data():
 	]
 	N = len(event)
 	return {
-		'timestamp' : np.arange(N),
-		'pid'       : np.zeros(N),
-		'event'     : np.array(event)
+		'timestamp' : np.arange(2*N),
+		'pid'       : np.array([0]*N+[1]*N),
+		'event'     : np.array(event+event)
 	}
 
 @log
