@@ -43,11 +43,20 @@ def parallel(iter_args, sem_value=cpu_count()):
 	return wrap
 
 def parallel_compute(dd):
-	# TODO
-	return sequential_compute(dd)
+	# return sequential_compute(dd)
+	nxt = np.array(dd['timestamp'])
+	idx = np.arange(len(nxt))
+	pid = np.unique(dd['pid'])
+	sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
+	@parallel(itertools.product(pid))
+	def per_pid(p):
+		sel_pid = dd['pid'] == p
+		sel = sel_evt & sel_pid
+		nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	per_pid()
+	return nxt
 
 def sequential_compute(dd):
-	# TODO
 	nxt = np.array(dd['timestamp'])
 	idx = np.arange(len(nxt))
 	pid = np.unique(dd['pid'])
@@ -87,12 +96,17 @@ def dummy_data():
 def main():
 	NAME = 'nxt_of_same_pid'
 	# _, tar = sys.argv
-	# dd = DataDict.from_tar(tar)
-	dd = dummy_data()
+	tar = 'examples/trace/32-patchlocal.tar'
+	dd = DataDict.from_tar(tar)
+	# dd = dummy_data()
 	dd = {k:dd[k] for k in dd if k in ['timestamp','pid','event']}
 	dd[NAME] = parallel_compute(dd)
+	dd['diff'] = dd[NAME] - dd['timestamp']
 	import pandas as pd
-	print(pd.DataFrame(dd))
+	pddd = pd.DataFrame(dd)
+	print(pddd)
+	print(pddd[pddd['diff']>0])
+
 	# DataDict.add_array_to_tar(tar,NAME,dd[NAME])
 	pass
 
