@@ -21,7 +21,12 @@ fi
 if ! [ -f ${exe} ]
 then
     cd $bench_dir
-    make ${BENCH_NAME} CLASS=${BENCH_CLASS}
+    if [[ "${BENCH_NAME}" == "is" ]]
+    then
+        make ${BENCH_NAME} CLASS=${BENCH_CLASS} SHELL=bash CFLAGS=-mcmodel=medium CLINKFLAGS=-mcmodel=medium
+    else
+        make ${BENCH_NAME} CLASS=${BENCH_CLASS} SHELL=bash
+    fi
 fi
 
 dmesg -C
