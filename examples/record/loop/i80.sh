@@ -112,6 +112,8 @@ BENCH_NAMES=(	bt cg dc ep ft is lu mg sp sp ua ua )
 BENCH_CLASSES=( B  C  A  C  C  D  B  D  A  B  B  C )
 MONITORING_SCHEDULED=n
 IPANEMA_MODULE=
+export BENCH_NAME=
+export BENCH_CLASS=
 
 for I in ${!BENCH_NAMES[@]}
 do
