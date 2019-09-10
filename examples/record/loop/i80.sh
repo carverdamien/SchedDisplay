@@ -110,7 +110,6 @@ done
 #################################################
 BENCH_NAMES=(	bt cg dc ep ft is lu mg sp sp ua ua )
 BENCH_CLASSES=( B  C  A  C  C  D  B  D  A  B  B  C )
-BENCH_COMMON=bench/nas_common
 MONITORING_SCHEDULED=n
 IPANEMA_MODULE=
 
@@ -125,7 +124,7 @@ do
                 BENCH_NAME=${BENCH_NAMES[$I]}
                 BENCH_CLASS=${BENCH_CLASSES[$I]}
                 BENCH=bench/nas
-                OUTPUT="output/BENCH=$(basename ${BENCH}_${BENCH_NAME}.${BENCH_CLASS})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
+                OUTPUT="output/BENCH=$(basename ${BENCH})_${BENCH_NAME}.${BENCH_CLASS}/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
                 run_bench
             done
         done
