@@ -1,0 +1,50 @@
+{
+	"input"  : ["timestamp","event","pid", "nxt_blk_wkp_of_same_pid"],
+	"output" : ["x0","y0","x1","y1","c"],
+	"c" : [
+		{
+			"label" : "WAKEUP",
+			"color" : "#4daf4a",
+			"concatenate" : [[
+				["query","event==2"],
+				["=","x0","timestamp"],
+				["=","x1","timestamp"],
+				["=","y0",["+","pid",0.0]],
+				["=","y1",["+","pid",0.5]]
+			]]
+		},
+		{
+			"label" : "BLOCK",
+			"color" : "#ff7f00",
+			"concatenate" : [[
+				["query","event==4"],
+				["=","x0","timestamp"],
+				["=","x1","timestamp"],
+				["=","y0",["+","pid",0.0]],
+				["=","y1",["+","pid",0.5]]
+			]]
+		},
+		{
+			"label" : "WAKEUP",
+			"color" : "#4daf4a",
+			"concatenate" : [[
+				["query","event==2"],
+				["=","x0","timestamp"],
+				["=","x1","nxt_blk_wkp_of_same_pid"],
+				["=","y0",["+","pid",0.0]],
+				["=","y1",["+","pid",0.0]]
+			]]
+		},
+		{
+			"label" : "BLOCK",
+			"color" : "#ff7f00",
+			"concatenate" : [[
+				["query","event==4"],
+				["=","x0","timestamp"],
+				["=","x1","nxt_blk_wkp_of_same_pid"],
+				["=","y0",["+","pid",0.0]],
+				["=","y1",["+","pid",0.0]]
+			]]
+		}
+	]
+}

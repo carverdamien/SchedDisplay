@@ -94,20 +94,19 @@ def dummy_data():
 
 @log
 def main():
-	NAME = 'nxt_of_same_pid'
+	NAME = 'nxt_blk_wkp_of_same_pid'
 	# _, tar = sys.argv
 	tar = 'examples/trace/32-patchlocal.tar'
-	dd = DataDict.from_tar(tar)
+	dd = DataDict.from_tar(tar, only=['timestamp','pid','event'])
+	# assert np.sum(np.diff(dd['timestamp'])<0) == 0
 	# dd = dummy_data()
-	dd = {k:dd[k] for k in dd if k in ['timestamp','pid','event']}
 	dd[NAME] = parallel_compute(dd)
 	dd['diff'] = dd[NAME] - dd['timestamp']
 	import pandas as pd
 	pddd = pd.DataFrame(dd)
 	print(pddd)
 	print(pddd[pddd['diff']>0])
-
-	# DataDict.add_array_to_tar(tar,NAME,dd[NAME])
+	DataDict.add_array_to_tar(tar,NAME,dd[NAME])
 	pass
 
 if __name__ == '__main__':
