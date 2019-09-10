@@ -27,6 +27,7 @@ then
     else
         make ${BENCH_NAME} CLASS=${BENCH_CLASS} SHELL=bash
     fi
+    cd -
 fi
 
 dmesg -C
