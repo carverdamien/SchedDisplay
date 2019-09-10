@@ -21,7 +21,7 @@ fi
 if ! [ -f ${exe} ]
 then
     cd $bench_dir
-    make cg CLASS=C
+    make ${BENCH_NAME} CLASS=${BENCH_CLASS}
 fi
 
 dmesg -C
