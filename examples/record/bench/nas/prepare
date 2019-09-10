@@ -8,7 +8,7 @@ then
     wget --quiet https://www.nas.nasa.gov/assets/npb/NPB3.4.tar.gz -O ${tar}
 fi
 
-if ! [ -f ${bench_dir} ]
+if ! [ -d ${bench_dir} ]
 then
     tar -C ${base_dir} -xvzf ${tar}
 fi
