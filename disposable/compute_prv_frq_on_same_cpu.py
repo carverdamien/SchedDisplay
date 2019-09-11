@@ -43,20 +43,27 @@ def parallel(iter_args, sem_value=cpu_count()):
 		return f
 	return wrap
 
+@log
 def parallel_compute(dd):
-	return sequential_compute(dd)
-	# nxt = np.array(dd['timestamp'])
-	# idx = np.arange(len(nxt))
-	# pid = np.unique(dd['pid'])
-	# sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
-	# @parallel(itertools.product(pid))
-	# def per_pid(p):
-		# sel_pid = dd['pid'] == p
-		# sel = sel_evt & sel_pid
-		# nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
-	# per_pid()
-	# return nxt
+	# return sequential_compute(dd)
+	sel_evt = dd['event'] == TICK
+	N = len(dd['arg1'])
+	nxt = np.empty(N)
+	nxt[:] = np.NaN
+	nxt[sel_evt] = dd['arg1'][sel_evt]
+	idx = np.arange(N)
+	cpu = np.unique(dd['cpu'])
+	@parallel(itertools.product(cpu))
+	def per_cpu(c):
+		sel = dd['cpu'] == c
+		nan = np.isnan(nxt[sel])
+		inxt = np.where(~nan, idx[sel], 0)
+		np.maximum.accumulate(inxt, out=inxt)
+		nxt[sel] = nxt[inxt]
+	per_cpu()
+	return nxt
 
+@log
 def sequential_compute(dd):
 	sel_evt = dd['event'] == TICK
 	N = len(dd['arg1'])
@@ -102,15 +109,16 @@ def main():
 	NAME = 'prv_frq_on_same_cpu'
 	# _, tar = sys.argv
 	tar = 'examples/trace/32-patchlocal.tar'
-	# dd = DataDict.from_tar(tar, only=['event','cpu', 'arg1'])
-	dd = dummy_data()
+	dd = DataDict.from_tar(tar, only=['event','cpu', 'arg1'])
+	# dd = dummy_data()
 	# assert np.sum(np.diff(dd['timestamp'])<0) == 0
 	# dd = dummy_data()
 	dd[NAME] = parallel_compute(dd)
+	# assert np.array_equal(dd[NAME], sequential_compute(dd))
 	#dd['diff'] = dd[NAME] - dd['timestamp']
-	import pandas as pd
-	pddd = pd.DataFrame(dd)
-	print(pddd)
+	#import pandas as pd
+	#pddd = pd.DataFrame(dd)
+	#print(pddd)
 	#print(pddd[pddd['diff']>0])
 	#DataDict.add_array_to_tar(tar,NAME,dd[NAME])
 	pass
