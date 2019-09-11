@@ -1,6 +1,0 @@
-#!/bin/bash
-. inc
-
-set -e -u
-OMP_NUM_THREADS=${TASKS} exec ${exe}
-

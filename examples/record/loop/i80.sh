@@ -106,20 +106,52 @@ done
 
 
 #################################################
-# Running cg.C from NAS
+# Running NAS
 #################################################
-BENCH=bench/nas_cg.C
+BENCH_NAMES=(	bt cg dc ep ft is lu mg sp sp ua ua )
+BENCH_CLASSES=( B  C  A  C  C  D  B  D  A  B  B  C )
 MONITORING_SCHEDULED=n
 IPANEMA_MODULE=
-for KERNEL in ${KERNELS}
+export BENCH_NAME=
+export BENCH_CLASS=
+
+for I in ${!BENCH_NAMES[@]}
 do
-    for MONITORING in ${MONITORINGS}
+    for KERNEL in ${KERNELS}
     do
-	for TASKS in 160
-	do
-	    OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
-	    run_bench
-	done
+        for MONITORING in ${MONITORINGS}
+        do
+            for TASKS in 80 160
+            do
+                BENCH_NAME=${BENCH_NAMES[$I]}
+                BENCH_CLASS=${BENCH_CLASSES[$I]}
+                BENCH=bench/nas
+                OUTPUT="output/BENCH=$(basename ${BENCH})_${BENCH_NAME}.${BENCH_CLASS}/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
+                run_bench
+            done
+        done
+    done
+done
+
+# IPANEMA
+KERNEL=${DEFAULT_KERNEL}
+PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
+
+for I in ${!BENCH_NAMES[@]}
+do
+    for IPANEMA_MODULE in cfs_wwc ule_wwc
+    do
+        for MONITORING in ${MONITORINGS}
+        do
+            for TASKS in 80 160
+            do
+                BENCH_NAME=${BENCH_NAMES[$I]}
+                BENCH_CLASS=${BENCH_CLASSES[$I]}
+                BENCH=bench/nas
+                OUTPUT="output/BENCH=$(basename ${BENCH})_${BENCH_NAME}.${BENCH_CLASS}/MONITORING=$(basename ${MONITORING})/IPANEMA=$(basename ${IPANEMA_MODULE})/${TASKS}-${KERNEL}"
+                run_bench
+            done
+        done
     done
 done
 

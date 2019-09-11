@@ -1,0 +1,34 @@
+#!/bin/bash
+
+: ${TASKS}
+. ${BENCH}/inc
+
+if ! [ -f ${tar} ]
+then
+    wget --quiet https://www.nas.nasa.gov/assets/npb/NPB3.4.tar.gz -O ${tar}
+fi
+
+if ! [ -d ${bench_dir} ]
+then
+    tar -C ${base_dir} -xvzf ${tar}
+fi
+
+if ! [ -f ${bench_dir}/config/make.def ]
+then
+    cp ${bench_dir}/config/make.def.template ${bench_dir}/config/make.def
+fi
+
+if ! [ -f ${exe} ]
+then
+    cd $bench_dir
+    if [[ "${BENCH_NAME}" == "is" ]]
+    then
+        make ${BENCH_NAME} CLASS=${BENCH_CLASS} SHELL=bash CFLAGS=-mcmodel=medium CLINKFLAGS=-mcmodel=medium
+    else
+        make ${BENCH_NAME} CLASS=${BENCH_CLASS} SHELL=bash
+    fi
+    cd -
+fi
+
+dmesg -C
+
