@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e -x -u
+entrypoint=$1
+shift
+img=scheddisplay
+docker build -t ${img} .
+docker run -i --entrypoint=${entrypoint} -v $PWD/examples:/home/server/examples ${img}  $@

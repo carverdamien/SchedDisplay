@@ -16,6 +16,7 @@ import numpy as np
 import time
 from smv.ConsoleViewController import logFunctionCall
 from threading import Thread, Semaphore
+import traceback
 
 def default_log(*args):
 	pass
@@ -55,7 +56,20 @@ def add(df, *args):
 		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
 	s = args[0]
 	for a in args[1:]:
-		s += a
+		s = s + a
+	return s
+
+# @debug
+def sub(df, *args):
+	args = list(args)
+	INSTANCE=(int, float, np.ndarray, pd.Series)
+	for i in range(len(args)):
+		if not isinstance(args[i], INSTANCE):
+			args[i] = apply(df, args[i])
+		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
+	s = args[0]
+	for a in args[1:]:
+		s = s-a
 	return s
 
 def div(df, *args):
@@ -67,7 +81,7 @@ def div(df, *args):
 		assert isinstance(args[i], INSTANCE), "{} is not good type".format(args[i])
 	s = args[0]
 	for a in args[1:]:
-		s /= a
+		s = s/a
 	return s
 
 def rolling(df, window, op, key):
@@ -76,12 +90,17 @@ def rolling(df, window, op, key):
 	assert op in rolling_op, f"{op} must be in {rolling_op}"
 	return df[key].rolling(window).agg({key:op})[key]
 
+def argsort(df, key):
+	return np.argsort(df[key])
+
 OP = {
 	'query':query,
 	'=':assign,
 	'+':add,
+	'-':sub,
 	'/':div,
 	'rolling': rolling,
+	'argsort': argsort,
 }
 
 # @debug
@@ -119,10 +138,11 @@ def from_df(df, config, log=default_log):
 	def subtract_min_timestamp(df):
 		# return df['timestamp']-min(df['timestamp'])
 		# assert min(df['timestamp']) == df['timestamp'][0]
+		# TODO: subtract_min_timestamp should be done @ recording
 		t0 = df['timestamp'][0]
-		df['timestamp'] -= t0
-		if 'nxt_timestamp_of_same_evt_on_same_cpu' in df:
-			df['nxt_timestamp_of_same_evt_on_same_cpu'] -= t0
+		for k in ['timestamp', 'nxt_timestamp_of_same_evt_on_same_cpu', 'nxt_blk_wkp_of_same_pid']:
+			if k in df:
+				df[k] -= t0
 	subtract_min_timestamp(df)
 	@logFunctionCall(log)
 	def array_to_dataframe(df):
@@ -145,7 +165,10 @@ def from_df(df, config, log=default_log):
 		result = [None]*len(config['c'])
 		def target(df, i, config, log):
 			sem.acquire()
-			result[i] = category(df, i, config, log=log)
+			try:
+				result[i] = category(df, i, config, log=log)
+			except Exception as e:
+				log(traceback.format_exc())
 			sem.release()
 		def spawn(*args):
 			t = Thread(target=target,args=args)

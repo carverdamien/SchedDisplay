@@ -83,6 +83,6 @@ class StatsViewController(ViewController):
 	###############################
 
 	def compute_stats(self, data):
-		df = data.groupby('c').agg(['min','mean','max']).compute()
+		df = data.groupby('c').agg(['mean','sum']).compute()
 		df = pd.DataFrame({"{}.{}".format(i,j):df[i][j] for i,j in df.columns})
 		return df
