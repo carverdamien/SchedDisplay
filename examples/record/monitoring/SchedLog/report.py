@@ -22,6 +22,37 @@ def main():
         np.savez_compressed(fname, **{k:v})
     shutil.rmtree(i_path)
 
+def parallel(iter_args, sem_value=cpu_count()):
+    def wrap(func):
+        def f():
+            sem = Semaphore(sem_value)
+            def target(*args):
+                sem.acquire()
+                func(*args)
+                sem.release()
+            def spawn(*args):
+                t = Thread(target=target, args=args)
+                t.start()
+                return t
+            threads = [spawn(*args) for args in iter_args]
+            for t in threads:
+                t.join()
+        return f
+    return wrap
+
+def parallel_compute_nxt_blk_wkp_of_same_pid(dd):
+    nxt = np.array(dd['timestamp'])
+    idx = np.arange(len(nxt))
+    pid = np.unique(dd['pid'])
+    sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
+    @parallel(itertools.product(pid))
+    def per_pid(p):
+        sel_pid = dd['pid'] == p
+        sel = sel_evt & sel_pid
+        nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+    per_pid()
+    return nxt
+
 def nxt_of_same_evt_on_same_cpu(dd, key):
     dd_event = np.array(dd['event'])
     dd_cpu = np.array(dd['cpu'])
@@ -151,6 +182,7 @@ def load_tracer_raw(path):
     df.index = np.arange(len(df))
     comm = compute_dfcomm(df)
     df['nxt_timestamp_of_same_evt_on_same_cpu'] = nxt_of_same_evt_on_same_cpu(df, 'timestamp')
+    df['nxt_blk_wkp_of_same_pid'] = parallel_compute_nxt_blk_wkp_of_same_pid(df)
     return df, comm
 
 def load_tracer_raw_per_cpu(path):
