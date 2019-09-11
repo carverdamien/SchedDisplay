@@ -1,6 +1,6 @@
 {
 	"input"  : ["timestamp","event","pid", "nxt_blk_wkp_of_same_pid"],
-	"output" : ["x0","y0","x1","y1","c"],
+	"output" : ["x0","y0","x1","y1","c","delta"],
 	"c" : [
 		{
 			"label" : "WAKEUP",
@@ -9,6 +9,7 @@
 				["query","event==2"],
 				["=","x0","timestamp"],
 				["=","x1","timestamp"],
+				["=","delta",["-","x1","x0"]],
 				["=","y0",["+","pid",0.0]],
 				["=","y1",["+","pid",0.5]]
 			]]
@@ -20,6 +21,7 @@
 				["query","event==4"],
 				["=","x0","timestamp"],
 				["=","x1","timestamp"],
+				["=","delta",["-","x1","x0"]],
 				["=","y0",["+","pid",0.0]],
 				["=","y1",["+","pid",0.5]]
 			]]
@@ -31,6 +33,7 @@
 				["query","event==2"],
 				["=","x0","timestamp"],
 				["=","x1","nxt_blk_wkp_of_same_pid"],
+				["=","delta",["-","x1","x0"]],
 				["=","y0",["+","pid",0.0]],
 				["=","y1",["+","pid",0.0]]
 			]]
@@ -42,6 +45,7 @@
 				["query","event==4"],
 				["=","x0","timestamp"],
 				["=","x1","nxt_blk_wkp_of_same_pid"],
+				["=","delta",["-","x1","x0"]],
 				["=","y0",["+","pid",0.0]],
 				["=","y1",["+","pid",0.0]]
 			]]
