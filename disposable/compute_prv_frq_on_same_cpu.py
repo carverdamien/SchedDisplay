@@ -44,30 +44,35 @@ def parallel(iter_args, sem_value=cpu_count()):
 	return wrap
 
 def parallel_compute(dd):
-	# return sequential_compute(dd)
-	nxt = np.array(dd['timestamp'])
-	idx = np.arange(len(nxt))
-	pid = np.unique(dd['pid'])
-	sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
-	@parallel(itertools.product(pid))
-	def per_pid(p):
-		sel_pid = dd['pid'] == p
-		sel = sel_evt & sel_pid
-		nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
-	per_pid()
-	return nxt
+	return sequential_compute(dd)
+	# nxt = np.array(dd['timestamp'])
+	# idx = np.arange(len(nxt))
+	# pid = np.unique(dd['pid'])
+	# sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
+	# @parallel(itertools.product(pid))
+	# def per_pid(p):
+		# sel_pid = dd['pid'] == p
+		# sel = sel_evt & sel_pid
+		# nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+	# per_pid()
+	# return nxt
 
 def sequential_compute(dd):
-	nxt = np.array(dd['timestamp'])
-	idx = np.arange(len(nxt))
-	pid = np.unique(dd['pid'])
-	sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
-	def per_pid(p):
-		sel_pid = dd['pid'] == p
-		sel = sel_evt & sel_pid
-		nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
-	for p in pid:
-		per_pid(p)
+	sel_evt = dd['event'] == TICK
+	N = len(dd['arg1'])
+	nxt = np.empty(N)
+	nxt[:] = np.NaN
+	nxt[sel_evt] = dd['arg1'][sel_evt]
+	idx = np.arange(N)
+	cpu = np.unique(dd['cpu'])
+	def per_cpu(c):
+		sel = dd['cpu'] == c
+		nan = np.isnan(nxt[sel])
+		inxt = np.where(~nan, idx[sel], 0)
+		np.maximum.accumulate(inxt, out=inxt)
+		nxt[sel] = nxt[inxt]
+	for c in cpu:
+		per_cpu(c)
 	return nxt
 
 def dummy_data():
@@ -81,6 +86,11 @@ def dummy_data():
 	]
 	N = len(event)
 	arg1 = [np.NaN if event[i] != TICK else i for i in range(N)]
+	# return {
+	# 	'cpu'       : np.array([0]*N),
+	# 	'event'     : np.array(event),
+	# 	'arg1'      : np.array(arg1)
+	# }
 	return {
 		'cpu'       : np.array([0]*N+[1]*N),
 		'event'     : np.array(event+event),
@@ -96,7 +106,7 @@ def main():
 	dd = dummy_data()
 	# assert np.sum(np.diff(dd['timestamp'])<0) == 0
 	# dd = dummy_data()
-	# dd[NAME] = parallel_compute(dd)
+	dd[NAME] = parallel_compute(dd)
 	#dd['diff'] = dd[NAME] - dd['timestamp']
 	import pandas as pd
 	pddd = pd.DataFrame(dd)
