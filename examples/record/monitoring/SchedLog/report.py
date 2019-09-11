@@ -53,6 +53,24 @@ def parallel_compute_nxt_blk_wkp_of_same_pid(dd):
     per_pid()
     return nxt
 
+def parallel_compute_prv_frq_on_same_cpu(dd):
+    sel_evt = dd['event'] == TICK
+    N = len(dd['arg1'])
+    nxt = np.empty(N)
+    nxt[:] = np.NaN
+    nxt[sel_evt] = dd['arg1'][sel_evt]
+    idx = np.arange(N)
+    cpu = np.unique(dd['cpu'])
+    @parallel(itertools.product(cpu))
+    def per_cpu(c):
+        sel = dd['cpu'] == c
+        nan = np.isnan(nxt[sel])
+        inxt = np.where(~nan, idx[sel], 0)
+        np.maximum.accumulate(inxt, out=inxt)
+        nxt[sel] = nxt[inxt]
+    per_cpu()
+    return nxt
+
 def nxt_of_same_evt_on_same_cpu(dd, key):
     dd_event = np.array(dd['event'])
     dd_cpu = np.array(dd['cpu'])
@@ -183,6 +201,7 @@ def load_tracer_raw(path):
     comm = compute_dfcomm(df)
     df['nxt_timestamp_of_same_evt_on_same_cpu'] = nxt_of_same_evt_on_same_cpu(df, 'timestamp')
     df['nxt_blk_wkp_of_same_pid'] = parallel_compute_nxt_blk_wkp_of_same_pid(df)
+    df['prv_frq_on_same_cpu'] = parallel_compute_prv_frq_on_same_cpu(df)
     return df, comm
 
 def load_tracer_raw_per_cpu(path):
