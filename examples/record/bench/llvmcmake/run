@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e -u
+(
+	cd /tmp/llvmcmake
+	exec cmake ${src} > ${OUTPUT}/run.out 2> ${OUTPUT}/run.err
+)

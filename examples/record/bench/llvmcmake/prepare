@@ -1,0 +1,10 @@
+#!/bin/bash
+mkdir /tmp/llvmcmake
+src=/tmp/llvm
+
+if ! [ -f ${src} ]
+then
+    git clone --depth=1 https://github.com/llvm-mirror/llvm ${src}
+fi
+
+dmesg -C
