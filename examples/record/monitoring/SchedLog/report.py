@@ -7,6 +7,9 @@ from multiprocessing import cpu_count
 from tqdm import tqdm
 
 EXEC_EVT = 0
+BLOCK_EVT = 4
+WAKEUP_EVT = 2
+TICK_EVT = 10
 
 def main():
     _, i_path = sys.argv
@@ -44,7 +47,7 @@ def parallel_compute_nxt_blk_wkp_of_same_pid(dd):
     nxt = np.array(dd['timestamp'])
     idx = np.arange(len(nxt))
     pid = np.unique(dd['pid'])
-    sel_evt = (dd['event'] == BLOCK) | (dd['event']==WAKEUP)
+    sel_evt = (dd['event'] == BLOCK_EVT) | (dd['event']==WAKEUP_EVT)
     @parallel(itertools.product(pid))
     def per_pid(p):
         sel_pid = dd['pid'] == p
@@ -54,7 +57,7 @@ def parallel_compute_nxt_blk_wkp_of_same_pid(dd):
     return nxt
 
 def parallel_compute_prv_frq_on_same_cpu(dd):
-    sel_evt = dd['event'] == TICK
+    sel_evt = dd['event'] == TICK_EVT
     N = len(dd['arg1'])
     nxt = np.empty(N)
     nxt[:] = np.NaN
