@@ -1,0 +1,28 @@
+{
+        "input"  : ["timestamp","event","nxt_blk_wkp_of_same_pid"],
+        "output" : ["x","y","c"],
+        "c" : [
+                {
+                        "label" : "WAKEUP",
+                        "color" : "#00ff00",
+                        "hide_hovertool" : true,
+                        "concatenate" : [[
+                                ["query","event==2"],
+                                ["=","x",["-","nxt_blk_wkp_of_same_pid","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK",
+                        "color" : "#ff0000",
+                        "hide_hovertool" : true,
+                        "concatenate" : [[
+                                ["query","event==4"],
+                                ["=","x",["-","nxt_blk_wkp_of_same_pid","timestamp"]],
+                                ["=","y",["argsort","x"]],
+                                ["=","y",["argsort","y"]]
+                        ]]
+                }
+        ]
+}
