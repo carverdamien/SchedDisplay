@@ -1,0 +1,4 @@
+#!/bin/bash
+# rm -rf ${tar}
+# rm -rf ${bench_dir}
+

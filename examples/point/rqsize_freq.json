@@ -1,0 +1,90 @@
+{
+        "input"  : ["timestamp","event","arg0","nxt_timestamp_of_same_evt_on_same_cpu", "prv_frq_on_same_cpu"],
+        "output" : ["x","y","c","delta","prv_frq_on_same_cpu"],
+        "c" : [
+                {
+                        "label" : "Time Interval (RQ_SIZE >= 1)",
+                        "color" : "#000000",
+                        "hide_hovertool" : false,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>=1"],
+                                ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["query","delta <= 1000000000"],
+                                ["=","y",["argsort","delta"]],
+                                ["=","y",["argsort","y"]],
+                                ["=","x","delta"]
+                        ]]
+                },
+                {
+                        "label" : "[0.0, 1.2] GHz",
+                        "color" : "#8cd0f5",
+                        "hide_hovertool" : false,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>=1"],
+                                ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["query","delta <= 1000000000"],
+                                ["=","y",["argsort","delta"]],
+                                ["=","y",["argsort","y"]],
+                                ["=","x","prv_frq_on_same_cpu"],
+                                ["query","x<1200000.0"]
+                        ]]
+                },
+                {
+                        "label" : "[1.2, 1.7] GHz",
+                        "color" : "#8ded6d",
+                        "hide_hovertool" : false,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>=1"],
+                                ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["query","delta <= 1000000000"],
+                                ["=","y",["argsort","delta"]],
+                                ["=","y",["argsort","y"]],
+                                ["=","x","prv_frq_on_same_cpu"],
+                                ["query","x>=1200000.0 & x<1700000.0"]
+                        ]]
+                },
+                {
+                        "label" : "[1.7, 2.1] GHz",
+                        "color" : "#d6ed6d",
+                        "hide_hovertool" : false,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>=1"],
+                                ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["query","delta <= 1000000000"],
+                                ["=","y",["argsort","delta"]],
+                                ["=","y",["argsort","y"]],
+                                ["=","x","prv_frq_on_same_cpu"],
+                                ["query","x>=1700000.0 & x<2100000.0"]
+                        ]]
+                },
+                {
+                        "label" : "[2.1, 2.6] GHz",
+                        "color" : "#e03030",
+                        "hide_hovertool" : false,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>=1"],
+                                ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["query","delta <= 1000000000"],
+                                ["=","y",["argsort","delta"]],
+                                ["=","y",["argsort","y"]],
+                                ["=","x","prv_frq_on_same_cpu"],
+                                ["query","x>=2100000.0 & x<2600000.0"]
+                        ]]
+                },
+                {
+                        "label" : "[2.6, inf] GHz",
+                        "color" : "#f00000",
+                        "hide_hovertool" : false,
+                        "concatenate" : [[
+                                ["query","event==13 & arg0>=1"],
+                                ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
+                                ["query","delta <= 1000000000"],
+                                ["=","y",["argsort","delta"]],
+                                ["=","y",["argsort","y"]],
+                                ["=","x","prv_frq_on_same_cpu"],
+                                ["query","x>=2600000.0"]
+                        ]]
+                }
+                
+        ]
+}

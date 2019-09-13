@@ -2,4 +2,19 @@
 set -e -u
 prog="${1}"
 shift
-exec unshare -pf --mount-proc -- "${prog}" "${@}"
+
+# Cleanup
+if [[ -d ./rootproc ]]
+then
+	if mount | grep -q $(realpath ./rootproc )
+	then
+		umount ./rootproc
+	fi
+	rmdir ./rootproc
+fi
+
+# Prepare
+mkdir ./rootproc
+mount --bind /proc ./rootproc
+
+exec unshare -mpf --mount-proc -- "${prog}" "${@}"

@@ -1,22 +1,28 @@
 #!/bin/bash
 sched_monitor_start() {
-	for f in /proc/{schedstat,sched_debug,stat}
-		do
-    		cp ${f} ${OUTPUT}/$(basename ${f}).start
-		done
-	sched_monitor start idle sched fair ipanema tracer || true
-	sched_monitor reset idle sched fair ipanema tracer || true
+    mount --bind ./rootproc /proc
+    ps -eLfwc > ${OUTPUT}/ps.start
+    umount /proc
+    for f in /proc/{schedstat,sched_debug,stat}
+    do
+	cp ${f} ${OUTPUT}/$(basename ${f}).start
+    done
+    sched_monitor start idle sched fair ipanema tracer || true
+    sched_monitor reset idle sched fair ipanema tracer || true
 }
 sched_monitor_stop() {
-        sched_monitor stop idle sched fair ipanema tracer || true
-        sched_monitor dump ${OUTPUT}/sched_monitor idle sched fair ipanema tracer-raw || true
-        for f in /proc/{schedstat,sched_debug,stat}
-        do
-            cp ${f} ${OUTPUT}/$(basename ${f}).stop
-        done
+    sched_monitor stop idle sched fair ipanema tracer || true
+    sched_monitor dump ${OUTPUT}/sched_monitor idle sched fair ipanema tracer-raw || true
+    for f in /proc/{schedstat,sched_debug,stat}
+    do
+        cp ${f} ${OUTPUT}/$(basename ${f}).stop
+    done
+    mount --bind ./rootproc /proc
+    ps -eLfwc > ${OUTPUT}/ps.stop
+    umount /proc
 }
 case ${MONITORING_SCHEDULED} in
-	n) sched_monitor_start ;;
-	y) (sleep ${MONITORING_START_DELAY}; sched_monitor_start; sleep ${MONITORING_STOP_DELAY}; sched_monitor_stop) & ;;
-        *) exit 1 ;;
+    n) sched_monitor_start ;;
+    y) (sleep ${MONITORING_START_DELAY}; sched_monitor_start; sleep ${MONITORING_STOP_DELAY}; sched_monitor_stop) & ;;
+    *) exit 1 ;;
 esac

@@ -1,0 +1,5 @@
+base_dir=/tmp
+tar=${base_dir}/NPB3.4.tar.gz
+bench_dir=${base_dir}/NPB3.4/NPB3.4-OMP/
+exe=${bench_dir}/bin/${BENCH_NAME}.${BENCH_CLASS}.x
+
