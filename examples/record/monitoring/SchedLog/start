@@ -3,7 +3,7 @@ sched_monitor_start() {
     mount --bind ./rootproc /proc
     ps -eLfwc > ${OUTPUT}/ps.start
     umount /proc
-    for f in /proc/{schedstat,sched_debug,stat}
+    for f in /proc/{schedstat,sched_debug,sched_monitor_events}
     do
 	cp ${f} ${OUTPUT}/$(basename ${f}).start
     done
