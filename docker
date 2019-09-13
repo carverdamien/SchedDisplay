@@ -2,4 +2,4 @@
 set -e -x
 img=scheddisplay
 docker build -t ${img} .
-docker run --rm -e BOKEH_ALLOW_WS_ORIGIN=${BOKEH_ALLOW_WS_ORIGIN} -v ${PWD}/examples:/home/server/examples -p 5006:5006 ${img}
+docker run --rm -e BOKEH_ALLOW_WS_ORIGIN=${BOKEH_ALLOW_WS_ORIGIN:=localhost:5006} -v ${PWD}/examples:/home/server/examples -p 5006:5006 ${img}
