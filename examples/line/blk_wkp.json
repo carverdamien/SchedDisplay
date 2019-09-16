@@ -6,7 +6,7 @@
 			"label" : "WAKEUP",
 			"color" : "#4daf4a",
 			"concatenate" : [[
-				["query","event==2"],
+				["query","event == $WAKEUP"],
 				["=","x0","timestamp"],
 				["=","x1","timestamp"],
 				["=","delta",["-","x1","x0"]],
@@ -18,7 +18,7 @@
 			"label" : "BLOCK",
 			"color" : "#ff7f00",
 			"concatenate" : [[
-				["query","event==4"],
+				["query","event == $BLOCK"],
 				["=","x0","timestamp"],
 				["=","x1","timestamp"],
 				["=","delta",["-","x1","x0"]],
@@ -30,7 +30,7 @@
 			"label" : "WAKEUP",
 			"color" : "#4daf4a",
 			"concatenate" : [[
-				["query","event==2"],
+				["query","event == $WAKEUP"],
 				["=","x0","timestamp"],
 				["=","x1","nxt_blk_wkp_of_same_pid"],
 				["=","delta",["-","x1","x0"]],
@@ -42,7 +42,7 @@
 			"label" : "BLOCK",
 			"color" : "#ff7f00",
 			"concatenate" : [[
-				["query","event==4"],
+				["query","event == $BLOCK"],
 				["=","x0","timestamp"],
 				["=","x1","nxt_blk_wkp_of_same_pid"],
 				["=","delta",["-","x1","x0"]],

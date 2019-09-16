@@ -6,7 +6,7 @@
                         "label" : "WAKEUP",
                         "color" : "#4daf4a",
                         "concatenate" : [[
-                                ["query","event==2"],
+                                ["query","event == $WAKEUP"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -17,7 +17,7 @@
                         "label" : "BLOCK",
                         "color" : "#ff7f00",
                         "concatenate" : [[
-                                ["query","event==4"],
+                                ["query","event == $BLOCK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -28,7 +28,7 @@
                         "label" : "BLOCK_IO",
                         "color" : "#ffff33",
                         "concatenate" : [[
-                                ["query","event==5"],
+                                ["query","event == $BLOCK_IO"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -40,7 +40,7 @@
                         "color" : "#444444",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13 & arg0==1"],
+                                ["query","event == $RQ_SIZE & arg0==0"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -52,7 +52,7 @@
                         "color" : "#ff0000",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>1"],
+                                ["query","event == $RQ_SIZE & arg0>1"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -63,7 +63,7 @@
                         "label" : "RQ_SIZE",
                         "color" : "#444444",
                         "concatenate" : [[
-                                ["query","event==13"],
+                                ["query","event == $RQ_SIZE"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -74,7 +74,7 @@
                         "label" : "[0.0, 1.2] GHz",
                         "color" : "#8cd0f5",
                         "concatenate" : [[
-                                ["query","event==10 & arg1<=1200000"],
+                                ["query","event == $TICK_EVT & arg1<=1200000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -85,7 +85,7 @@
                         "label" : "[1.2, 1.7] GHz",
                         "color" : "#8ded6d",
                         "concatenate" : [[
-                                ["query","event==10 & arg1>1200000 & arg1<=1700000"],
+                                ["query","event == $TICK_EVT & arg1>1200000 & arg1<=1700000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -96,7 +96,7 @@
                         "label" : "[1.7, 2.1] GHz",
                         "color" : "#d6ed6d",
                         "concatenate" : [[
-                                ["query","event==10 & arg1>1700000 & arg1<=2100000"],
+                                ["query","event == $TICK_EVT & arg1>1700000 & arg1<=2100000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -107,7 +107,7 @@
                         "label" : "[2.1, 2.6] GHz",
                         "color" : "#e03030",
                         "concatenate" : [[
-                                ["query","event==10 & arg1>2100000 & arg1<=2600000"],
+                                ["query","event == $TICK_EVT & arg1>2100000 & arg1<=2600000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -118,7 +118,7 @@
                         "label" : "[2.6, inf] GHz",
                         "color" : "#f00000",
                         "concatenate" : [[
-                                ["query","event==10 & arg1>2600000"],
+                                ["query","event == $TICK_EVT & arg1>2600000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],

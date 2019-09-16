@@ -7,7 +7,7 @@
                         "color" : "#00ff00",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13 & arg0==1"],
+                                ["query","event == $RQ_SIZE & arg0==1"],
                                 ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]
@@ -18,7 +18,7 @@
                         "color" : "#ff0000",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>1"],
+                                ["query","event == $RQ_SIZE & arg0>1"],
                                 ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]
@@ -29,7 +29,7 @@
                         "color" : "#000000",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13 & arg0==0"],
+                                ["query","event == $RQ_SIZE & arg0==0"],
                                 ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]
@@ -40,7 +40,7 @@
                         "color" : "#000000",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>0"],
+                                ["query","event == $RQ_SIZE & arg0>0"],
                                 ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]
@@ -51,7 +51,7 @@
                         "color" : "#0000ff",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13"],
+                                ["query","event == $RQ_SIZE"],
                                 ["=","x",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]

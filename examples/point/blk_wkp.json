@@ -7,7 +7,7 @@
                         "color" : "#00ff00",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==2"],
+                                ["query","event == $WAKEUP"],
                                 ["=","x",["-","nxt_blk_wkp_of_same_pid","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]
@@ -18,7 +18,7 @@
                         "color" : "#ff0000",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==4"],
+                                ["query","event == $BLOCK"],
                                 ["=","x",["-","nxt_blk_wkp_of_same_pid","timestamp"]],
                                 ["=","y",["argsort","x"]],
                                 ["=","y",["argsort","y"]]
