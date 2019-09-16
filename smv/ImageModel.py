@@ -18,6 +18,7 @@ class ImageModel(object):
 	"""docstring for ImageModel"""
 	def __init__(self, **kwargs):
 		super(ImageModel, self).__init__()
+		self.query_parser = kwargs.get('query_parser', lambda x:x)
 		self.category = kwargs.get('category',[{'label':'c0','color':'#000000','len':1},{'label':'c1','color':'#ffffff','len':1}])
 		data = kwargs.get('data', self.generate_empty_data())
 		self.data = dask.dataframe.from_pandas(data, npartitions=cpu_count()) 
@@ -46,7 +47,7 @@ class ImageModel(object):
 		self.callback_apply_query.append(callback)
 
 	def apply_query(self, query):
-		self.query = query
+		self.query = self.query_parser(query)
 		self.result = self.data
 		if self.query.strip() != '':
 			try:

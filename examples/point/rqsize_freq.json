@@ -7,7 +7,7 @@
                         "color" : "#000000",
                         "hide_hovertool" : false,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>=1"],
+                                ["query","event == $RQ_SIZE & arg0>=1"],
                                 ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["query","delta <= 1000000000"],
                                 ["=","y",["argsort","delta"]],
@@ -20,7 +20,7 @@
                         "color" : "#8cd0f5",
                         "hide_hovertool" : false,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>=1"],
+                                ["query","event == $RQ_SIZE & arg0>=1"],
                                 ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["query","delta <= 1000000000"],
                                 ["=","y",["argsort","delta"]],
@@ -34,7 +34,7 @@
                         "color" : "#8ded6d",
                         "hide_hovertool" : false,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>=1"],
+                                ["query","event == $RQ_SIZE & arg0>=1"],
                                 ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["query","delta <= 1000000000"],
                                 ["=","y",["argsort","delta"]],
@@ -48,7 +48,7 @@
                         "color" : "#d6ed6d",
                         "hide_hovertool" : false,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>=1"],
+                                ["query","event == $RQ_SIZE & arg0>=1"],
                                 ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["query","delta <= 1000000000"],
                                 ["=","y",["argsort","delta"]],
@@ -62,7 +62,7 @@
                         "color" : "#e03030",
                         "hide_hovertool" : false,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>=1"],
+                                ["query","event == $RQ_SIZE & arg0>=1"],
                                 ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["query","delta <= 1000000000"],
                                 ["=","y",["argsort","delta"]],
@@ -76,7 +76,7 @@
                         "color" : "#f00000",
                         "hide_hovertool" : false,
                         "concatenate" : [[
-                                ["query","event==13 & arg0>=1"],
+                                ["query","event == $RQ_SIZE & arg0>=1"],
                                 ["=","delta",["-","nxt_timestamp_of_same_evt_on_same_cpu","timestamp"]],
                                 ["query","delta <= 1000000000"],
                                 ["=","y",["argsort","delta"]],

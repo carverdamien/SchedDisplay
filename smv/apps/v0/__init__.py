@@ -6,6 +6,8 @@ from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.StatsViewController import StatsViewController
 from smv.ImageModel import PointImageModel, SegmentImageModel
+from smv.VarsViewController import VarsViewController
+import smv.Vars as Vars
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import json, os, traceback
@@ -37,6 +39,7 @@ def modify_doc(doc):
 		return LinesFrame.from_df(df, config, log)
 	load_cache = SelectFileViewController('./examples/cache','.json',doc=doc, log=log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
+	var = VarsViewController(doc=doc, log=log)
 	load_line_config = LoadFileViewController('./examples/line','.json',doc=doc, log=log)
 	load_point_config = LoadFileViewController('./examples/point','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc, log=log)
@@ -44,6 +47,7 @@ def modify_doc(doc):
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
+		Panel(child=var.view, title='Var'),
 		Panel(child=load_line_config.view,  title='Plot lines'),
 		Panel(child=load_point_config.view,  title='Plot points'),
 		#Panel(child=load_cache.view,  title='Cache'),
@@ -90,6 +94,7 @@ def modify_doc(doc):
 	@logFunctionCall(log)
 	def on_selected_trace(path):
 		state['path'] = path
+		var.update_vars(**Vars.from_tar(path))
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_line_config(io):
@@ -97,13 +102,17 @@ def modify_doc(doc):
 		line_config = io.read()
 		log('line_config:{}'.format(line_config))
 		try:
-			state['line_config'] = json.loads(line_config)
+			state['line_config'] = var.parse(json.loads(line_config))
 			if 'df' not in state:
 				df = pd.DataFrame(DataDict.from_tar(state['path'], state['line_config']['input']))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['lines'] = LinesFrame_from_df(state['df'], state['line_config'])
-			model = SegmentImageModel(data=state['lines'],category=state['line_config']['c'])
+			model = SegmentImageModel(
+				query_parser=var.parse,
+				data=state['lines'],
+				category=state['line_config']['c'],
+			)
 			nr_lines = len(np.unique(state['lines']['y0']))
 			state['height'] = (nr_lines+2)*px_height
 			def customize_ranges(ranges):
@@ -135,13 +144,17 @@ def modify_doc(doc):
 		point_config = io.read()
 		log('point_config:{}'.format(point_config))
 		try:
-			state['point_config'] = json.loads(point_config)
+			state['point_config'] = var.parse(json.loads(point_config))
 			if 'df' not in state:
 				df = pd.DataFrame(DataDict.from_tar(state['path'], state['point_config']['input']))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])
-			model = PointImageModel(data=state['points'],category=state['point_config']['c'])
+			model = PointImageModel(
+				query_parser=var.parse,
+				data=state['points'],
+				category=state['point_config']['c'],
+			)
 			# state['height'] = 600
 			# state['height'] = (len(np.unique(state['points']['y']))+2)*px_height
 			# state['height'] = int(state['points']['y'].max() - state['points']['y'].min())

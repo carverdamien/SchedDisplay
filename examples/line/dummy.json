@@ -6,7 +6,7 @@
                         "label" : "EXEC_EVT",
                         "color" : "#e41a1c",
                         "concatenate" : [[
-                                ["query","event==0"],
+                                ["query","event == $EXEC_EVT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -17,7 +17,7 @@
                         "label" : "EXIT_EVT",
                         "color" : "#377eb8",
                         "concatenate" : [[
-                                ["query","event==1"],
+                                ["query","event == $EXIT_EVT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -28,7 +28,7 @@
                         "label" : "WAKEUP",
                         "color" : "#4daf4a",
                         "concatenate" : [[
-                                ["query","event==2"],
+                                ["query","event == $WAKEUP"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -39,7 +39,7 @@
                         "label" : "WAKEUP_NEW",
                         "color" : "#984ea3",
                         "concatenate" : [[
-                                ["query","event==3"],
+                                ["query","event == $WAKEUP_NEW"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -50,7 +50,7 @@
                         "label" : "BLOCK",
                         "color" : "#ff7f00",
                         "concatenate" : [[
-                                ["query","event==4"],
+                                ["query","event == $BLOCK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -61,7 +61,7 @@
                         "label" : "BLOCK_IO",
                         "color" : "#ffff33",
                         "concatenate" : [[
-                                ["query","event==5"],
+                                ["query","event == $BLOCK_IO"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -72,7 +72,7 @@
                         "label" : "BLOCK_LOCK",
                         "color" : "#a65628",
                         "concatenate" : [[
-                                ["query","event==6"],
+                                ["query","event == $BLOCK_LOCK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -83,7 +83,7 @@
                         "label" : "WAKEUP_LOCK",
                         "color" : "#f781bf",
                         "concatenate" : [[
-                                ["query","event==7"],
+                                ["query","event == $WAKEUP_LOCK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -94,7 +94,7 @@
                         "label" : "WAKER_LOCK",
                         "color" : "#999999",
                         "concatenate" : [[
-                                ["query","event==8"],
+                                ["query","event == $WAKER_LOCK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -105,7 +105,7 @@
                         "label" : "FORK_EVT",
                         "color" : "#66c2a5",
                         "concatenate" : [[
-                                ["query","event==9"],
+                                ["query","event == $FORK_EVT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -116,7 +116,7 @@
                         "label" : "TICK_EVT",
                         "color" : "#fc8d62",
                         "concatenate" : [[
-                                ["query","event==10"],
+                                ["query","event == $TICK_EVT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -127,7 +127,7 @@
                         "label" : "CTX_SWITCH",
                         "color" : "#8da0cb",
                         "concatenate" : [[
-                                ["query","event==11"],
+                                ["query","event == $CTX_SWITCH"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -138,7 +138,7 @@
                         "label" : "MIGRATE_EVT",
                         "color" : "#a6d854",
                         "concatenate" : [[
-                                ["query","event==12"],
+                                ["query","event == $MIGRATE_EVT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -149,7 +149,7 @@
                         "label" : "RQ_SIZE",
                         "color" : "#ffd92f",
                         "concatenate" : [[
-                                ["query","event==13"],
+                                ["query","event == $RQ_SIZE"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -160,7 +160,7 @@
                         "label" : "IDLE_BALANCE_BEG",
                         "color" : "#e5c494",
                         "concatenate" : [[
-                                ["query","event==14"],
+                                ["query","event == $IDLE_BALANCE_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -171,7 +171,7 @@
                         "label" : "IDLE_BALANCE_END",
                         "color" : "#ffffb3",
                         "concatenate" : [[
-                                ["query","event==15"],
+                                ["query","event == $IDLE_BALANCE_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -182,7 +182,7 @@
                         "label" : "PERIODIC_BALANCE_BEG",
                         "color" : "#fb8072",
                         "concatenate" : [[
-                                ["query","event==16"],
+                                ["query","event == $PERIODIC_BALANCE_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -193,7 +193,7 @@
                         "label" : "PERIODIC_BALANCE_END",
                         "color" : "#fdb462",
                         "concatenate" : [[
-                                ["query","event==17"],
+                                ["query","event == $PERIODIC_BALANCE_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
