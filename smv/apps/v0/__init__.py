@@ -7,6 +7,7 @@ from smv.FigureViewController import FigureViewController
 from smv.StatsViewController import StatsViewController
 from smv.ImageModel import PointImageModel, SegmentImageModel
 from smv.VarsViewController import VarsViewController
+from smv.Vars import Vars
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import json, os, traceback
@@ -93,6 +94,7 @@ def modify_doc(doc):
 	@logFunctionCall(log)
 	def on_selected_trace(path):
 		state['path'] = path
+		var.update_vars(Vars.from_tar(path))
 	load_trace.on_selected(on_selected_trace)
 	@logFunctionCall(log)
 	def on_loaded_line_config(io):
