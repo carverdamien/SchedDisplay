@@ -86,7 +86,7 @@ class VarsViewController(ViewController):
 			return
 		def target(**kwargs):
 			try:
-				self.vars.update(kwargs['vars'])
+				self.vars.update(kwargs)
 				df = self.compute_df(self.vars)
 				self.update_source(df)
 				self.update_div()
