@@ -105,6 +105,21 @@ do
     done
 done
 
+#################################################
+# Running llvm cmake
+#################################################
+
+BENCH=bench/llvmcmake
+MONITORING_SCHEDULED=n
+IPANEMA_MODULE=
+for KERNEL in ${KERNELS}
+do
+    for MONITORING in ${MONITORINGS}
+    do
+	OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${KERNEL}"
+	run_bench
+    done
+done
 
 #################################################
 # Running NAS
