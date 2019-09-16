@@ -124,8 +124,8 @@ done
 #################################################
 # Running NAS
 #################################################
-BENCH_NAMES=(	bt cg dc ep ft is lu mg sp sp ua ua )
-BENCH_CLASSES=( B  C  A  C  C  D  B  D  A  B  B  C )
+BENCH_NAMES=(	bt cg dc ep ft    lu mg sp sp ua ua ) # is
+BENCH_CLASSES=( B  C  A  C  C     B  D  A  B  B  C )  # D
 MONITORING_SCHEDULED=n
 IPANEMA_MODULE=
 export BENCH_NAME=
