@@ -77,6 +77,7 @@ do
 	do
 	    for TASKS in 80 160 320
 	    do
+		break
 		OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/IPANEMA=$(basename ${IPANEMA_MODULE})/${TASKS}-${KERNEL}"
 		run_bench
 	    done
@@ -145,6 +146,7 @@ do
         do
             for TASKS in 80 160
             do
+                break
                 BENCH_NAME=${BENCH_NAMES[$I]}
                 BENCH_CLASS=${BENCH_CLASSES[$I]}
                 BENCH=bench/nas
