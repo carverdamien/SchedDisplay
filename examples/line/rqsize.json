@@ -6,7 +6,7 @@
                         "label" : "RQ_SIZE",
                         "color" : "#000000",
                         "concatenate" : [[
-                                ["query","event==13"],
+                                ["query","event == $RQ_SIZE"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","delta",["-","x1","x0"]],
@@ -18,7 +18,7 @@
                         "label" : "RQ_SIZE == 1",
                         "color" : "#00ff00",
                         "concatenate" : [[
-                                ["query","event==13 & arg0==1"],
+                                ["query","event == $RQ_SIZE & arg0==1"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
                                 ["=","delta",["-","x1","x0"]],
@@ -30,7 +30,7 @@
                         "label" : "RQ_SIZE > 1",
                         "color" : "#ff0000",
                         "concatenate" : [[
-                                ["query","event==13 & arg0>1"],
+                                ["query","event == $RQ_SIZE & arg0>1"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
                                 ["=","delta",["-","x1","x0"]],
@@ -39,10 +39,10 @@
                         ]]
                 },
                 {
-                        "label" : "RQ_SIZE == 0",
+                        "label" : "RQ_SIZE==0",
                         "color" : "#000000",
                         "concatenate" : [[
-                                ["query","event==13 & arg0==0"],
+                                ["query","event == $RQ_SIZE & arg0==0"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
                                 ["=","delta",["-","x1","x0"]],
@@ -55,7 +55,7 @@
                         "color" : "#0000ff",
                         "hide_hovertool" : true,
                         "concatenate" : [[
-                                ["query","event==13"],
+                                ["query","event == $RQ_SIZE"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
                                 ["=","delta",["-","x1","x0"]],
