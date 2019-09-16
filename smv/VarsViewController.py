@@ -68,10 +68,10 @@ class VarsViewController(ViewController):
 	def parse(self, o):
 		if isinstance(o, dict):
 			for k in o:
-				o[k] = parse(o[k])
+				o[k] = self.parse(o[k])
 		elif isinstance(o, list):
 			for i in range(len(o)):
-				o[i] = parse(o[i])
+				o[i] = self.parse(o[i])
 		elif isinstance(o, str):
 			t = string.Template(o)
 			o = t.substitute(**self.vars)
