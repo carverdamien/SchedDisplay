@@ -22,6 +22,7 @@ class StatsViewController(ViewController):
 			source=self.source,
 			sizing_mode='stretch_both',
 			width_policy='max',
+			selectable=True,
 		)
 		self.div = Div(
 			visible=True,
