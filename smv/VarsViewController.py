@@ -57,6 +57,8 @@ class VarsViewController(ViewController):
 			sizing_mode='stretch_both',
 		)
 		super(VarsViewController, self).__init__(view, **kwargs)
+		self.update_source(self.compute_df(self.vars))
+		self.update_div()
 
 
 	##########################

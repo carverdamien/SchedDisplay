@@ -6,6 +6,7 @@ from smv.SelectFileViewController import SelectFileViewController
 from smv.FigureViewController import FigureViewController
 from smv.StatsViewController import StatsViewController
 from smv.ImageModel import PointImageModel, SegmentImageModel
+from smv.VarsViewController import VarsViewController
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
 import smv.ConfigFile as ConfigFile
@@ -38,6 +39,7 @@ def modify_doc(doc):
 		return LinesFrame.from_df(df, config, log)
 	load_cache = SelectFileViewController('./examples/cache','.json',doc=doc, log=log)
 	load_trace = SelectFileViewController('./examples/trace','.tar',doc=doc, log=log)
+	var = VarsViewController(doc=doc, log=log)
 	load_line_config = LoadFileViewController('./examples/line','.json',doc=doc, log=log)
 	load_point_config = LoadFileViewController('./examples/point','.json',doc=doc, log=log)
 	figure = FigureViewController(doc=doc, log=log)
@@ -45,6 +47,7 @@ def modify_doc(doc):
 	# figure.table = DataTable(source=figure.source)
 	tab = Tabs(tabs=[
 		Panel(child=load_trace.view, title='Select TAR'),
+		Panel(child=var.view, title='Var'),
 		Panel(child=load_line_config.view,  title='Plot lines'),
 		Panel(child=load_point_config.view,  title='Plot points'),
 		#Panel(child=load_cache.view,  title='Cache'),
