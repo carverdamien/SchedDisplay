@@ -7,6 +7,28 @@ from bokeh.models.glyphs import Segment
 from bokeh.models.markers import X as Marker
 from multiprocessing import cpu_count
 from bokeh.models import ColumnDataSource
+from string import Template
+
+QUERY_SUBSTITUTE = {
+	'EXEC_EVT'    : '0',
+	'EXIT_EVT'    : '1',
+	'WAKEUP'      : '2',
+	'WAKEUP_NEW'  : '3',
+	'BLOCK'       : '4',
+	'BLOCK_IO'    : '5',
+	'BLOCK_LOCK'  : '6',
+	'WAKEUP_LOCK' : '7',
+	'WAKER_LOCK'  : '8',
+	'FORK_EVT'    : '9',
+	'TICK_EVT'    : '10',
+	'CTX_SWITCH'  : '11',
+	'MIGRATE_EVT' : '12',
+	'RQ_SIZE'     : '13',
+	'IDLE_BALANCE_BEG' : '14',
+	'IDLE_BALANCE_END' : '15',
+	'PERIODIC_BALANCE_BEG' : '16',
+	'PERIODIC_BALANCE_END' : '17',
+}
 
 class AbstractImageModel(Exception):
 	pass
@@ -22,6 +44,7 @@ class ImageModel(object):
 		data = kwargs.get('data', self.generate_empty_data())
 		self.data = dask.dataframe.from_pandas(data, npartitions=cpu_count()) 
 		self.query = ''
+		self.query_substitute = kwargs.get('query_substitute', QUERY_SUBSTITUTE)
 		self.result = kwargs.get('result', self.data)
 		self.log = kwargs.get('log', print)
 		self.color_key =  [c['color'] for c in self.category if c['len'] > 0]
@@ -46,7 +69,7 @@ class ImageModel(object):
 		self.callback_apply_query.append(callback)
 
 	def apply_query(self, query):
-		self.query = query
+		self.query = Template(query).substitute(**self.query_substitute)
 		self.result = self.data
 		if self.query.strip() != '':
 			try:
