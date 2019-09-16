@@ -5,7 +5,7 @@ sched_monitor_start() {
     umount /proc
     for f in /proc/{schedstat,sched_debug,sched_monitor_events}
     do
-	cp ${f} ${OUTPUT}/$(basename ${f}).start
+	cp ${f} ${OUTPUT}/$(basename ${f}).start || [ $f = /proc/sched_monitor_events ]
     done
     sched_monitor start idle sched fair ipanema tracer || true
     sched_monitor reset idle sched fair ipanema tracer || true
@@ -15,7 +15,7 @@ sched_monitor_stop() {
     sched_monitor dump ${OUTPUT}/sched_monitor idle sched fair ipanema tracer-raw || true
     for f in /proc/{schedstat,sched_debug,stat}
     do
-        cp ${f} ${OUTPUT}/$(basename ${f}).stop
+        cp ${f} ${OUTPUT}/$(basename ${f}).stop || [ $f = /proc/sched_monitor_events ]
     done
     mount --bind ./rootproc /proc
     ps -eLfwc > ${OUTPUT}/ps.stop
