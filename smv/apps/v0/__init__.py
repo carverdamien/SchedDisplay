@@ -8,6 +8,7 @@ from smv.StatsViewController import StatsViewController
 from smv.ImageModel import PointImageModel, SegmentImageModel
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
+import smv.ConfigFile as ConfigFile
 import json, os, traceback
 import pandas as pd
 import numpy as np
@@ -97,7 +98,7 @@ def modify_doc(doc):
 		line_config = io.read()
 		log('line_config:{}'.format(line_config))
 		try:
-			state['line_config'] = json.loads(line_config)
+			state['line_config'] = ConfigFile.loads(line_config)
 			if 'df' not in state:
 				df = pd.DataFrame(DataDict.from_tar(state['path'], state['line_config']['input']))
 				log('{} records in trace'.format(len(df)))
@@ -135,7 +136,7 @@ def modify_doc(doc):
 		point_config = io.read()
 		log('point_config:{}'.format(point_config))
 		try:
-			state['point_config'] = json.loads(point_config)
+			state['point_config'] = ConfigFile.loads(point_config)
 			if 'df' not in state:
 				df = pd.DataFrame(DataDict.from_tar(state['path'], state['point_config']['input']))
 				log('{} records in trace'.format(len(df)))
