@@ -23,7 +23,7 @@ function kexec_reboot {
     esac
     CMDLINE="BOOT_IMAGE=${BOOT_IMAGE} ${APPEND}"
     CURRENT_CMDLINE="$(cat /proc/cmdline)"
-    if [ ${CMDLINE} != ${CURRENT_CMDLINE} ]
+    if [ "${CMDLINE}" != "${CURRENT_CMDLINE}" ]
     then
 	echo "${CMDLINE}" > kexec_reboot.attempt
 	kexec -l "${BOOT_IMAGE}" --append="${APPEND}" --initrd="${INITRD}"
@@ -32,7 +32,7 @@ function kexec_reboot {
 	# sleep inf # debug
 	kexec -e
     else
-	if [ -f kexec_reboot.attempt ] && [ $(cat kexec_reboot.attempt) != ${CMDLINE} ]
+	if [ -f kexec_reboot.attempt ] && [ "$(cat kexec_reboot.attempt)" != "${CMDLINE}" ]
 	then
 	    echo 'Help me'
 	    sleep inf
