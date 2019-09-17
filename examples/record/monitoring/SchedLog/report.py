@@ -6,7 +6,7 @@ from threading import Thread, Semaphore
 from multiprocessing import cpu_count
 from tqdm import tqdm
 
-EXEC_EVT = 0
+EXEC = 0
 BLOCK_EVT = 4
 WAKEUP_EVT = 2
 TICK_EVT = 10
@@ -137,7 +137,7 @@ def compute_dfcomm(df):
     df_timestamp = np.array(df['timestamp'])
     df_event = np.array(df['event'])
     df_comm = np.zeros(len(df), dtype=int)
-    sel_exec_evt = df_event == EXEC_EVT
+    sel_exec_evt = df_event == EXEC
     addr_2_comm = compute_addr_2_comm(df, sel_exec_evt)
     print(addr_2_comm)
     addr_2_comm_id, comm = compute_addr_2_comm_id(addr_2_comm)

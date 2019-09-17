@@ -3,10 +3,10 @@
         "output" : ["x0","y0","x1","y1","c"],
         "c" : [
                 {
-                        "label" : "EXEC_EVT",
+                        "label" : "EXEC",
                         "color" : "#e41a1c",
                         "concatenate" : [[
-                                ["query","event == $EXEC_EVT"],
+                                ["query","event == $EXEC"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],

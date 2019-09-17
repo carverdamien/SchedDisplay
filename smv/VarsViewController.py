@@ -12,7 +12,7 @@ import traceback
 import string
 
 DEFAULT_VARS = {
-	'EXEC_EVT'    : '0',
+	'EXEC'    : '0',
 	'EXIT_EVT'    : '1',
 	'WAKEUP'      : '2',
 	'WAKEUP_NEW'  : '3',
