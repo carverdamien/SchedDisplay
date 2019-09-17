@@ -190,10 +190,10 @@
                         ]]
                 },
                 {
-                        "label" : "PERIODIC_BALANCE_END",
+                        "label" : "PER_BLN_FAIR_END",
                         "color" : "#fdb462",
                         "concatenate" : [[
-                                ["query","event == $PERIODIC_BALANCE_END"],
+                                ["query","event == $PER_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],

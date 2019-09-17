@@ -29,7 +29,7 @@ DEFAULT_VARS = {
 	'IDL_BLN_FAIR_BEG' : '14',
 	'IDL_BLN_FAIR_END' : '15',
 	'PERIODIC_BALANCE_BEG' : '16',
-	'PERIODIC_BALANCE_END' : '17',
+	'PER_BLN_FAIR_END' : '17',
 }
 
 class VarsViewController(ViewController):
