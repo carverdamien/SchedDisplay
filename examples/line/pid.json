@@ -3,10 +3,10 @@
         "output" : ["x0","y0","x1","y1","c"],
         "c" : [
                 {
-                        "label" : "EXEC_EVT",
+                        "label" : "EXEC",
                         "color" : "#e41a1c",
                         "concatenate" : [[
-                                ["query","event == $EXEC_EVT"],
+                                ["query","event == $EXEC"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -14,10 +14,10 @@
                         ]]
                 },
                 {
-                        "label" : "EXIT_EVT",
+                        "label" : "EXIT",
                         "color" : "#377eb8",
                         "concatenate" : [[
-                                ["query","event == $EXIT_EVT"],
+                                ["query","event == $EXIT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -69,10 +69,10 @@
                         ]]
                 },
                 {
-                        "label" : "BLOCK_LOCK",
+                        "label" : "WAIT_FUTEX",
                         "color" : "#a65628",
                         "concatenate" : [[
-                                ["query","event == $BLOCK_LOCK"],
+                                ["query","event == $WAIT_FUTEX"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -80,10 +80,10 @@
                         ]]
                 },
                 {
-                        "label" : "WAKEUP_LOCK",
+                        "label" : "WAKE_FUTEX",
                         "color" : "#f781bf",
                         "concatenate" : [[
-                                ["query","event == $WAKEUP_LOCK"],
+                                ["query","event == $WAKE_FUTEX"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -91,10 +91,10 @@
                         ]]
                 },
                 {
-                        "label" : "WAKER_LOCK",
+                        "label" : "WAKER_FUTEX",
                         "color" : "#999999",
                         "concatenate" : [[
-                                ["query","event == $WAKER_LOCK"],
+                                ["query","event == $WAKER_FUTEX"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -102,10 +102,10 @@
                         ]]
                 },
                 {
-                        "label" : "FORK_EVT",
+                        "label" : "FORK",
                         "color" : "#66c2a5",
                         "concatenate" : [[
-                                ["query","event == $FORK_EVT"],
+                                ["query","event == $FORK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -113,10 +113,10 @@
                         ]]
                 },
                 {
-                        "label" : "TICK_EVT",
+                        "label" : "TICK",
                         "color" : "#fc8d62",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT"],
+                                ["query","event == $TICK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -135,10 +135,10 @@
                         ]]
                 },
                 {
-                        "label" : "MIGRATE_EVT",
+                        "label" : "MIGRATE",
                         "color" : "#a6d854",
                         "concatenate" : [[
-                                ["query","event == $MIGRATE_EVT"],
+                                ["query","event == $MIGRATE"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -157,10 +157,10 @@
                         ]]
                 },
                 {
-                        "label" : "IDLE_BALANCE_BEG",
+                        "label" : "IDL_BLN_FAIR_BEG",
                         "color" : "#e5c494",
                         "concatenate" : [[
-                                ["query","event == $IDLE_BALANCE_BEG"],
+                                ["query","event == $IDL_BLN_FAIR_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -168,10 +168,10 @@
                         ]]
                 },
                 {
-                        "label" : "IDLE_BALANCE_END",
+                        "label" : "IDL_BLN_FAIR_END",
                         "color" : "#ffffb3",
                         "concatenate" : [[
-                                ["query","event == $IDLE_BALANCE_END"],
+                                ["query","event == $IDL_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -179,10 +179,10 @@
                         ]]
                 },
                 {
-                        "label" : "PERIODIC_BALANCE_BEG",
+                        "label" : "PER_BLN_FAIR_BEG",
                         "color" : "#fb8072",
                         "concatenate" : [[
-                                ["query","event == $PERIODIC_BALANCE_BEG"],
+                                ["query","event == $PER_BLN_FAIR_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
@@ -190,10 +190,10 @@
                         ]]
                 },
                 {
-                        "label" : "PERIODIC_BALANCE_END",
+                        "label" : "PER_BLN_FAIR_END",
                         "color" : "#fdb462",
                         "concatenate" : [[
-                                ["query","event == $PERIODIC_BALANCE_END"],
+                                ["query","event == $PER_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],

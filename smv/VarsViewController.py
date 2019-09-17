@@ -12,24 +12,24 @@ import traceback
 import string
 
 DEFAULT_VARS = {
-	'EXEC_EVT'    : '0',
-	'EXIT_EVT'    : '1',
+	'EXEC'    : '0',
+	'EXIT'    : '1',
 	'WAKEUP'      : '2',
 	'WAKEUP_NEW'  : '3',
 	'BLOCK'       : '4',
 	'BLOCK_IO'    : '5',
-	'BLOCK_LOCK'  : '6',
-	'WAKEUP_LOCK' : '7',
-	'WAKER_LOCK'  : '8',
-	'FORK_EVT'    : '9',
-	'TICK_EVT'    : '10',
+	'WAIT_FUTEX'  : '6',
+	'WAKE_FUTEX' : '7',
+	'WAKER_FUTEX'  : '8',
+	'FORK'    : '9',
+	'TICK'    : '10',
 	'CTX_SWITCH'  : '11',
-	'MIGRATE_EVT' : '12',
+	'MIGRATE' : '12',
 	'RQ_SIZE'     : '13',
-	'IDLE_BALANCE_BEG' : '14',
-	'IDLE_BALANCE_END' : '15',
-	'PERIODIC_BALANCE_BEG' : '16',
-	'PERIODIC_BALANCE_END' : '17',
+	'IDL_BLN_FAIR_BEG' : '14',
+	'IDL_BLN_FAIR_END' : '15',
+	'PER_BLN_FAIR_BEG' : '16',
+	'PER_BLN_FAIR_END' : '17',
 }
 
 class VarsViewController(ViewController):

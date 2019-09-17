@@ -6,10 +6,10 @@ from threading import Thread, Semaphore
 from multiprocessing import cpu_count
 from tqdm import tqdm
 
-EXEC_EVT = 0
+EXEC = 0
 BLOCK_EVT = 4
 WAKEUP_EVT = 2
-TICK_EVT = 10
+TICK = 10
 
 def main():
     _, i_path = sys.argv
@@ -57,7 +57,7 @@ def parallel_compute_nxt_blk_wkp_of_same_pid(dd):
     return nxt
 
 def parallel_compute_prv_frq_on_same_cpu(dd):
-    sel_evt = dd['event'] == TICK_EVT
+    sel_evt = dd['event'] == TICK
     N = len(dd['arg1'])
     nxt = np.empty(N)
     nxt[:] = np.NaN
@@ -137,7 +137,7 @@ def compute_dfcomm(df):
     df_timestamp = np.array(df['timestamp'])
     df_event = np.array(df['event'])
     df_comm = np.zeros(len(df), dtype=int)
-    sel_exec_evt = df_event == EXEC_EVT
+    sel_exec_evt = df_event == EXEC
     addr_2_comm = compute_addr_2_comm(df, sel_exec_evt)
     print(addr_2_comm)
     addr_2_comm_id, comm = compute_addr_2_comm_id(addr_2_comm)
