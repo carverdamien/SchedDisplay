@@ -113,10 +113,10 @@
                         ]]
                 },
                 {
-                        "label" : "TICK_EVT",
+                        "label" : "TICK",
                         "color" : "#fc8d62",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT"],
+                                ["query","event == $TICK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],

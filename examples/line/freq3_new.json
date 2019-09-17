@@ -74,7 +74,7 @@
                         "label" : "[0.0, 1.2] GHz",
                         "color" : "#8cd0f5",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT & arg1<=1200000"],
+                                ["query","event == $TICK & arg1<=1200000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -85,7 +85,7 @@
                         "label" : "[1.2, 1.7] GHz",
                         "color" : "#8ded6d",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT & arg1>1200000 & arg1<=1700000"],
+                                ["query","event == $TICK & arg1>1200000 & arg1<=1700000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -96,7 +96,7 @@
                         "label" : "[1.7, 2.1] GHz",
                         "color" : "#d6ed6d",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT & arg1>1700000 & arg1<=2100000"],
+                                ["query","event == $TICK & arg1>1700000 & arg1<=2100000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -107,7 +107,7 @@
                         "label" : "[2.1, 2.6] GHz",
                         "color" : "#e03030",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT & arg1>2100000 & arg1<=2600000"],
+                                ["query","event == $TICK & arg1>2100000 & arg1<=2600000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -118,7 +118,7 @@
                         "label" : "[2.6, inf] GHz",
                         "color" : "#f00000",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT & arg1>2600000"],
+                                ["query","event == $TICK & arg1>2600000"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],

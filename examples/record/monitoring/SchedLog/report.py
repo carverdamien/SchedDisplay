@@ -9,7 +9,7 @@ from tqdm import tqdm
 EXEC = 0
 BLOCK_EVT = 4
 WAKEUP_EVT = 2
-TICK_EVT = 10
+TICK = 10
 
 def main():
     _, i_path = sys.argv
@@ -57,7 +57,7 @@ def parallel_compute_nxt_blk_wkp_of_same_pid(dd):
     return nxt
 
 def parallel_compute_prv_frq_on_same_cpu(dd):
-    sel_evt = dd['event'] == TICK_EVT
+    sel_evt = dd['event'] == TICK
     N = len(dd['arg1'])
     nxt = np.empty(N)
     nxt[:] = np.NaN

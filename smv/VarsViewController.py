@@ -22,7 +22,7 @@ DEFAULT_VARS = {
 	'WAKEUP_LOCK' : '7',
 	'WAKER_LOCK'  : '8',
 	'FORK'    : '9',
-	'TICK_EVT'    : '10',
+	'TICK'    : '10',
 	'CTX_SWITCH'  : '11',
 	'MIGRATE_EVT' : '12',
 	'RQ_SIZE'     : '13',
