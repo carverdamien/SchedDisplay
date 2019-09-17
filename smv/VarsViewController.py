@@ -24,7 +24,7 @@ DEFAULT_VARS = {
 	'FORK'    : '9',
 	'TICK'    : '10',
 	'CTX_SWITCH'  : '11',
-	'MIGRATE_EVT' : '12',
+	'MIGRATE' : '12',
 	'RQ_SIZE'     : '13',
 	'IDLE_BALANCE_BEG' : '14',
 	'IDLE_BALANCE_END' : '15',

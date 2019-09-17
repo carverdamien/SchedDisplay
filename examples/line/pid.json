@@ -135,10 +135,10 @@
                         ]]
                 },
                 {
-                        "label" : "MIGRATE_EVT",
+                        "label" : "MIGRATE",
                         "color" : "#a6d854",
                         "concatenate" : [[
-                                ["query","event == $MIGRATE_EVT"],
+                                ["query","event == $MIGRATE"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
