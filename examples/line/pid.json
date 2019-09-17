@@ -157,10 +157,10 @@
                         ]]
                 },
                 {
-                        "label" : "IDLE_BALANCE_BEG",
+                        "label" : "IDL_BLN_FAIR_BEG",
                         "color" : "#e5c494",
                         "concatenate" : [[
-                                ["query","event == $IDLE_BALANCE_BEG"],
+                                ["query","event == $IDL_BLN_FAIR_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
