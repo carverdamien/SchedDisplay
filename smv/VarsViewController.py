@@ -13,7 +13,7 @@ import string
 
 DEFAULT_VARS = {
 	'EXEC'    : '0',
-	'EXIT_EVT'    : '1',
+	'EXIT'    : '1',
 	'WAKEUP'      : '2',
 	'WAKEUP_NEW'  : '3',
 	'BLOCK'       : '4',

@@ -14,10 +14,10 @@
                         ]]
                 },
                 {
-                        "label" : "EXIT_EVT",
+                        "label" : "EXIT",
                         "color" : "#377eb8",
                         "concatenate" : [[
-                                ["query","event == $EXIT_EVT"],
+                                ["query","event == $EXIT"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
