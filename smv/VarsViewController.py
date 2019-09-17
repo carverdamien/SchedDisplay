@@ -21,7 +21,7 @@ DEFAULT_VARS = {
 	'BLOCK_LOCK'  : '6',
 	'WAKEUP_LOCK' : '7',
 	'WAKER_LOCK'  : '8',
-	'FORK_EVT'    : '9',
+	'FORK'    : '9',
 	'TICK_EVT'    : '10',
 	'CTX_SWITCH'  : '11',
 	'MIGRATE_EVT' : '12',

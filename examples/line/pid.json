@@ -102,10 +102,10 @@
                         ]]
                 },
                 {
-                        "label" : "FORK_EVT",
+                        "label" : "FORK",
                         "color" : "#66c2a5",
                         "concatenate" : [[
-                                ["query","event == $FORK_EVT"],
+                                ["query","event == $FORK"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],
