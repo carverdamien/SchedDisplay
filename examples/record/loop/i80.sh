@@ -2,21 +2,37 @@
 
 set -x -e -u
 
+[ $HOSTNAME = i80 ]
+
 function kexec_reboot {
-    if [[ ${KERNEL} != $(uname -r) ]]
+    BOOT_IMAGE="/boot/vmlinuz-${KERNEL}"
+    INITRD="/boot/initrd.img-${KERNEL}"
+    [ -f "${BOOT_IMAGE}" ]
+    [ -f "${INITRD}" ]
+    case ${SLEEP_STATE} in
+	'y')
+	    APPEND='root=UUID=754fa6b1-bb34-449a-9b95-41897013bded ro quiet'
+	    ;;
+	'n')
+	    APPEND='root=UUID=754fa6b1-bb34-449a-9b95-41897013bded ro quiet processor.max_cstate=1 intel_idle.max_cstate=0'
+	    ;;
+	*)
+	    echo 'SLEEP_STATE must be [y,n]'
+	    exit 1
+	    ;;
+    esac
+    CMDLINE="BOOT_IMAGE=${BOOT_IMAGE} ${APPEND}"
+    CURRENT_CMDLINE="$(cat /proc/cmdline)"
+    if [ ${CMDLINE} != ${CURRENT_CMDLINE} ]
     then
-	VMLINUZ="/boot/vmlinuz-${KERNEL}"
-	INITRD="/boot/initrd.img-${KERNEL}"
-	[ -f "${VMLINUZ}" ]
-	[ -f "${INITRD}" ]
-	echo "${KERNEL}" > kexec_reboot.attempt
-	kexec -l "${VMLINUZ}" --append="$( cat /proc/cmdline )" --initrd="${INITRD}"
+	echo "${CMDLINE}" > kexec_reboot.attempt
+	kexec -l "${BOOT_IMAGE}" --append="${APPEND}" --initrd="${INITRD}"
 	rm -f "./loop/${KERNEL}.lock"
 	sync
 	# sleep inf # debug
 	kexec -e
     else
-	if [[ -f kexec_reboot.attempt ]] && [[ $(cat kexec_reboot.attempt) != ${KERNEL} ]]
+	if [ -f kexec_reboot.attempt ] && [ $(cat kexec_reboot.attempt) != ${CMDLINE} ]
 	then
 	    echo 'Help me'
 	    sleep inf
@@ -43,8 +59,10 @@ export MONITORING_START_DELAY=60
 export MONITORING_STOP_DELAY=10
 export MONITORING TASKS OUTPUT KERNEL
 export IPANEMA_MODULE=
+SLEEP_STATE=y
 NO_TURBO=0
-SCALING_GOVERNOR='powersave' # or performance
+SCALING_GOVERNORS='powersave performance'
+SCALING_GOVERNOR='powersave'
 
 DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
 # Before setting DEFAULT_KERNEL=4.19.0-linux-4.19-ipanema-g0e4249a3eec1,
