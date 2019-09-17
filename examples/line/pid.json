@@ -69,10 +69,10 @@
                         ]]
                 },
                 {
-                        "label" : "BLOCK_LOCK",
+                        "label" : "WAIT_FUTEX",
                         "color" : "#a65628",
                         "concatenate" : [[
-                                ["query","event == $BLOCK_LOCK"],
+                                ["query","event == $WAIT_FUTEX"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],

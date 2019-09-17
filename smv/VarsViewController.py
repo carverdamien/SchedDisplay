@@ -18,7 +18,7 @@ DEFAULT_VARS = {
 	'WAKEUP_NEW'  : '3',
 	'BLOCK'       : '4',
 	'BLOCK_IO'    : '5',
-	'BLOCK_LOCK'  : '6',
+	'WAIT_FUTEX'  : '6',
 	'WAKEUP_LOCK' : '7',
 	'WAKER_LOCK'  : '8',
 	'FORK'    : '9',
