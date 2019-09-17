@@ -9,18 +9,21 @@ from threading import Lock, Thread
 import numpy as np
 import parse
 
+__NP_COLUMNS__ = []
 __COLUMNS__ = []
 
-def column():
+def column(is_np_column=True):
 	def decorator(function):
 		def f(*args, **kwargs):
 			return function(*args, **kwargs)
 		f.__name__ = function.__name__
 		__COLUMNS__.append(f)
+		if is_np_column:
+			__NP_COLUMNS__.append(f)
 		return f
 	return decorator
 
-def parsable_column(basename, pattern):
+def parsable_column(basename, pattern, is_np_column=True):
 	def decorator(function):
 		def f(*args, **kwargs):
 			index = args[0]
@@ -38,17 +41,23 @@ def parsable_column(basename, pattern):
 			return function(*args, **kwargs)
 		f.__name__ = function.__name__
 		__COLUMNS__.append(f)
+		if is_np_column:
+			__NP_COLUMNS__.append(f)
 		return f
 	return decorator
 
-@column()
-def fname(index):
+@column(is_np_column=False)
+def fname(*args, **kwargs):
+	index = args[0]
 	# import time
 	# time.sleep(1) # simulate slow work
 	return index
 
 def modify_doc(doc):
-	source = ColumnDataSource({c.__name__:np.array([]) for c in __COLUMNS__})
+	source = ColumnDataSource({
+		c.__name__ : (np.array([]) if c in __NP_COLUMNS__ else [])
+		for c in __COLUMNS__
+	})
 	table = DataTable(
 		source=source,
 		columns=[TableColumn(field=c.__name__, title=c.__name__) for c in __COLUMNS__],
@@ -62,7 +71,11 @@ def modify_doc(doc):
 	def target():
 		try:
 			for index in sorted(list(find_files('examples/trace','.tar'))):
-				row = {c.__name__:np.array([c(index)]) for c in __COLUMNS__}
+				# row = {c.__name__:np.array([c(index)]) for c in __COLUMNS__}
+				row = {
+					c.__name__: (np.array([c(index)]) if c in __NP_COLUMNS__ else [c(index)])
+					for c in __COLUMNS__
+				}
 				doc.add_next_tick_callback(partial(coroutine, row))
 		except Exception as e:
 			print(e)
@@ -80,9 +93,41 @@ def find_files(directory, ext):
 				yield path
 
 @parsable_column('time.err','{pattern:F}')
-def time(index):
+def usr_bin_time(index):
 	return np.NaN
 
 @parsable_column('run.out','{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)')
-def transactions(index):
+def sysbench_trps(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu0_package_joules={pattern:F}')
+def cpu0_package_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu1_package_joules={pattern:F}')
+def cpu1_package_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu2_package_joules={pattern:F}')
+def cpu2_package_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu3_package_joules={pattern:F}')
+def cpu3_package_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu0_dram_joules={pattern:F}')
+def cpu0_dram_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu1_dram_joules={pattern:F}')
+def cpu1_dram_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu2_dram_joules={pattern:F}')
+def cpu2_dram_joules(index):
+	return np.NaN
+
+@parsable_column('cpu-energy-meter.out','cpu3_dram_joules={pattern:F}')
+def cpu3_dram_joules(index):
 	return np.NaN
