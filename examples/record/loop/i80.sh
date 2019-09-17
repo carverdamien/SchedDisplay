@@ -26,7 +26,8 @@ function kexec_reboot {
     if [ "${CMDLINE}" != "${CURRENT_CMDLINE}" ]
     then
 	echo "${CMDLINE}" > kexec_reboot.attempt
-	kexec -l "${BOOT_IMAGE}" --append="${APPEND}" --initrd="${INITRD}"
+	# kexec -l "${BOOT_IMAGE}" --append="${APPEND}" --initrd="${INITRD}"
+	kexec -l "${BOOT_IMAGE}" --command-line="${CMDLINE}" --initrd="${INITRD}"
 	rm -f "./loop/${KERNEL}.lock"
 	sync
 	# sleep inf # debug
