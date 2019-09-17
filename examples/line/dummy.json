@@ -80,10 +80,10 @@
                         ]]
                 },
                 {
-                        "label" : "WAKEUP_LOCK",
+                        "label" : "WAKE_FUTEX",
                         "color" : "#f781bf",
                         "concatenate" : [[
-                                ["query","event == $WAKEUP_LOCK"],
+                                ["query","event == $WAKE_FUTEX"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
