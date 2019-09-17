@@ -20,7 +20,7 @@ DEFAULT_VARS = {
 	'BLOCK_IO'    : '5',
 	'WAIT_FUTEX'  : '6',
 	'WAKE_FUTEX' : '7',
-	'WAKER_LOCK'  : '8',
+	'WAKER_FUTEX'  : '8',
 	'FORK'    : '9',
 	'TICK'    : '10',
 	'CTX_SWITCH'  : '11',
