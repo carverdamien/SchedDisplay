@@ -10,14 +10,38 @@ import numpy as np
 import parse
 
 __COLUMNS__ = []
-def column(function):
-	def f(*args, **kwargs):
-		return function(*args, **kwargs)
-	f.__name__ = function.__name__
-	__COLUMNS__.append(f)
-	return f
 
-@column
+def column():
+	def decorator(function):
+		def f(*args, **kwargs):
+			return function(*args, **kwargs)
+		f.__name__ = function.__name__
+		__COLUMNS__.append(f)
+		return f
+	return decorator
+
+def parsable_column(basename, pattern):
+	def decorator(function):
+		def f(*args, **kwargs):
+			index = args[0]
+			with tarfile.open(index, 'r') as tar:
+				for tarinfo in tar:
+					if os.path.basename(tarinfo.name) != basename:
+						continue
+					with tar.extractfile(tarinfo.name) as f:
+						re = parse.compile(pattern)
+						for line in f.read().decode().split('\n'):
+							r = re.parse(line)
+							if r is not None:
+								return r.named['pattern']
+					break
+			return function(*args, **kwargs)
+		f.__name__ = function.__name__
+		__COLUMNS__.append(f)
+		return f
+	return decorator
+
+@column()
 def fname(index):
 	# import time
 	# time.sleep(1) # simulate slow work
@@ -55,17 +79,10 @@ def find_files(directory, ext):
 			if ext == os.path.splitext(name)[1]:
 				yield path
 
-@column
+@parsable_column('time.err','{pattern:F}')
 def time(index):
-	with tarfile.open(index, 'r') as tar:
-		for tarinfo in tar:
-			if os.path.basename(tarinfo.name) != 'time.err':
-				continue
-			with tar.extractfile(tarinfo.name) as f:
-				re = parse.compile("{time:F}")
-				for line in f.read().decode().split('\n'):
-					r = re.parse(line)
-					if r is not None:
-						return r.named['time']
-			break
+	return np.NaN
+
+@parsable_column('run.out','{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)')
+def transactions(index):
 	return np.NaN
