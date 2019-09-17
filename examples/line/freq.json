@@ -168,10 +168,10 @@
                         ]]
                 },
                 {
-                        "label" : "IDLE_BALANCE_END",
+                        "label" : "IDL_BLN_FAIR_END",
                         "color" : "#ffffb3",
                         "concatenate" : [[
-                                ["query","event == $IDLE_BALANCE_END"],
+                                ["query","event == $IDL_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
