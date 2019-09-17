@@ -73,38 +73,56 @@ MONITORINGS="monitoring/all monitoring/cpu-energy-meter monitoring/nop"
 #################################################
 # Running mysql OLTP
 #################################################
-for KERNEL in ${KERNELS}
+SLP=(y         n          )
+GOV=(powersave performance)
+for I in ${!SLP[@]}
 do
-    for MONITORING in ${MONITORINGS}
-    do
-	for TASKS in 80 160 320
-	do
-	    OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
-	    run_bench
-	done
-    done
-done
-
-# exit 0
-
-# IPANEMA
-for KERNEL in ${DEFAULT_KERNEL}
-do
-    PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
-    for IPANEMA_MODULE in cfs_wwc ule_wwc
+    SLEEP_STATE=${SLP[$I]}
+    SCALING_GOVERNOR=${GOV[$I]}
+    for KERNEL in ${KERNELS}
     do
 	for MONITORING in ${MONITORINGS}
 	do
 	    for TASKS in 80 160 320
 	    do
-		break
-		OUTPUT="output/BENCH=$(basename ${BENCH})/MONITORING=$(basename ${MONITORING})/IPANEMA=$(basename ${IPANEMA_MODULE})/${TASKS}-${KERNEL}"
+		OUTPUT="output/"
+		OUTPUT+="BENCH=$(basename ${BENCH})/"
+		OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+		OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+		OUTPUT+="${TASKS}-${KERNEL}"
 		run_bench
 	    done
 	done
     done
 done
 
+# IPANEMA
+for I in ${!SLP[@]}
+do
+    SLEEP_STATE=${SLP[$I]}
+    SCALING_GOVERNOR=${GOV[$I]}
+    for KERNEL in ${DEFAULT_KERNEL}
+    do
+	PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
+	for IPANEMA_MODULE in cfs_wwc ule_wwc
+	do
+	    for MONITORING in ${MONITORINGS}
+	    do
+		for TASKS in 80 160 320
+		do
+		    break
+		    OUTPUT="output/"
+		    OUTPUT+="BENCH=$(basename ${BENCH})/"
+		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+		    OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
+		    OUTPUT+="${TASKS}-${KERNEL}"
+		    run_bench
+		done
+	    done
+	done
+    done
+done
 
 #################################################
 # Running kbuild sched
@@ -113,6 +131,8 @@ BENCH=bench/kbuild
 export TARGET=kernel/sched/
 MONITORING_SCHEDULED=n
 IPANEMA_MODULE=
+SLEEP_STATE=y
+SCALING_GOVERNOR=powersave
 for KERNEL in ${KERNELS}
 do
     for MONITORING in ${MONITORINGS}
