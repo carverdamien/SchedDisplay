@@ -179,10 +179,10 @@
                         ]]
                 },
                 {
-                        "label" : "PERIODIC_BALANCE_BEG",
+                        "label" : "PER_BLN_FAIR_BEG",
                         "color" : "#fb8072",
                         "concatenate" : [[
-                                ["query","event == $PERIODIC_BALANCE_BEG"],
+                                ["query","event == $PER_BLN_FAIR_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","pid",0.0]],

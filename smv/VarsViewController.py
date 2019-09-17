@@ -28,7 +28,7 @@ DEFAULT_VARS = {
 	'RQ_SIZE'     : '13',
 	'IDL_BLN_FAIR_BEG' : '14',
 	'IDL_BLN_FAIR_END' : '15',
-	'PERIODIC_BALANCE_BEG' : '16',
+	'PER_BLN_FAIR_BEG' : '16',
 	'PER_BLN_FAIR_END' : '17',
 }
 
