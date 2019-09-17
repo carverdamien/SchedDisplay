@@ -8,7 +8,7 @@ def logginglog(*args):
 
 class ViewController(object):
 	"""docstring for ViewController"""
-	def __init__(self, view, doc, log=None, **kwargs):
+	def __init__(self, view, doc=None, log=None, **kwargs):
 		super(ViewController, self).__init__()
 		self.view = view
 		self.doc = doc
