@@ -6,7 +6,7 @@
                         "label" : "Freq (GHz)",
                         "color" : "#000000",
                         "concatenate" : [[
-                                ["query","event == $TICK_EVT"],
+                                ["query","event == $TICK"],
                                 ["=","x","timestamp"],
                                 ["=","y","arg1"]
                         ]]
