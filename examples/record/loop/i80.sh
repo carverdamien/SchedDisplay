@@ -111,7 +111,6 @@ do
 	    do
 		for TASKS in 80 160 320
 		do
-		    break
 		    OUTPUT="output/"
 		    OUTPUT+="BENCH=$(basename ${BENCH})/"
 		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
