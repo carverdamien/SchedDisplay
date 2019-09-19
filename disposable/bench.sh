@@ -99,4 +99,19 @@ data/sched_monitor/tracer-raw/df/timestamp.npz loaded in 2.6019065380096436 s
       32.316895000 seconds user
       23.502669000 seconds sys
 
+amd48b-systeme:Wed Sep 18 18:36:43 CEST 2019
+/usr/local/lib/python3.7/site-packages/datashader/transfer_functions.py:21: FutureWarning: xarray subclass Image should explicitly define __slots__
+  class Image(xr.DataArray):
+data/sched_monitor/tracer-raw/df/event.npz loaded in 3.7294673919677734 s
+data/sched_monitor/tracer-raw/df/cpu.npz loaded in 4.310714483261108 s
+data/sched_monitor/tracer-raw/df/timestamp.npz loaded in 5.075737237930298 s
+
+ Performance counter stats for 'python3 ./disposable/bench.py':
+
+   422,875,628,149      cycles                                                      
+   103,802,666,365      instructions              #    0.25  insn per cycle                                            
+     3,162,277,809      cache-misses                                                
+
+      66.617749421 seconds time elapsed
+
 
