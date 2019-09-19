@@ -7,7 +7,7 @@ import time
 
 def from_tar(path, only=None):
 	dd = {}
-	with tarfile.open(path, 'r') as tar:
+	with tarfile.open(path, 'r:') as tar:
 		#
 		# TODO: write a pragma parallel decorator
 		#
@@ -20,7 +20,7 @@ def from_tar(path, only=None):
 				raise Exception('Exception: only must be None or list')
 		def target(tarinfo):
 			start = time.time()
-			with tarfile.open(path, 'r') as tar:
+			with tarfile.open(path, 'r:') as tar:
 				with tar.extractfile(tarinfo.name) as f:
 					npzfile = np.load(f)
 					dd.update({k:npzfile[k] for k in npzfile.files})
