@@ -29,7 +29,7 @@ class TracesModel(object):
 	def __init__(self, *args, **kwargs):
 		super(TracesModel, self).__init__()
 		self.directory = kwargs.get('directory', './examples/trace/')
-		self.cache = kwargs.get('cache', '/tmp/cache')
+		self.cache = kwargs.get('cache', './examples/cache/traces.parquet')
 		self.index = []
 		self.columns = []
 		self.df = pd.DataFrame({})
@@ -57,6 +57,10 @@ class TracesModel(object):
 		if not isinstance(c, Column):
 			raise Exception(f'{c} is not {Column}')
 		self.columns.append(c)
+
+	@lockfunc
+	def columns_name(self):
+		return [c.name for c in self.columns]
 
 	def _build_index(self):
 		self.index.clear()
