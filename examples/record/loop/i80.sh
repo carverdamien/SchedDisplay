@@ -87,22 +87,9 @@ do
     do
 	for KERNEL in ${KERNELS}
 	do
-	    # TODO: Migrate this first loop into the second in the weekend
 	    for MONITORING in ${MONITORINGS}
 	    do
-		for TASKS in 80 160 320
-		do
-		    OUTPUT="output/"
-		    OUTPUT+="BENCH=$(basename ${BENCH})/"
-		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
-		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
-		    OUTPUT+="${TASKS}-${KERNEL}"
-		    run_bench
-		done
-	    done
-	    for MONITORING in monitoring/cpu-energy-meter
-	    do
-		for TASKS in 80 160 320
+		for TASKS in 32 64 80 160 320
 		do
 		    OUTPUT="output/"
 		    OUTPUT+="BENCH=$(basename ${BENCH})/"
@@ -130,23 +117,9 @@ do
 	    PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
 	    for IPANEMA_MODULE in cfs_wwc ule_wwc
 	    do
-		# TODO: Migrate this first loop into the second in the weekend
 		for MONITORING in ${MONITORINGS}
 		do
-		    for TASKS in 80 160 320
-		    do
-			OUTPUT="output/"
-			OUTPUT+="BENCH=$(basename ${BENCH})/"
-			OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
-			OUTPUT+="MONITORING=$(basename ${MONITORING})/"
-			OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
-			OUTPUT+="${TASKS}-${KERNEL}"
-			run_bench
-		    done
-		done
-		for MONITORING in monitoring/cpu-energy-meter
-		do
-		    for TASKS in 80 160 320
+		    for TASKS in 32 64 80 160 320
 		    do
 			OUTPUT="output/"
 			OUTPUT+="BENCH=$(basename ${BENCH})/"
