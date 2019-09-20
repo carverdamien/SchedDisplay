@@ -76,22 +76,41 @@ MONITORINGS="monitoring/all monitoring/cpu-energy-meter monitoring/nop"
 #################################################
 SLP=(y         n          )
 GOV=(powersave performance)
+RPT=(1         5          )
 for I in ${!SLP[@]}
 do
     SLEEP_STATE=${SLP[$I]}
     SCALING_GOVERNOR=${GOV[$I]}
-    for KERNEL in ${KERNELS}
+    REPEAT=${RPT[$I]}
+    # Reboot between repeats
+    for N in $(seq ${REPEAT})
     do
-	for MONITORING in ${MONITORINGS}
+	for KERNEL in ${KERNELS}
 	do
-	    for TASKS in 80 160 320
+	    # TODO: Migrate this first loop into the second in the weekend
+	    for MONITORING in ${MONITORINGS}
 	    do
-		OUTPUT="output/"
-		OUTPUT+="BENCH=$(basename ${BENCH})/"
-		OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
-		OUTPUT+="MONITORING=$(basename ${MONITORING})/"
-		OUTPUT+="${TASKS}-${KERNEL}"
-		run_bench
+		for TASKS in 80 160 320
+		do
+		    OUTPUT="output/"
+		    OUTPUT+="BENCH=$(basename ${BENCH})/"
+		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+		    OUTPUT+="${TASKS}-${KERNEL}"
+		    run_bench
+		done
+	    done
+	    for MONITORING in monitoring/cpu-energy-meter
+	    do
+		for TASKS in 80 160 320
+		do
+		    OUTPUT="output/"
+		    OUTPUT+="BENCH=$(basename ${BENCH})/"
+		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+		    OUTPUT+="${TASKS}-${KERNEL}/${N}"
+		    run_bench
+		done
 	    done
 	done
     done
@@ -102,22 +121,41 @@ for I in ${!SLP[@]}
 do
     SLEEP_STATE=${SLP[$I]}
     SCALING_GOVERNOR=${GOV[$I]}
-    for KERNEL in ${DEFAULT_KERNEL}
+    REPEAT=${RPT[$I]}
+    # Reboot between repeats
+    for N in $(seq ${REPEAT})
     do
-	PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
-	for IPANEMA_MODULE in cfs_wwc ule_wwc
+	for KERNEL in ${DEFAULT_KERNEL}
 	do
-	    for MONITORING in ${MONITORINGS}
+	    PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
+	    for IPANEMA_MODULE in cfs_wwc ule_wwc
 	    do
-		for TASKS in 80 160 320
+		# TODO: Migrate this first loop into the second in the weekend
+		for MONITORING in ${MONITORINGS}
 		do
-		    OUTPUT="output/"
-		    OUTPUT+="BENCH=$(basename ${BENCH})/"
-		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
-		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
-		    OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
-		    OUTPUT+="${TASKS}-${KERNEL}"
-		    run_bench
+		    for TASKS in 80 160 320
+		    do
+			OUTPUT="output/"
+			OUTPUT+="BENCH=$(basename ${BENCH})/"
+			OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+			OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+			OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
+			OUTPUT+="${TASKS}-${KERNEL}"
+			run_bench
+		    done
+		done
+		for MONITORING in monitoring/cpu-energy-meter
+		do
+		    for TASKS in 80 160 320
+		    do
+			OUTPUT="output/"
+			OUTPUT+="BENCH=$(basename ${BENCH})/"
+			OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+			OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+			OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
+			OUTPUT+="${TASKS}-${KERNEL}/${N}"
+			run_bench
+		    done
 		done
 	    done
 	done
