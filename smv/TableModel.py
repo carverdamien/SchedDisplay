@@ -19,6 +19,11 @@ class Column(object):
 	def __call__(self, i):
 		return self.function(i)
 
+class DependableColumn(Column):
+	def __init__(self, *args, **kwargs):
+		assert 'function' in kwargs
+		super(DependableColumn, self).__init__(*args, **kwargs)
+
 # TODO:
 # write TableModel
 # make class TracesModel(TableModel)
@@ -32,6 +37,7 @@ class TracesModel(object):
 		self.cache = kwargs.get('cache', './examples/cache/traces.parquet')
 		self.index = []
 		self.columns = []
+		self.dependable_columns = []
 		self.df = pd.DataFrame({})
 		self.lock = Lock()
 		self.thread = None
@@ -44,10 +50,10 @@ class TracesModel(object):
 			try:
 				r = function(self, *args, **kwargs)
 			except Exception as e:
-				print(traceback.format_exc())
-				pass
-			finally:
 				self.lock.release()
+				print(traceback.format_exc())
+				raise e
+			self.lock.release()
 			return r
 		f.__name__ = function.__name__
 		return f
@@ -59,8 +65,14 @@ class TracesModel(object):
 		self.columns.append(c)
 
 	@lockfunc
+	def add_dependable_column(self, c):
+		if not isinstance(c, DependableColumn):
+			raise Exception(f'{c} is not {DependableColumn}')
+		self.dependable_columns.append(c)
+
+	@lockfunc
 	def columns_name(self):
-		return [c.name for c in self.columns]
+		return [c.name for c in self.columns] + [c.name for c in self.dependable_columns]
 
 	def _build_index(self):
 		self.index.clear()
@@ -69,17 +81,34 @@ class TracesModel(object):
 	def _init_df(self):
 		self.df = pd.DataFrame({
 			c.name : (np.array([], dtype=c.dtype) if c.dtype != str else [])
-			for c in self.columns
+			for c in self.columns+self.dependable_columns
 		})
 
 	def _concat(self, df):
 		self.df = pd.concat([self.df, df], ignore_index=True)
 
 	def _rows(self, index):
-		return {
-			c.name : (np.array([c(i) for i in index], dtype=c.dtype) if c.dtype != str else [c(i) for i in index])
-			for c in self.columns
-		}
+		# FIXME
+		def row(i):
+			r = {
+				c.name : (np.array([c(i)], dtype=c.dtype) if c.dtype != str else [c(i)])
+				for c in self.columns
+			}
+			for c in self.dependable_columns:
+				r.update({
+					c.name : (np.array([c(r)], dtype=c.dtype) if c.dtype != str else [c(r)])
+				})
+			return r
+		rows = row(index[0])
+		if len(index) > 1:
+			for i in index[1:]:
+				new_row = row(i)
+				for c in self.columns + self.dependable_columns:
+					if c.dtype != str:
+						rows[c.name] = np.append(rows[c.name], new_row[c.name])
+					else:
+						rows[c.name].extend(new_row[c.name])
+		return rows
 
 	@lockfunc
 	def _build(self):
@@ -153,6 +182,9 @@ def parsable_column(dtype, name, basename, pattern):
 		return np.NaN
 	function.__name__ = name
 	return Column(dtype=dtype, function=function)
+
+def dependable_column(dtype, name, function):
+	return DependableColumn(dtype=dtype, name=name, function=function)
 
 def test():
 	traces = TracesModel()
