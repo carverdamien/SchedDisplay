@@ -38,7 +38,7 @@ class VarsViewController(ViewController):
 		# Provide source. (Do not use defaut)
 		self.title = ''
 		self.lock = Lock()
-		self.vars = kwargs.get('vars', DEFAULT_VARS)
+		self.vars = kwargs.get('vars', dict(DEFAULT_VARS))
 		self.source = kwargs.get('source', ColumnDataSource({}))
 		self.table = DataTable(
 			source=self.source,
