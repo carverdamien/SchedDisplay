@@ -117,7 +117,6 @@ do
     do
 	for KERNEL in ${DEFAULT_KERNEL}
 	do
-	    PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
 	    for IPANEMA_MODULE in cfs_wwc ule_wwc
 	    do
 		for MONITORING in ${MONITORINGS}
@@ -205,7 +204,6 @@ done
 
 # IPANEMA
 KERNEL=${DEFAULT_KERNEL}
-PATH_TO_IPANEMA_MODULES="/lib/modules/$(uname -r)/kernel/kernel/sched/ipanema"
 
 for I in ${!BENCH_NAMES[@]}
 do
