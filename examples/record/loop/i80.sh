@@ -67,8 +67,11 @@ SCALING_GOVERNOR='powersave'
 
 DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
 # Before setting DEFAULT_KERNEL=4.19.0-linux-4.19-ipanema-g0e4249a3eec1,
-# we need to understand why there were soft lockups with cfs_wwc
-KERNELS="${DEFAULT_KERNEL} 4.19.0-linux-4.19-ipanema-g0e4249a3eec1 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166"
+# we need to understand why there were soft lockups with cfs_wwc.
+#
+# Soft lockups happened again with 4.19.0-linux-4.19-ipanema-g0e4249a3eec1,
+# Removing it because I assume it was not running cfs_wwc.
+KERNELS="${DEFAULT_KERNEL} 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166"
 MONITORINGS="monitoring/all monitoring/cpu-energy-meter monitoring/nop"
 
 #################################################
