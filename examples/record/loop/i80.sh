@@ -73,6 +73,7 @@ DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
 # Removing it because I assume it was not running cfs_wwc.
 KERNELS="${DEFAULT_KERNEL} 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166"
 MONITORINGS="monitoring/all monitoring/cpu-energy-meter monitoring/nop"
+IPANEMA_MODULES="cfs_wwc ule_wwc" # cfs_wwc_ipa cfs_wwc_ipa
 
 #################################################
 # Running mysql OLTP
@@ -117,7 +118,7 @@ do
     do
 	for KERNEL in ${DEFAULT_KERNEL}
 	do
-	    for IPANEMA_MODULE in cfs_wwc ule_wwc
+	    for IPANEMA_MODULE in ${IPANEMA_MODULES}
 	    do
 		for MONITORING in ${MONITORINGS}
 		do
@@ -207,7 +208,7 @@ KERNEL=${DEFAULT_KERNEL}
 
 for I in ${!BENCH_NAMES[@]}
 do
-    for IPANEMA_MODULE in cfs_wwc ule_wwc
+    for IPANEMA_MODULE in ${IPANEMA_MODULES}
     do
         for MONITORING in ${MONITORINGS}
         do
