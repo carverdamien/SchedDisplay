@@ -225,3 +225,34 @@ do
     done
 done
 
+#################################################
+# Running Phoronix
+#################################################
+BENCH=bench/phoronix
+PHORONIXES="compress-7zip compress-gzip compress-pbzip2 compress-rar compress-xz compress-zstd"
+for I in ${!SLP[@]}
+do
+    SLEEP_STATE=${SLP[$I]}
+    SCALING_GOVERNOR=${GOV[$I]}
+    REPEAT=${RPT[$I]}
+    # Reboot between repeats
+    for N in $(seq ${REPEAT})
+    do
+	for KERNEL in ${DEFAULT_KERNEL}
+	do
+	    for MONITORING in monitoring/cpu-energy-meter
+	    do
+		for PHORONIX in ${PHORONIXES}
+		do
+		    OUTPUT="output/"
+		    OUTPUT+="BENCH=$(basename ${BENCH})/"
+		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+		    OUTPUT+="PHORONIX=${PHORONIX}/"
+		    OUTPUT+="${KERNEL}/${N}"
+		    run_bench
+		done
+	    done
+	done
+    done
+done
