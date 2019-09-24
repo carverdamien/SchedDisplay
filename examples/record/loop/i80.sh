@@ -231,7 +231,8 @@ done
 BENCH=bench/phoronix
 export PHORONIX
 PHORONIXES="compress-7zip compress-gzip compress-pbzip2 compress-rar compress-xz compress-zstd"
-PHORONIXES+="apache blender blogbench caffe clpeak cryptsetup darktable dbench ethminer fio gimp gnupg iozone octave-benchmark openssl redis selenium selenium-top-sites sqlite tesseract-ocr"
+# PHORONIXES+="blender" # rm blender
+PHORONIXES+="apache blogbench caffe clpeak cryptsetup darktable dbench ethminer fio gimp gnupg iozone octave-benchmark openssl redis selenium selenium-top-sites sqlite tesseract-ocr"
 for I in ${!SLP[@]}
 do
     SLEEP_STATE=${SLP[$I]}
