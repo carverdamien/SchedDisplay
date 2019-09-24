@@ -80,7 +80,7 @@ IPANEMA_MODULES="cfs_wwc ule_wwc" # cfs_wwc_ipa cfs_wwc_ipa
 #################################################
 SLP=(y         n          )
 GOV=(powersave performance)
-RPT=(1         5          )
+RPT=(1         1          )
 for I in ${!SLP[@]}
 do
     SLEEP_STATE=${SLP[$I]}
