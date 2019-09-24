@@ -1,1 +1,2 @@
 #!/bin/bash
+phoronix-test-suite install ${PHORONIX}

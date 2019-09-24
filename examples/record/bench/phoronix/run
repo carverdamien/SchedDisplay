@@ -1,2 +1,2 @@
 #!/bin/bash
-echo 'Nothing to bench'
+FORCE_TIMES_TO_RUN=1 phoronix-test-suite batch-run ${PHORONIX}
