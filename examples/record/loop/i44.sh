@@ -66,6 +66,7 @@ SCALING_GOVERNORS='powersave performance'
 SCALING_GOVERNOR='powersave'
 
 DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
+DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g8ec555713ae9"
 # Before setting DEFAULT_KERNEL=4.19.0-linux-4.19-ipanema-g0e4249a3eec1,
 # we need to understand why there were soft lockups with cfs_wwc.
 #
