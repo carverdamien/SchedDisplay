@@ -2,7 +2,7 @@
 set -e
 exec >> $0
 echo ${HOSTNAME}:$(date)
-perf stat -e cycles,instructions,cache-misses -- python3 ./disposable/bench.py 2>&1
+perf stat -e cycles,instructions,cache-misses -- python3.7 ./disposable/bench.py 2>&1
 exit 0
 dc-Latitude-7390:mercredi 18 septembre 2019, 15:17:16 (UTC+0200)
 data/sched_monitor/tracer-raw/df/event.npz loaded in 0.8863976001739502 s
