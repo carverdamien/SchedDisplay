@@ -1,2 +1,3 @@
 #!/bin/bash
+phoronix-test-suite remove-result schedrecord || true
 phoronix-test-suite install ${PHORONIX}

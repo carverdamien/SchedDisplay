@@ -1,2 +1,2 @@
 #!/bin/bash
-echo 'Nothing to report'
+phoronix-test-suite result-file-to-json schedrecord >${OUTPUT}/phoronix.json
