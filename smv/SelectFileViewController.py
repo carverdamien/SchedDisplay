@@ -4,7 +4,7 @@ from bokeh.layouts import row, column
 import os, io, stat, tarfile, json
 
 def find_files(directory, ext):
-	for root, dirs, files in os.walk(directory, topdown=False):
+	for root, dirs, files in os.walk(directory, topdown=False, followlinks=True):
 		for name in files:
 			path = os.path.join(root, name)
 			if ext == os.path.splitext(name)[1]:
