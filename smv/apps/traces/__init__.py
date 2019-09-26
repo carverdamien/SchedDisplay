@@ -1,8 +1,9 @@
-from smv.TableModel import TracesModel, Column, parsable_column, dependable_column
+from smv.TableModel import TracesModel, Column, parsable_column, dependable_column, json_column
 from smv.TableViewController import TableViewController
 from smv.ScatterViewController import ScatterViewController
 from bokeh.models import Panel, Tabs
 import numpy as np
+import itertools
 
 def modify_doc(doc):
 	model = TracesModel()
@@ -25,6 +26,27 @@ def modify_doc(doc):
 	COLUMNS = PERF + PACKAGE_ENERGY + DRAM_ENERGY
 	for args in COLUMNS:
 		model.add_column(parsable_column(*args))
+	MAX_PHORONIX = 2
+	PHORONIX_TEST = [
+		[str, f'phoro_test{i}', 'phoronix.json', ['results',i,'test']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX_ARGS = [
+		[str, f'phoro_args{i}', 'phoronix.json', ['results',i,'arguments']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX_UNITS = [
+		[str, f'phoro_units{i}', 'phoronix.json', ['results',i,'units']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX_VALUE = [
+		[float, f'phoro_value{i}', 'phoronix.json', ['results',i,'results','schedrecord','value']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX = [i for j in itertools.zip_longest(PHORONIX_TEST,PHORONIX_ARGS,PHORONIX_UNITS,PHORONIX_VALUE) for i in j]
+	JSONS = PHORONIX
+	for args in JSONS:
+		model.add_column(json_column(*args))
 	TOTAL_ENERGY = [
 		[float, 'total_package_joules',lambda row: np.sum([row['cpu%d_package_joules'%(i)] for i in range(4)])],
 		[float, 'total_dram_joules',   lambda row: np.sum([row['cpu%d_dram_joules'%(i)] for i in range(4)])],
