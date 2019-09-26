@@ -228,6 +228,7 @@ done
 #################################################
 # Running Phoronix
 #################################################
+IPANEMA_MODULE=
 BENCH=bench/phoronix
 export PHORONIX
 PHORONIXES="compress-7zip compress-gzip compress-pbzip2 compress-rar compress-xz compress-zstd"
