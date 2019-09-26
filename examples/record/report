@@ -1,4 +1,5 @@
 #!/bin/bash
+dmesg > ${OUTPUT}/dmesg.report
 cat > ${OUTPUT}/report.main.json <<EOF
 {
   "kernel" : {

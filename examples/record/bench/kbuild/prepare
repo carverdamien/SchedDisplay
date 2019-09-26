@@ -11,5 +11,3 @@ fi
 tar -C /tmp/kbuild -xJf ${tar}
 
 make -C /tmp/kbuild/linux* defconfig
-
-dmesg -C

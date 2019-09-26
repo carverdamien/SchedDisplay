@@ -1,3 +1,4 @@
 modprobe msr
 modprobe cpuid
 mkdir -p "${OUTPUT}"
+dmesg > ${OUTPUT}/dmesg.prepare

@@ -29,6 +29,3 @@ then
     fi
     cd -
 fi
-
-dmesg -C
-
