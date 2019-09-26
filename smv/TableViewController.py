@@ -70,9 +70,9 @@ class TableViewController(ViewController):
 		view = column(
 			row(
 				self.load_button,
-				self.build_button,
-				self.stream_button,
-				self.save_button,
+				#self.build_button,
+				#self.stream_button,
+				#self.save_button,
 				self.stream_and_save_button,
 				sizing_mode='stretch_width'
 			),
