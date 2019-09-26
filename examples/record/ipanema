@@ -33,7 +33,7 @@ main() {
 	    do
 		echo 'module is loaded and could not be unloaded'
 		sleep 10
-	    fi
+	    done
 	    # insmod "${PATH_TO_IPANEMA_MODULE}"
 	    modprobe "${IPANEMA_MODULE}"
 
