@@ -49,6 +49,10 @@ function run_bench {
     then
 	kexec_reboot
 	./entrypoint
+	if [[ -x ./host/${HOSTNAME}/callback_run_bench.sh ]]
+	then
+	    ./host/${HOSTNAME}/callback_run_bench.sh "${TAR}" || true
+	fi
     fi
 }
 
