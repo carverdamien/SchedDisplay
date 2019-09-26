@@ -26,13 +26,13 @@ main() {
 	    # [[ $(uname -r) = ${IPANEMA_POLICY_KERNEL} ]]
 
 	    # Unload module first if already loaded.
-	    if lsmod | grep -q "${IPANEMA_MODULE}"
-	    then
-		until rmmod "${IPANEMA_MODULE}"
-		do
-		    echo 'Could not unload module'
-		    sleep 10
-		done
+	    module_is_loaded_and_could_not_be_unloaded () {
+		(lsmod | awk '{print $1}' | grep -q "^${IPANEMA_MODULE}\$") && ! rmmod "${IPANEMA_MODULE}"
+	    }
+	    while module_is_loaded_and_could_not_be_unloaded
+	    do
+		echo 'module is loaded and could not be unloaded'
+		sleep 10
 	    fi
 	    # insmod "${PATH_TO_IPANEMA_MODULE}"
 	    modprobe "${IPANEMA_MODULE}"
