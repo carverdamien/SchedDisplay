@@ -58,12 +58,22 @@ class TableViewController(ViewController):
 			height=40,
 			height_policy="fixed",
 		)
+		self.stream_and_save_button = Button(
+			label='Update',
+			align="end",
+			button_type="success",
+			width=100,
+			width_policy="fixed",
+			height=40,
+			height_policy="fixed",
+		)
 		view = column(
 			row(
 				self.load_button,
 				self.build_button,
 				self.stream_button,
 				self.save_button,
+				self.stream_and_save_button,
 				sizing_mode='stretch_width'
 			),
 			self.table,
@@ -74,11 +84,36 @@ class TableViewController(ViewController):
 		self.stream_button.on_click(self.stream)
 		self.load_button.on_click(self.load)
 		self.save_button.on_click(self.save)
+		self.stream_and_save_button.on_click(self.stream_and_save)
 
 
 	##########################
 	# Non-blocking Functions #
 	##########################
+
+	def stream_and_save(self, event):
+		fname = self.stream_and_save.__name__
+		if not self.lock.acquire(False):
+			self.log('Could not acquire lock in {}'.format(fname))
+			return
+		def target():
+			try:
+				def callback(df):
+					a = frozenset(k for k in self.source.data.keys() if k != 'index')
+					b = frozenset(df.columns)
+					if hash(a) == hash(b):
+						self.stream_source(df)
+					else:
+						self.update_source(df)
+				self.model.stream(callback)
+				self.model.join()
+				self.model.save()
+			except Exception as e:
+				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
+				self.log(traceback.format_exc())
+			else:
+				self.lock.release()
+		Thread(target=target).start()
 
 	def build(self, event):
 		fname = self.build.__name__
