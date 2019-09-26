@@ -1,4 +1,4 @@
-from smv.TableModel import TracesModel, Column, parsable_column, dependable_column
+from smv.TableModel import TracesModel, Column, parsable_column, dependable_column, json_column
 from smv.TableViewController import TableViewController
 from smv.ScatterViewController import ScatterViewController
 from bokeh.models import Panel, Tabs
@@ -14,6 +14,11 @@ def modify_doc(doc):
 		[float, 'usr_bin_time',  'time.err', '{pattern:F}'],
 		[float, 'sysbench_trps', 'run.out',  '{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)'],
 	]
+	PHORONIX = [
+		[str, 'phoro_test', 'phoronix.json', ['results',0,'test']],
+		[str, 'phoro_units', 'phoronix.json', ['results',0,'units']],
+		[float, 'phoro_value', 'phoronix.json', ['results',0,'results','schedrecord','value']],
+	]
 	PACKAGE_ENERGY = [
 		[float, 'cpu%d_package_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
 		for i in range(4)
@@ -25,6 +30,8 @@ def modify_doc(doc):
 	COLUMNS = PERF + PACKAGE_ENERGY + DRAM_ENERGY
 	for args in COLUMNS:
 		model.add_column(parsable_column(*args))
+	for args in PHORONIX:
+		model.add_column(json_column(*args))
 	TOTAL_ENERGY = [
 		[float, 'total_package_joules',lambda row: np.sum([row['cpu%d_package_joules'%(i)] for i in range(4)])],
 		[float, 'total_dram_joules',   lambda row: np.sum([row['cpu%d_dram_joules'%(i)] for i in range(4)])],

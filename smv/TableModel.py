@@ -1,23 +1,36 @@
 import numpy as np
 import pandas as pd
-import parse, os, traceback, tarfile
+import parse, os, traceback, tarfile, json
 from threading import Thread, Lock
+
+class NotFoundException(Exception):
+	pass
 
 class Column(object):
 	"""docstring for Column"""
 	def __init__(self, *args, **kwargs):
 		super(Column, self).__init__()
 		self.dtype = kwargs['dtype']
-		if self.dtype != str:
+		if self.dtype == float:
+			self.default = kwargs.get('default', np.NaN)
 			def undefined(i):
 				return np.NaN
-		else:
+		elif self.dtype == str:
+			self.default = kwargs.get('default', '(NULL)')
 			def undefined(i):
 				return i
+		else:
+			raise Exception(f'{dtype} unsupported')
 		self.function = kwargs.get('function', undefined)
 		self.name = kwargs.get('name', self.function.__name__)
 	def __call__(self, i):
-		return self.function(i)
+		try:
+			return self.function(i)
+		except NotFoundException as e:
+			return self.default
+		except Exception as e:
+			print(traceback.format_exc())
+			return self.default
 
 class DependableColumn(Column):
 	def __init__(self, *args, **kwargs):
@@ -179,7 +192,23 @@ def parsable_column(dtype, name, basename, pattern):
 						if r is not None:
 							return r.named['pattern']
 				break
-		return np.NaN
+		raise NotFoundException()
+	function.__name__ = name
+	return Column(dtype=dtype, function=function)
+
+def json_column(dtype, name, basename, keys):
+	def function(i):
+		with tarfile.open(i, 'r:') as tar:
+			for tarinfo in tar:
+				if os.path.basename(tarinfo.name) != basename:
+					continue
+				with tar.extractfile(tarinfo.name) as f:
+					value = json.load(f)
+					for k in keys:
+						value = value[k]
+					return dtype(value)
+				break
+		raise NotFoundException()
 	function.__name__ = name
 	return Column(dtype=dtype, function=function)
 
