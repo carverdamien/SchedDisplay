@@ -3,6 +3,7 @@ from smv.TableViewController import TableViewController
 from smv.ScatterViewController import ScatterViewController
 from bokeh.models import Panel, Tabs
 import numpy as np
+import itertools
 
 def modify_doc(doc):
 	model = TracesModel()
@@ -30,6 +31,10 @@ def modify_doc(doc):
 		[str, f'phoro_test{i}', 'phoronix.json', ['results',i,'test']]
 		for i in range(MAX_PHORONIX)
 	]
+	PHORONIX_ARGS = [
+		[str, f'phoro_args{i}', 'phoronix.json', ['results',i,'arguments']]
+		for i in range(MAX_PHORONIX)
+	]
 	PHORONIX_UNITS = [
 		[str, f'phoro_units{i}', 'phoronix.json', ['results',i,'units']]
 		for i in range(MAX_PHORONIX)
@@ -38,7 +43,8 @@ def modify_doc(doc):
 		[float, f'phoro_value{i}', 'phoronix.json', ['results',i,'results','schedrecord','value']]
 		for i in range(MAX_PHORONIX)
 	]
-	JSONS = PHORONIX_TEST + PHORONIX_UNITS + PHORONIX_VALUE
+	PHORONIX = [i for j in itertools.zip_longest(PHORONIX_TEST,PHORONIX_ARGS,PHORONIX_UNITS,PHORONIX_VALUE) for i in j]
+	JSONS = PHORONIX
 	for args in JSONS:
 		model.add_column(json_column(*args))
 	TOTAL_ENERGY = [
