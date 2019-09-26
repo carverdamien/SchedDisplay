@@ -30,7 +30,7 @@ function kexec_reboot {
 	kexec -l "${BOOT_IMAGE}" --command-line="${CMDLINE}" --initrd="${INITRD}"
 	rm -f "./loop/${KERNEL}.lock"
 	sync
-	# sleep inf # debug
+	sleep inf # debug
 	kexec -e
     else
 	if [ -f kexec_reboot.attempt ] && [ "$(cat kexec_reboot.attempt)" != "${CMDLINE}" ]
@@ -74,7 +74,7 @@ DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g8ec555713ae9"
 # Removing it because I assume it was not running cfs_wwc.
 KERNELS="${DEFAULT_KERNEL} 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166"
 MONITORINGS="monitoring/all monitoring/cpu-energy-meter monitoring/nop"
-IPANEMA_MODULES="cfs_wwc ule_wwc" # cfs_wwc_ipa cfs_wwc_ipa
+IPANEMA_MODULES="cfs_wwc ule_wwc cfs_hwwc_ipa ule_wwc_ipa"
 
 #################################################
 # Running mysql OLTP
@@ -131,7 +131,7 @@ do
 			OUTPUT+="MONITORING=$(basename ${MONITORING})/"
 			OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
 			OUTPUT+="${TASKS}-${KERNEL}/${N}"
-			# run_bench
+			run_bench
 		    done
 		done
 	    done
@@ -155,7 +155,7 @@ do
 	for TASKS in 32
 	do
 	    OUTPUT="output/BENCH=$(basename ${BENCH})-$(basename ${TARGET})/MONITORING=$(basename ${MONITORING})/${TASKS}-${KERNEL}"
-	    run_bench
+	    # run_bench
 	done
     done
 done
