@@ -6,5 +6,3 @@ if ! [ -d ${llvmsrc} ]
 then
     git clone --depth=1 https://github.com/llvm-mirror/llvm ${llvmsrc}
 fi
-
-dmesg -C
