@@ -104,7 +104,12 @@ class TableViewController(ViewController):
 		def target():
 			try:
 				def callback(df):
-					self.update_source(self.model.df)
+					a = frozenset(k for k in self.source.data.keys() if k != 'index')
+					b = frozenset(df.columns)
+					if hash(a) == hash(b):
+						self.stream_source(df)
+					else:
+						self.update_source(df)
 				self.model.stream(callback)
 			except Exception as e:
 				self.log('Exception({}) in {}:{}'.format(type(e), fname, e))
@@ -153,6 +158,13 @@ class TableViewController(ViewController):
 		def coroutine(df):
 			self.table.columns = [TableColumn(field=c, title=c) for c in df.columns]
 			self.source.data = ColumnDataSource.from_df(df)
+		if self.doc:
+			self.doc.add_next_tick_callback(partial(coroutine, df))
+
+	def stream_source(self, df):
+		@gen.coroutine
+		def coroutine(df):
+			self.source.stream(df)
 		if self.doc:
 			self.doc.add_next_tick_callback(partial(coroutine, df))
 
