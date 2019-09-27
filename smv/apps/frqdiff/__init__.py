@@ -86,13 +86,14 @@ def modify_doc(doc):
 	for args in BASE:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		# model.add_column(Column(**kwargs))
+	WHAT = ['powersave', 'performance']
 	PACKAGE_ENERGY = [
-		[FLOAT, 'cpu%d_package_joules(%d)'%(i,j), j, 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
+		[FLOAT, 'cpu%d_package_joules_%s'%(i,WHAT[j]), j, 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
 		for i in range(4)
 		for j in range(2)
 	]
 	DRAM_ENERGY    = [
-		[FLOAT, 'cpu%d_dram_joules(%d)'%(i,j), j,    'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)   ]
+		[FLOAT, 'cpu%d_dram_joules_%s'%(i,WHAT[j]), j,    'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)   ]
 		for i in range(4)
 		for j in range(2)
 	]
@@ -101,12 +102,12 @@ def modify_doc(doc):
 		model.add_column(parsable_column(*args))
 		pass
 	TOTAL_ENERGY = [
-		[FLOAT, 'total_package_joules(0)',lambda inedx, row: np.sum([row['cpu%d_package_joules(0)'%(i)] for i in range(4)])],
-		[FLOAT, 'total_package_joules(1)',lambda inedx, row: np.sum([row['cpu%d_package_joules(1)'%(i)] for i in range(4)])],
-		[FLOAT, 'total_dram_joules(0)',lambda inedx, row: np.sum([row['cpu%d_dram_joules(0)'%(i)] for i in range(4)])],
-		[FLOAT, 'total_dram_joules(1)',lambda inedx, row: np.sum([row['cpu%d_dram_joules(1)'%(i)] for i in range(4)])],
-		[FLOAT, 'total_joules(0)',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules(0)', 'total_dram_joules(0)']])],
-		[FLOAT, 'total_joules(1)',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules(1)', 'total_dram_joules(1)']])]
+		[FLOAT, 'total_package_joules_powersave',lambda inedx, row: np.sum([row['cpu%d_package_joules_powersave'%(i)] for i in range(4)])],
+		[FLOAT, 'total_package_joules_performance',lambda inedx, row: np.sum([row['cpu%d_package_joules_performance'%(i)] for i in range(4)])],
+		[FLOAT, 'total_dram_joules_powersave',lambda inedx, row: np.sum([row['cpu%d_dram_joules_powersave'%(i)] for i in range(4)])],
+		[FLOAT, 'total_dram_joules_performance',lambda inedx, row: np.sum([row['cpu%d_dram_joules_performance'%(i)] for i in range(4)])],
+		[FLOAT, 'total_joules_powersave',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules_powersave', 'total_dram_joules_powersave']])],
+		[FLOAT, 'total_joules_performance',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules_performance', 'total_dram_joules_performance']])]
 	]
 	for args in TOTAL_ENERGY:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
