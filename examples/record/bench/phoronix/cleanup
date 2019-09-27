@@ -1,2 +1,2 @@
 #!/bin/bash
-phoronix-test-suite remove-installed-test ${PHORONIX}
+yes | phoronix-test-suite remove-installed-test ${PHORONIX}
