@@ -76,16 +76,16 @@ def modify_doc(doc):
 				elif fperformance is None and performance.match(f):
 					fperformance = f
 				if fperformance is not None and fpowersave is not None:
-					_index_.append((fpowersave, fperformance))
+					_index_.append((fpowersave, fperformance, p))
 					break
 		return _index_
 	model = TableModel(index=index)
 	BASE = [
-		[STRING, '_index_', lambda index, row: str(index)]
+		[STRING, 'bench', lambda index, row: str(index[2])]
 	]
 	for args in BASE:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
-		# model.add_column(Column(**kwargs))
+		model.add_column(Column(**kwargs))
 	WHAT = ['powersave', 'performance']
 	PACKAGE_ENERGY = [
 		[FLOAT, 'cpu%d_package_joules_%s'%(i,WHAT[j]), j, 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
