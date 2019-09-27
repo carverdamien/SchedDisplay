@@ -56,6 +56,7 @@ class TableModel(object):
 		self.__df = None
 		self.__lock = Lock()
 		self.__columns = []
+		self.__thread = None
 
 	"""Decorator"""
 
@@ -108,7 +109,20 @@ class TableModel(object):
 				callback(self.df)
 			except Exception as e:
 				print(traceback.format_exc())
-		Thread(target=target).start()
+		self.__thread = Thread(target=target)
+		self.__thread.start()
+
+	def stream(self, callback, batch=1):
+		def target():
+			try:
+				self.__stream(callback, batch)
+			except Exception as e:
+				print(traceback.format_exc())
+		self.__thread = Thread(target=target)
+		self.__thread.start()
+
+	def join(self):
+		self.__thread.join()
 
 	""""Private"""
 
@@ -116,6 +130,17 @@ class TableModel(object):
 	def __build(self):
 		index = self.__index()
 		self.__df = self.__rows(index)
+
+	@lock
+	def __stream(self, callback, batch=1):
+		index = self.__index()
+		concat = []
+		N = len(index)
+		for i in range(0, N, batch):
+			df = self.__rows(index[i:min(N,i+batch)])
+			callback(df)
+			concat.append(df)
+		self.__df = pd.concat(concat, ignore_index=True)
 
 	def allocate_df(self, n):
 		return pd.DataFrame({
@@ -152,7 +177,8 @@ def parsable_column(dtype, name, basename, pattern):
 								return r.named['pattern']
 					break
 		except Exception as e:
-			print(traceback.format_exc())
+			# print(traceback.format_exc())
+			pass
 		raise ColumnNotFoundException()
 	function.__name__ = name
 	return Column(dtype=dtype, function=function)
@@ -171,7 +197,8 @@ def json_column(dtype, name, basename, keys):
 						return dtype(value)
 					break
 		except Exception as e:
-			print(traceback.format_exc())
+			# print(traceback.format_exc())
+			pass
 		raise ColumnNotFoundException()
 	function.__name__ = name
 	return Column(dtype=dtype, function=function)
@@ -230,6 +257,11 @@ def test():
 	for args in TOTAL_ENERGY:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		tm.add_column(Column(**kwargs))
+	#print(tm.df)
+	def callback(foo):
+		print(foo)
+	tm.stream(callback)
+	tm.join()
 	print(tm.df)
 
 if __name__ == '__main__':
