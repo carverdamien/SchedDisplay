@@ -112,6 +112,13 @@ def modify_doc(doc):
 	for args in TOTAL_ENERGY:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		model.add_column(Column(**kwargs))
+	PHORONIX_VALUE = [
+		[FLOAT, f'perf_powersave', 0, 'phoronix.json', ['results',0,'results','schedrecord','value']],
+		[FLOAT, f'perf_performance', 1, 'phoronix.json', ['results',1,'results','schedrecord','value']],
+	]
+	for args in PHORONIX_VALUE:
+		model.add_column(json_column(*args))
+		pass
 	# end of model customization
 	traces = TableViewController(model=model, doc=doc)
 	scatter = ScatterViewController(model=model, doc=doc)
