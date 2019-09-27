@@ -50,7 +50,7 @@ def parsable_column(dtype, name, i, basename, pattern):
 	return Column(dtype=dtype, function=function)
 def modify_doc(doc):
 	PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=.*/.*/.*.tar'
-	PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=redis/.*/.*.tar' # debug
+	# PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=redis/.*/.*.tar' # debug
 	def find_files(directory, ext, regexp=".*"):
 		regexp = re.compile(regexp)
 		for root, dirs, files in os.walk(directory, topdown=False):
@@ -70,7 +70,6 @@ def modify_doc(doc):
 			fpowersave = None
 			fperformance = None
 			for f in fname:
-				print(f)
 				if fpowersave is None and powersave.match(f):
 					fpowersave = f
 				elif fperformance is None and performance.match(f):
