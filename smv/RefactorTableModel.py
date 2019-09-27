@@ -179,14 +179,16 @@ def json_column(dtype, name, basename, keys):
 """ Test """
 
 def test():
-	def find_files(directory, ext):
+	def find_files(directory, ext, regexp=".*"):
+		import re
+		regexp = re.compile(regexp)
 		for root, dirs, files in os.walk(directory, topdown=False):
 			for name in files:
 				path = os.path.join(root, name)
-				if ext == os.path.splitext(name)[1]:
+				if ext == os.path.splitext(name)[1] and regexp.match(path):
 					yield path
 	def index():
-		return sorted(list(find_files('./examples/trace', '.tar')))
+		return sorted(list(find_files('./examples/trace', '.tar', '.*phoronix.*')))
 	tm = TableModel(index=index)
 	COLUMNS = [
 		[float, 'usr_bin_time',  'time.err', '{pattern:F}'],
