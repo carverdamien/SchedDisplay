@@ -4,10 +4,11 @@ from smv.ScatterViewController import ScatterViewController
 from bokeh.models import Panel, Tabs
 import numpy as np
 import itertools
+import re, os
 
 def modify_doc(doc):
+	PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=.*/.*/.*.tar'
 	def find_files(directory, ext, regexp=".*"):
-		import re, os
 		regexp = re.compile(regexp)
 		for root, dirs, files in os.walk(directory, topdown=False):
 			for name in files:
@@ -15,11 +16,16 @@ def modify_doc(doc):
 				if ext == os.path.splitext(name)[1] and regexp.match(path):
 					yield path
 	def index():
-		return sorted(list(find_files('./examples/trace', '.tar', '.*phoronix.*')))
+		return sorted(list(find_files('./examples/trace', '.tar', PATTERN)))
 	model = TableModel(index=index)
 	BASE = [
 		[STRING, 'fname', lambda index, row: index]
 	]
+	def var_from_fname(varname):
+		def f(index, row):
+			return re.search(f'(?<={varname}=)[^/]+', index).group(0)
+		return [STRING, varname, f]
+	BASE += [var_from_fname(varname) for varname in ['POWER', 'PHORONIX', 'MONITORING']]
 	for args in BASE:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		model.add_column(Column(**kwargs))
@@ -57,7 +63,7 @@ def modify_doc(doc):
 		for i in range(MAX_PHORONIX)
 	]
 	PHORONIX = [i for j in itertools.zip_longest(PHORONIX_TEST,PHORONIX_ARGS,PHORONIX_UNITS,PHORONIX_VALUE) for i in j]
-	JSONS = PHORONIX
+	JSONS = PHORONIX + [[STRING, 'kernel', 'report.main.json', ['kernel','version']]]
 	for args in JSONS:
 		model.add_column(json_column(*args))
 		pass
