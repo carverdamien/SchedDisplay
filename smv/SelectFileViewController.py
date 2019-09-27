@@ -32,7 +32,18 @@ def preview(path):
 				if tarinfo.isreg():
 					if ext in ['.json']:
 						with tar.extractfile(tarinfo.name) as f:
-							extend.extend([str(json.load(f))])
+							try:
+								extend.extend([str(json.load(f))])
+							except Exception as e:
+								print(e)
+								#FIX ME
+								extend.extend([str('BAD JSON?!?')])
+								try:
+									size = min(tarinfo.size, 2**20)
+									with tar.extractfile(tarinfo.name) as f:
+										extend.extend([f.read(size).decode()])
+								except Exception as e:
+									pass
 					else:
 						try:
 							size = min(tarinfo.size, 2**20)
