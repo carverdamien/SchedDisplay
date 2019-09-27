@@ -1,11 +1,53 @@
-from smv.TableModel import TableModel, Column, parsable_column, json_column, FLOAT, STRING
+from smv.TableModel import TableModel, Column, parsable_column, ColumnNotFoundException, FLOAT, STRING
 from smv.TableViewController import TableViewController
 from smv.ScatterViewController import ScatterViewController
 from bokeh.models import Panel, Tabs
 import numpy as np
 import itertools
-import re, os
+import re, os, tarfile, json, traceback, parse
 
+def json_column(dtype, name, i, basename, keys):
+	def function(index, r):
+		path = index[i]
+		try:
+			with tarfile.open(path, 'r:') as tar:
+				for tarinfo in tar:
+					if os.path.basename(tarinfo.name) != basename:
+						continue
+					with tar.extractfile(tarinfo.name) as f:
+						value = json.load(f)
+						for k in keys:
+							value = value[k]
+						return value
+					break
+		except Exception as e:
+			# print(traceback.format_exc())
+			pass
+		raise ColumnNotFoundException()
+	function.__name__ = name
+	return Column(dtype=dtype, function=function)
+
+def parsable_column(dtype, name, i, basename, pattern):
+	def function(index, r):
+		path = index[i]
+		try:
+			with tarfile.open(path, 'r:') as tar:
+				for tarinfo in tar:
+					if os.path.basename(tarinfo.name) != basename:
+						continue
+					with tar.extractfile(tarinfo.name) as f:
+						re = parse.compile(pattern)
+						for line in f.read().decode().split('\n'):
+							r = re.parse(line)
+							if r is not None:
+								return r.named['pattern']
+					break
+		except Exception as e:
+			print(traceback.format_exc())
+			pass
+		raise ColumnNotFoundException()
+	function.__name__ = name
+	return Column(dtype=dtype, function=function)
 def modify_doc(doc):
 	PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=.*/.*/.*.tar'
 	PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=redis/.*/.*.tar' # debug
@@ -42,6 +84,31 @@ def modify_doc(doc):
 		[STRING, '_index_', lambda index, row: str(index)]
 	]
 	for args in BASE:
+		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
+		# model.add_column(Column(**kwargs))
+	PACKAGE_ENERGY = [
+		[FLOAT, 'cpu%d_package_joules(%d)'%(i,j), j, 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
+		for i in range(4)
+		for j in range(2)
+	]
+	DRAM_ENERGY    = [
+		[FLOAT, 'cpu%d_dram_joules(%d)'%(i,j), j,    'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)   ]
+		for i in range(4)
+		for j in range(2)
+	]
+	COLUMNS = PACKAGE_ENERGY + DRAM_ENERGY
+	for args in COLUMNS:
+		model.add_column(parsable_column(*args))
+		pass
+	TOTAL_ENERGY = [
+		[FLOAT, 'total_package_joules(0)',lambda inedx, row: np.sum([row['cpu%d_package_joules(0)'%(i)] for i in range(4)])],
+		[FLOAT, 'total_package_joules(1)',lambda inedx, row: np.sum([row['cpu%d_package_joules(1)'%(i)] for i in range(4)])],
+		[FLOAT, 'total_dram_joules(0)',lambda inedx, row: np.sum([row['cpu%d_dram_joules(0)'%(i)] for i in range(4)])],
+		[FLOAT, 'total_dram_joules(1)',lambda inedx, row: np.sum([row['cpu%d_dram_joules(1)'%(i)] for i in range(4)])],
+		[FLOAT, 'total_joules(0)',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules(0)', 'total_dram_joules(0)']])],
+		[FLOAT, 'total_joules(1)',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules(1)', 'total_dram_joules(1)']])]
+	]
+	for args in TOTAL_ENERGY:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		model.add_column(Column(**kwargs))
 	# end of model customization
