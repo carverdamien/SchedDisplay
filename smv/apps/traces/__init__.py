@@ -1,59 +1,81 @@
-from smv.TableModel import TracesModel, Column, parsable_column, dependable_column, json_column
+from smv.TableModel import TableModel, Column, parsable_column, json_column, FLOAT, STRING
 from smv.TableViewController import TableViewController
 from smv.ScatterViewController import ScatterViewController
 from bokeh.models import Panel, Tabs
 import numpy as np
 import itertools
+import re, os
 
 def modify_doc(doc):
-	model = TracesModel()
-	# TODO: Make model's columns customizable by the user
-	def fname(i):
-		return i
-	model.add_column(Column(dtype=str, function=fname))
+	PATTERN = '.*BENCH=phoronix/POWER=.*/MONITORING=.*/PHORONIX=.*/.*/.*.tar'
+	def find_files(directory, ext, regexp=".*"):
+		regexp = re.compile(regexp)
+		for root, dirs, files in os.walk(directory, topdown=False):
+			for name in files:
+				path = os.path.join(root, name)
+				if ext == os.path.splitext(name)[1] and regexp.match(path):
+					yield path
+	def index():
+		return sorted(list(find_files('./examples/trace', '.tar', PATTERN)))
+	model = TableModel(index=index)
+	BASE = [
+		[STRING, 'fname', lambda index, row: index]
+	]
+	def var_from_fname(varname):
+		def f(index, row):
+			return re.search(f'(?<={varname}=)[^/]+', index).group(0)
+		return [STRING, varname, f]
+	BASE += [var_from_fname(varname) for varname in ['POWER', 'PHORONIX', 'MONITORING']]
+	for args in BASE:
+		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
+		model.add_column(Column(**kwargs))
 	PERF = [
-		[float, 'usr_bin_time',  'time.err', '{pattern:F}'],
-		[float, 'sysbench_trps', 'run.out',  '{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)'],
+		[FLOAT, 'usr_bin_time',  'time.err', '{pattern:F}'],
+		[FLOAT, 'sysbench_trps', 'run.out',  '{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)'],
 	]
 	PACKAGE_ENERGY = [
-		[float, 'cpu%d_package_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
+		[FLOAT, 'cpu%d_package_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
 		for i in range(4)
 	]
 	DRAM_ENERGY    = [
-		[float, 'cpu%d_dram_joules'%(i),    'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)   ]
+		[FLOAT, 'cpu%d_dram_joules'%(i),    'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)   ]
 		for i in range(4)
 	]
 	COLUMNS = PERF + PACKAGE_ENERGY + DRAM_ENERGY
 	for args in COLUMNS:
 		model.add_column(parsable_column(*args))
+		pass
 	MAX_PHORONIX = 2
 	PHORONIX_TEST = [
-		[str, f'phoro_test{i}', 'phoronix.json', ['results',i,'test']]
+		[STRING, f'phoro_test{i}', 'phoronix.json', ['results',i,'test']]
 		for i in range(MAX_PHORONIX)
 	]
 	PHORONIX_ARGS = [
-		[str, f'phoro_args{i}', 'phoronix.json', ['results',i,'arguments']]
+		[STRING, f'phoro_args{i}', 'phoronix.json', ['results',i,'arguments']]
 		for i in range(MAX_PHORONIX)
 	]
 	PHORONIX_UNITS = [
-		[str, f'phoro_units{i}', 'phoronix.json', ['results',i,'units']]
+		[STRING, f'phoro_units{i}', 'phoronix.json', ['results',i,'units']]
 		for i in range(MAX_PHORONIX)
 	]
 	PHORONIX_VALUE = [
-		[float, f'phoro_value{i}', 'phoronix.json', ['results',i,'results','schedrecord','value']]
+		[FLOAT, f'phoro_value{i}', 'phoronix.json', ['results',i,'results','schedrecord','value']]
 		for i in range(MAX_PHORONIX)
 	]
 	PHORONIX = [i for j in itertools.zip_longest(PHORONIX_TEST,PHORONIX_ARGS,PHORONIX_UNITS,PHORONIX_VALUE) for i in j]
-	JSONS = PHORONIX
+	JSONS = PHORONIX + [[STRING, 'kernel', 'report.main.json', ['kernel','version']]]
 	for args in JSONS:
 		model.add_column(json_column(*args))
+		pass
 	TOTAL_ENERGY = [
-		[float, 'total_package_joules',lambda row: np.sum([row['cpu%d_package_joules'%(i)] for i in range(4)])],
-		[float, 'total_dram_joules',   lambda row: np.sum([row['cpu%d_dram_joules'%(i)] for i in range(4)])],
-		[float, 'total_joules',        lambda row: np.sum([row[c] for c in ['total_package_joules', 'total_dram_joules']])],
+		[FLOAT, 'total_package_joules',lambda inedx, row: np.sum([row['cpu%d_package_joules'%(i)] for i in range(4)])],
+		[FLOAT, 'total_dram_joules',   lambda inedx, row: np.sum([row['cpu%d_dram_joules'%(i)] for i in range(4)])],
+		[FLOAT, 'total_joules',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules', 'total_dram_joules']])],
 	]
 	for args in TOTAL_ENERGY:
-		model.add_dependable_column(dependable_column(*args))
+		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
+		model.add_column(Column(**kwargs))
+		pass
 	# end of model customization
 	traces = TableViewController(model=model, doc=doc)
 	scatter = ScatterViewController(model=model, doc=doc)

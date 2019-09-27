@@ -1,255 +1,280 @@
 import numpy as np
 import pandas as pd
-import parse, os, traceback, tarfile, json
 from threading import Thread, Lock
+from multiprocessing import cpu_count, Semaphore
+import traceback, tarfile, json, parse, os, itertools
 
-class NotFoundException(Exception):
+def parallel(iter_args, sem_value=cpu_count()):
+	def wrap(func):
+		def f():
+			sem = Semaphore(sem_value)
+			def target(*args):
+				sem.acquire()
+				func(*args)
+				sem.release()
+			def spawn(*args):
+				t = Thread(target=target, args=args)
+				t.start()
+				return t
+			threads = [spawn(*args) for args in iter_args]
+			for t in threads:
+				t.join()
+		return f
+	return wrap
+
+class ColumnNotFoundException(Exception):
 	pass
+
+FLOAT = float
+STRING = str
 
 class Column(object):
 	"""docstring for Column"""
 	def __init__(self, *args, **kwargs):
 		super(Column, self).__init__()
 		self.dtype = kwargs['dtype']
-		if self.dtype == float:
+		if self.dtype == FLOAT:
 			self.default = kwargs.get('default', np.NaN)
-			def undefined(i):
-				return np.NaN
-		elif self.dtype == str:
+		elif self.dtype == STRING:
 			self.default = kwargs.get('default', '(NULL)')
-			def undefined(i):
-				return i
 		else:
-			raise Exception(f'{dtype} unsupported')
-		self.function = kwargs.get('function', undefined)
+			raise Exception(f'{self.dtype} unsupported')
+		self.function = kwargs['function']
 		self.name = kwargs.get('name', self.function.__name__)
-	def __call__(self, i):
+	def __call__(self, index, row):
 		try:
-			return self.function(i)
-		except NotFoundException as e:
+			return self.dtype(self.function(index, row))
+			# return self.function(index, row)
+		except ColumnNotFoundException as e:
 			return self.default
 		except Exception as e:
 			print(traceback.format_exc())
-			return self.default
+			raise e
 
-class DependableColumn(Column):
+class TableModel(object):
+	"""docstring for AbstractTableModel"""
 	def __init__(self, *args, **kwargs):
-		assert 'function' in kwargs
-		super(DependableColumn, self).__init__(*args, **kwargs)
+		super(TableModel, self).__init__()
+		self.__index = kwargs.get('index')
+		self.__path = kwargs.get('path',f'./examples/cache/{self.__class__.__name__}')
+		self.__df = None
+		self.__lock = Lock()
+		self.__columns = []
+		self.__thread = None
 
-# TODO:
-# write TableModel
-# make class TracesModel(TableModel)
-# add notification
+	"""Decorator"""
 
-class TracesModel(object):
-	"""docstring for TracesModel"""
-	def __init__(self, *args, **kwargs):
-		super(TracesModel, self).__init__()
-		self.directory = kwargs.get('directory', './examples/trace/')
-		self.cache = kwargs.get('cache', './examples/cache/traces.parquet')
-		self.index = []
-		self.columns = []
-		self.dependable_columns = []
-		self.df = pd.DataFrame({})
-		self.lock = Lock()
-		self.thread = None
-
-	def lockfunc(function):
+	def lock(function):
 		def f(self, *args, **kwargs):
 			r = None
-			if not self.lock.acquire(False):
-				raise Exception('Fail to acquire self.lock in f{function.__name__}')
+			if not self.__lock.acquire(False):
+				raise Exception(f'Fail to acquire self.__lock in {function.__name__}')
 			try:
 				r = function(self, *args, **kwargs)
 			except Exception as e:
-				self.lock.release()
+				self.__lock.release()
 				print(traceback.format_exc())
 				raise e
-			self.lock.release()
+			self.__lock.release()
 			return r
 		f.__name__ = function.__name__
 		return f
 
-	@lockfunc
+	"""Public"""
+
+	@lock
 	def add_column(self, c):
 		if not isinstance(c, Column):
 			raise Exception(f'{c} is not {Column}')
-		self.columns.append(c)
+		self.__columns.append(c)
 
-	@lockfunc
-	def add_dependable_column(self, c):
-		if not isinstance(c, DependableColumn):
-			raise Exception(f'{c} is not {DependableColumn}')
-		self.dependable_columns.append(c)
+	@property
+	def df(self):
+		if self.__df is None:
+			self.__build()
+		return self.__df
 
-	@lockfunc
+	@lock
 	def columns_name(self):
-		return [c.name for c in self.columns] + [c.name for c in self.dependable_columns]
+		return [c.name for c in self.__columns]
 
-	def _build_index(self):
-		self.index.clear()
-		self.index.extend(sorted(list(find_files(self.directory, '.tar'))))
+	@lock
+	def empty_df(self):
+		return self.allocate_df(0)
 
-	def _init_df(self):
-		self.df = pd.DataFrame({
-			c.name : (np.array([], dtype=c.dtype) if c.dtype != str else [])
-			for c in self.columns+self.dependable_columns
-		})
+	@lock
+	def load(self, path=None):
+		if path is None:
+			path = self.__path
+		self.__df = pd.read_parquet(path)
 
-	def _concat(self, df):
-		self.df = pd.concat([self.df, df], ignore_index=True)
+	def save(self, path=None):
+		if path is None:
+			path = self.__path
+		self.df.to_parquet(path, compression='UNCOMPRESSED')
 
-	def _rows(self, index):
-		# FIXME
-		def row(i):
-			r = {
-				c.name : (np.array([c(i)], dtype=c.dtype) if c.dtype != str else [c(i)])
-				for c in self.columns
-			}
-			for c in self.dependable_columns:
-				r.update({
-					c.name : (np.array([c(r)], dtype=c.dtype) if c.dtype != str else [c(r)])
-				})
-			return r
-		rows = row(index[0])
-		if len(index) > 1:
-			for i in index[1:]:
-				new_row = row(i)
-				for c in self.columns + self.dependable_columns:
-					if c.dtype != str:
-						rows[c.name] = np.append(rows[c.name], new_row[c.name])
-					else:
-						rows[c.name].extend(new_row[c.name])
-		return rows
-
-	@lockfunc
-	def _build(self):
-		self._build_index()
-		self._init_df()
-		self._concat(pd.DataFrame(self._rows(self.index)))
-		return self.df
-
-	@lockfunc
-	def _stream(self, callback, batch):
-		self._build_index()
-		self._init_df()
-		N = len(self.index)
-		for i in range(0,N,batch):
-			index = self.index[i:min(i+batch,N)]
-			df = pd.DataFrame(self._rows(index))
-			self._concat(df)
-			callback(df)
-
-	def build(self, callback=None):
-		if callback is None:
-			return self._build()
-		else:
-			def target():
-				callback(self._build())
-			self.thread = Thread(target=target)
-			self.thread.start()
-			return None
+	def build(self, callback, force=True):
+		def target():
+			try:
+				if force:
+					self.__build()
+				callback(self.df)
+			except Exception as e:
+				print(traceback.format_exc())
+		self.__thread = Thread(target=target)
+		self.__thread.start()
 
 	def stream(self, callback, batch=1):
-		if batch <= 0:
-			self.build(callback=callback)
-		else:
-			def target():
-				self._stream(callback, batch)
-			self.thread = Thread(target=target)
-			self.thread.start()
+		def target():
+			try:
+				self.__stream(callback, batch)
+			except Exception as e:
+				print(traceback.format_exc())
+		self.__thread = Thread(target=target)
+		self.__thread.start()
 
 	def join(self):
-		self.thread.join()
+		self.__thread.join()
 
-	@lockfunc
-	def save(self):
-		print(self.df)
-		self.df.to_parquet(self.cache, compression='UNCOMPRESSED')
+	""""Private"""
 
-	@lockfunc
-	def load(self):
-		self.df = pd.read_parquet(self.cache)
+	@lock
+	def __build(self):
+		index = self.__index()
+		self.__df = self.__rows(index)
 
-def find_files(directory, ext):
-	for root, dirs, files in os.walk(directory, topdown=False):
-		for name in files:
-			path = os.path.join(root, name)
-			if ext == os.path.splitext(name)[1]:
-				yield path
+	@lock
+	def __stream(self, callback, batch=1):
+		index = self.__index()
+		concat = []
+		N = len(index)
+		for i in range(0, N, batch):
+			df = self.__rows(index[i:min(N,i+batch)])
+			callback(df)
+			concat.append(df)
+		self.__df = pd.concat(concat, ignore_index=True)
+
+	def allocate_df(self, n):
+		return pd.DataFrame({
+			c.name : (np.array([np.NaN]*n, dtype=c.dtype) if c.dtype != STRING else np.array(['(NULL)']*n, dtype=c.dtype))
+			for c in self.__columns
+		})
+
+	def __rows(self, index):
+		N = len(index)
+		df = self.allocate_df(N)
+		for i in range(N):
+			for c in self.__columns:
+				df.loc[i, c.name] = c(index[i], df.iloc[i])
+		# TODO: in parallel. The following does not realy improves
+		#@parallel(itertools.product(range(N)))
+		#def compute_row(i):
+		#	for c in self.__columns:
+		#		df.loc[i,c.name] = c(index[i], df.iloc[i])
+		#compute_row()
+		return df
 
 def parsable_column(dtype, name, basename, pattern):
-	def function(i):
-		with tarfile.open(i, 'r:') as tar:
-			for tarinfo in tar:
-				if os.path.basename(tarinfo.name) != basename:
-					continue
-				with tar.extractfile(tarinfo.name) as f:
-					re = parse.compile(pattern)
-					for line in f.read().decode().split('\n'):
-						r = re.parse(line)
-						if r is not None:
-							return r.named['pattern']
-				break
-		raise NotFoundException()
+	def function(i, r):
+		try:
+			with tarfile.open(i, 'r:') as tar:
+				for tarinfo in tar:
+					if os.path.basename(tarinfo.name) != basename:
+						continue
+					with tar.extractfile(tarinfo.name) as f:
+						re = parse.compile(pattern)
+						for line in f.read().decode().split('\n'):
+							r = re.parse(line)
+							if r is not None:
+								return r.named['pattern']
+					break
+		except Exception as e:
+			# print(traceback.format_exc())
+			pass
+		raise ColumnNotFoundException()
 	function.__name__ = name
 	return Column(dtype=dtype, function=function)
 
 def json_column(dtype, name, basename, keys):
-	def function(i):
-		with tarfile.open(i, 'r:') as tar:
-			for tarinfo in tar:
-				if os.path.basename(tarinfo.name) != basename:
-					continue
-				with tar.extractfile(tarinfo.name) as f:
-					value = json.load(f)
-					for k in keys:
-						value = value[k]
-					return dtype(value)
-				break
-		raise NotFoundException()
+	def function(i, r):
+		try:
+			with tarfile.open(i, 'r:') as tar:
+				for tarinfo in tar:
+					if os.path.basename(tarinfo.name) != basename:
+						continue
+					with tar.extractfile(tarinfo.name) as f:
+						value = json.load(f)
+						for k in keys:
+							value = value[k]
+						return value
+					break
+		except Exception as e:
+			# print(traceback.format_exc())
+			pass
+		raise ColumnNotFoundException()
 	function.__name__ = name
 	return Column(dtype=dtype, function=function)
 
-def dependable_column(dtype, name, function):
-	return DependableColumn(dtype=dtype, name=name, function=function)
+""" Test """
 
 def test():
-	traces = TracesModel()
-	def fname(i):
-		return i
-	traces.add_column(Column(dtype=str, function=fname))
-	traces.build()
-	def callback(df):
-		print(f"{len(df)}")
-	traces.build(callback=callback)
-	traces.join()
-	traces.save()
-	traces.load()
-	print(traces.df)
+	def find_files(directory, ext, regexp=".*"):
+		import re
+		regexp = re.compile(regexp)
+		for root, dirs, files in os.walk(directory, topdown=False):
+			for name in files:
+				path = os.path.join(root, name)
+				if ext == os.path.splitext(name)[1] and regexp.match(path):
+					yield path
+	def index():
+		return sorted(list(find_files('./examples/trace', '.tar', '.*phoronix.*')))
+	tm = TableModel(index=index)
 	COLUMNS = [
-		[float, 'usr_bin_time',  'time.err', '{pattern:F}'],
-		[float, 'sysbench_trps', 'run.out',  '{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)'],
+		[FLOAT, 'usr_bin_time',  'time.err', '{pattern:F}'],
+		[FLOAT, 'sysbench_trps', 'run.out',  '{:s}transactions:{:s}{:d}{:s}({pattern:F} per sec.)'],
 	]
 	for i in range(4):
 		COLUMNS.extend([
-			[float, 'cpu%d_package_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)],
-			[float, 'cpu%d_dram_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)],
+			[FLOAT, 'cpu%d_package_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)],
+			[FLOAT, 'cpu%d_dram_joules'%(i), 'cpu-energy-meter.out',  'cpu%d_dram_joules={pattern:F}'%(i)],
 		])
 	for args in COLUMNS:
-		traces.add_column(parsable_column(*args))
-	shared = {}
-	def callback(row):
-		if 'df' in shared:	
-			shared['df'] = pd.concat([shared['df'], row], ignore_index=True)
-		else:
-			shared['df'] = row
-		print(row)
-	traces.stream(callback)
-	traces.join()
-	print(shared)
-	pass
+		tm.add_column(parsable_column(*args))
+	MAX_PHORONIX = 2
+	PHORONIX_TEST = [
+		[STRING, f'phoro_test{i}', 'phoronix.json', ['results',i,'test']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX_ARGS = [
+		[STRING, f'phoro_args{i}', 'phoronix.json', ['results',i,'arguments']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX_UNITS = [
+		[STRING, f'phoro_units{i}', 'phoronix.json', ['results',i,'units']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX_VALUE = [
+		[FLOAT, f'phoro_value{i}', 'phoronix.json', ['results',i,'results','schedrecord','value']]
+		for i in range(MAX_PHORONIX)
+	]
+	PHORONIX = [i for j in itertools.zip_longest(PHORONIX_TEST,PHORONIX_ARGS,PHORONIX_UNITS,PHORONIX_VALUE) for i in j]
+	JSONS = PHORONIX
+	for args in JSONS:
+		tm.add_column(json_column(*args))
+	TOTAL_ENERGY = [
+		[FLOAT, 'total_package_joules',lambda index, row: np.sum([row['cpu%d_package_joules'%(i)] for i in range(4)])],
+		[FLOAT, 'total_dram_joules',   lambda index, row: np.sum([row['cpu%d_dram_joules'%(i)] for i in range(4)])],
+		[FLOAT, 'total_joules',        lambda index, row: np.sum([row[c] for c in ['total_package_joules', 'total_dram_joules']])],
+	]
+	for args in TOTAL_ENERGY:
+		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
+		tm.add_column(Column(**kwargs))
+	#print(tm.df)
+	def callback(foo):
+		print(foo)
+	tm.stream(callback)
+	tm.join()
+	print(tm.df)
 
 if __name__ == '__main__':
 	test()
