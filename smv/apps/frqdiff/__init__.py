@@ -75,16 +75,10 @@ def modify_doc(doc):
 				elif fperformance is None and performance.match(f):
 					fperformance = f
 				if fperformance is not None and fpowersave is not None:
-					_index_.append((fpowersave, fperformance, p))
+					_index_.append((fpowersave, fperformance))
 					break
 		return _index_
 	model = TableModel(index=index)
-	BASE = [
-		[STRING, 'bench', lambda index, row: str(index[2])]
-	]
-	for args in BASE:
-		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
-		model.add_column(Column(**kwargs))
 	WHAT = ['powersave', 'performance']
 	USR_BIN_TIME = [
 		[FLOAT, 'usr_bin_time_%s'%(WHAT[j]), j, 'time.err', '{pattern:F}']
