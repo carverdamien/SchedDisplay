@@ -49,7 +49,8 @@ class Column(object):
 			return self.default
 		except Exception as e:
 			print(traceback.format_exc())
-			raise e
+			# raise e
+			return self.default
 
 class TableModel(object):
 	"""docstring for AbstractTableModel"""
