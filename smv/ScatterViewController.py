@@ -10,7 +10,7 @@ class ScatterViewController(ViewController):
 	"""docstring for ScatterViewController"""
 	def __init__(self, *args, **kwargs):
 		self.model = kwargs['model']
-		self.columns_name = self.model.columns_name()
+		self.columns_name = ['index'] + self.model.columns_name()
 		self.source = kwargs.get('source', ColumnDataSource({}))
 		self.select_yaxis = Select(
 			options=self.columns_name,
