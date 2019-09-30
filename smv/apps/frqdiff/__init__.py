@@ -86,6 +86,10 @@ def modify_doc(doc):
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		model.add_column(Column(**kwargs))
 	WHAT = ['powersave', 'performance']
+	USR_BIN_TIME = [
+		[FLOAT, 'usr_bin_time_%s'%(WHAT[j]), j, 'time.err', '{pattern:F}']
+		for j in range(2)
+	]
 	PACKAGE_ENERGY = [
 		[FLOAT, 'cpu%d_package_joules_%s'%(i,WHAT[j]), j, 'cpu-energy-meter.out',  'cpu%d_package_joules={pattern:F}'%(i)]
 		for i in range(4)
@@ -96,7 +100,7 @@ def modify_doc(doc):
 		for i in range(4)
 		for j in range(2)
 	]
-	COLUMNS = PACKAGE_ENERGY + DRAM_ENERGY
+	COLUMNS = USR_BIN_TIME # + PACKAGE_ENERGY + DRAM_ENERGY
 	for args in COLUMNS:
 		model.add_column(parsable_column(*args))
 		pass
@@ -108,6 +112,7 @@ def modify_doc(doc):
 		[FLOAT, 'total_joules_powersave',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules_powersave', 'total_dram_joules_powersave']])],
 		[FLOAT, 'total_joules_performance',        lambda inedx, row: np.sum([row[c] for c in ['total_package_joules_performance', 'total_dram_joules_performance']])]
 	]
+	TOTAL_ENERGY = []
 	for args in TOTAL_ENERGY:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		model.add_column(Column(**kwargs))
