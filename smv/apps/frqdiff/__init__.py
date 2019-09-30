@@ -129,6 +129,13 @@ def modify_doc(doc):
 	for args in PHORONIX_VALUE:
 		model.add_column(json_column(*args))
 		pass
+	DIFF = [
+		[FLOAT, '(powersave-performance)/powersave', lambda index, row: (row['perf_value_powersave'] - row['perf_value_performance'])/row['perf_value_powersave']]
+	]
+	for args in DIFF:
+		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
+		model.add_column(Column(**kwargs))
+		pass
 	# end of model customization
 	traces = TableViewController(model=model, doc=doc)
 	scatter = ScatterViewController(model=model, doc=doc)
