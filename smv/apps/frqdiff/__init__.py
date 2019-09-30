@@ -112,8 +112,14 @@ def modify_doc(doc):
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}
 		model.add_column(Column(**kwargs))
 	PHORONIX_VALUE = [
-		[FLOAT, f'perf_powersave', 0, 'phoronix.json', ['results',0,'results','schedrecord','value']],
-		[FLOAT, f'perf_performance', 1, 'phoronix.json', ['results',1,'results','schedrecord','value']],
+		[STRING, f'perf_test_powersave', 0, 'phoronix.json', ['results', 0, 'test']],
+		[STRING, f'perf_test_performance', 1, 'phoronix.json', ['results', 0, 'test']],
+		[STRING, f'perf_arguments_powersave', 0, 'phoronix.json', ['results', 0, 'arguments']],
+		[STRING, f'perf_arguments_performance', 1, 'phoronix.json', ['results', 0, 'arguments']],
+		[STRING, f'perf_units_powersave', 0, 'phoronix.json', ['results',0,'units']],
+		[STRING, f'perf_units_performance', 1, 'phoronix.json', ['results',0,'units']],
+		[FLOAT, f'perf_value_powersave', 0, 'phoronix.json', ['results',0,'results','schedrecord','value']],
+		[FLOAT, f'perf_value_performance', 1, 'phoronix.json', ['results',0,'results','schedrecord','value']],
 	]
 	for args in PHORONIX_VALUE:
 		model.add_column(json_column(*args))
