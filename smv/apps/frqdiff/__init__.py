@@ -130,7 +130,7 @@ def modify_doc(doc):
 		model.add_column(json_column(*args))
 		pass
 	DIFF = [
-		[FLOAT, '(powersave-performance)/powersave', lambda index, row: (row['perf_value_powersave'] - row['perf_value_performance'])/row['perf_value_powersave']]
+		[FLOAT, 'diff_ratio', lambda index, row: (row['perf_value_powersave'] - row['perf_value_performance'])/row['perf_value_powersave']]
 	]
 	for args in DIFF:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}

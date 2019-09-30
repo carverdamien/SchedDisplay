@@ -10,13 +10,13 @@ class ScatterViewController(ViewController):
 	"""docstring for ScatterViewController"""
 	def __init__(self, *args, **kwargs):
 		self.model = kwargs['model']
-		self.columns_name = ['index'] + self.model.columns_name()
+		self.columns_name = self.model.columns_name()
 		self.source = kwargs.get('source', ColumnDataSource({}))
 		self.select_yaxis = Select(
-			options=self.columns_name,
+			options=self.columns_name + ['index'],
 		)
 		self.select_xaxis = Select(
-			options=self.columns_name,
+			options=self.columns_name + ['index'],
 		)
 		self.button_plot = Button(
 			label="Plot",
@@ -31,7 +31,7 @@ class ScatterViewController(ViewController):
 		)
 		self.glyph = Marker()
 		self.renderer = self.figure.add_glyph(self.source, self.glyph)
-		tooltips = [("(x,y)","($x, $y)")]
+		tooltips = [("(x,y)","($x, $y)"),('index','$index')]
 		for k in self.columns_name:
 			tooltips.append((k,"@"+str(k)))
 		self.hovertool = HoverTool(tooltips=tooltips)
@@ -48,6 +48,7 @@ class ScatterViewController(ViewController):
 		)
 		super(ScatterViewController, self).__init__(view, *args, **kwargs)
 		self.button_plot.on_click(self.button_plot_on_click)
+		self.log(tooltips)
 
 	def button_plot_on_click(self, event):
 		self.source.data = ColumnDataSource.from_df(self.model.df)
