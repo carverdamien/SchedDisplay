@@ -69,12 +69,8 @@ NO_TURBO=0
 SCALING_GOVERNORS='powersave performance'
 SCALING_GOVERNOR='powersave'
 
-DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
-# Before setting DEFAULT_KERNEL=4.19.0-linux-4.19-ipanema-g0e4249a3eec1,
-# we need to understand why there were soft lockups with cfs_wwc.
-#
-# Soft lockups happened again with 4.19.0-linux-4.19-ipanema-g0e4249a3eec1,
-# Removing it because I assume it was not running cfs_wwc.
+# DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
+DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g8ec555713ae9"
 KERNELS="${DEFAULT_KERNEL} 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166"
 MONITORINGS="monitoring/all monitoring/cpu-energy-meter monitoring/nop"
 IPANEMA_MODULES="cfs_wwc ule_wwc" # cfs_wwc_ipa cfs_wwc_ipa
@@ -263,7 +259,7 @@ do
 		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
 		    OUTPUT+="PHORONIX=${PHORONIX}/"
 		    OUTPUT+="${KERNEL}/${N}"
-		    run_bench
+		    # run_bench
 		# done
 	    done
 	done
