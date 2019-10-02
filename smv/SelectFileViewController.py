@@ -1,7 +1,7 @@
 from smv.ViewController import ViewController
-from bokeh.models.widgets import Select, Button, TextAreaInput
+from bokeh.models.widgets import Select, Button, TextAreaInput, TextInput
 from bokeh.layouts import row, column
-import os, io, stat, tarfile, json
+import os, io, stat, tarfile, json, re
 
 def find_files(directory, ext):
 	for root, dirs, files in os.walk(directory, topdown=False):
@@ -59,14 +59,20 @@ def preview(path):
 class SelectFileViewController(ViewController):
 	"""docstring for SelectFileViewController"""
 	def __init__(self, directory, ext, doc=None, log=None):
-		options=sorted(list(find_files(directory,ext)))
+		self.options=sorted(list(find_files(directory,ext)))
 		options0 = None
-		if len(options) > 0:
-			options0 = options[0]
+		if len(self.options) > 0:
+			options0 = self.options[0]
+		regexp_textinput = TextInput(
+			title='regexp',
+			height=40,
+			height_policy="fixed",
+			value='.*',
+		)
 		select = Select(
 			title="Select File:",
 			value=options0,
-			options=options,
+			options=self.options,
 			height=40,
 			height_policy="fixed",
 		)
@@ -95,7 +101,9 @@ class SelectFileViewController(ViewController):
 			disabled=False,
 		)
 		view = column(
-			row(select,
+			row(
+				regexp_textinput,
+				select,
 			    preview_button,
 			    select_button,
 			    sizing_mode = 'scale_width',
@@ -104,8 +112,10 @@ class SelectFileViewController(ViewController):
 			sizing_mode='stretch_both',
 		)
 		super(SelectFileViewController, self).__init__(view, doc, log)
+		self.regexp_textinput = regexp_textinput
+		self.regexp_textinput.on_change('value', self.regexp_changed_value)
 		self.select = select
-		self.select.on_change('value', self.select_changed_valued)
+		self.select.on_change('value', self.select_changed_value)
 		self.preview_button = preview_button
 		self.preview_button.on_click(self.preview_button_on_click)
 		self.select_button = select_button
@@ -113,7 +123,12 @@ class SelectFileViewController(ViewController):
 		self.select_button.on_click(self.select_on_click)
 		self.file_preview = file_preview
 
-	def select_changed_valued(self, attr, old, new):
+	def regexp_changed_value(self, attr, old, new):
+		regexp = re.compile(self.regexp_textinput.value)
+		self.select.options = [e for e in self.options if regexp.match(e)]
+		pass
+
+	def select_changed_value(self, attr, old, new):
 		self.file_preview.value = preview_size(self.select.value)
 
 	def preview_button_on_click(self, new):
