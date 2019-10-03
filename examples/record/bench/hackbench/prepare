@@ -1,0 +1,3 @@
+#!/bin/bash
+set -x -e -u
+[[ $((TASKS%40)) -eq 0 ]]

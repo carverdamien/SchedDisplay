@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e -u
+hackbench -g $((TASKS/40)) >${OUTPUT}/run.out 2>${OUTPUT}/run.err
