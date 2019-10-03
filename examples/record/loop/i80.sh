@@ -56,19 +56,20 @@ function run_bench {
     fi
 }
 
-export BENCH=bench/oltp-mysql
-export PATH_TO_IPANEMA_MODULE=''
+export BENCH
+export TIMEOUT
+export MONITORING
+export TASKS
+export OUTPUT
+export KERNEL
+export IPANEMA_MODULE
+export MONITORING_SCHEDULED
+export MONITORING_START_DELAY
+export MONITORING_STOP_DELAY
+# export PATH_TO_IPANEMA_MODULE=''
 export TIMEOUT=36000
-export MONITORING_SCHEDULED=y
-export MONITORING_START_DELAY=60
-export MONITORING_STOP_DELAY=10
-export MONITORING TASKS OUTPUT KERNEL
-export IPANEMA_MODULE=
-SLEEP_STATE=y
-NO_TURBO=0
-SCALING_GOVERNORS='powersave performance'
-SCALING_GOVERNOR='powersave'
 
+NO_TURBO=0
 # DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g2bd98bf652cb"
 DEFAULT_KERNEL="4.19.0-linux-4.19-ipanema-g8ec555713ae9"
 KERNELS="${DEFAULT_KERNEL} 4.19.0-patch-local-g131fda29324a 4.19.0-patch-local-light-g9ee5320702ba 4.19.0-patch-sched-freq-g710892956166"
@@ -78,6 +79,11 @@ IPANEMA_MODULES="cfs_wwc ule_wwc" # cfs_wwc_ipa cfs_wwc_ipa
 #################################################
 # Running mysql OLTP
 #################################################
+BENCH=bench/oltp-mysql
+IPANEMA_MODULE=
+MONITORING_SCHEDULED=y
+MONITORING_START_DELAY=60
+MONITORING_STOP_DELAY=10
 SLP=(y         n          )
 GOV=(powersave performance)
 RPT=(1         1          )
@@ -123,6 +129,72 @@ do
 		for MONITORING in ${MONITORINGS}
 		do
 		    for TASKS in 32 64 80 160 320
+		    do
+			OUTPUT="output/"
+			OUTPUT+="BENCH=$(basename ${BENCH})/"
+			OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+			OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+			OUTPUT+="IPANEMA=$(basename ${IPANEMA_MODULE})/"
+			OUTPUT+="${TASKS}-${KERNEL}/${N}"
+			run_bench
+		    done
+		done
+	    done
+	done
+    done
+done
+
+#################################################
+# Running hackbench
+#################################################
+BENCH=bench/hackbench
+IPANEMA_MODULE=
+MONITORING_SCHEDULED=n
+SLP=(y         n          )
+GOV=(powersave performance)
+RPT=(1         1          )
+for I in ${!SLP[@]}
+do
+    SLEEP_STATE=${SLP[$I]}
+    SCALING_GOVERNOR=${GOV[$I]}
+    REPEAT=${RPT[$I]}
+    # Reboot between repeats
+    for N in $(seq ${REPEAT})
+    do
+	for KERNEL in ${KERNELS}
+	do
+	    for MONITORING in ${MONITORINGS}
+	    do
+		for TASKS in 40 1000 2000 4000 6000 8000 10000
+		do
+		    OUTPUT="output/"
+		    OUTPUT+="BENCH=$(basename ${BENCH})/"
+		    OUTPUT+="POWER=${SCALING_GOVERNOR}-${SLEEP_STATE}/"
+		    OUTPUT+="MONITORING=$(basename ${MONITORING})/"
+		    OUTPUT+="${TASKS}-${KERNEL}/${N}"
+		    run_bench
+		done
+	    done
+	done
+    done
+done
+
+# IPANEMA
+for I in ${!SLP[@]}
+do
+    SLEEP_STATE=${SLP[$I]}
+    SCALING_GOVERNOR=${GOV[$I]}
+    REPEAT=${RPT[$I]}
+    # Reboot between repeats
+    for N in $(seq ${REPEAT})
+    do
+	for KERNEL in ${DEFAULT_KERNEL}
+	do
+	    for IPANEMA_MODULE in ${IPANEMA_MODULES}
+	    do
+		for MONITORING in ${MONITORINGS}
+		do
+		    for TASKS in 40 1000 2000 4000 6000 8000 10000
 		    do
 			OUTPUT="output/"
 			OUTPUT+="BENCH=$(basename ${BENCH})/"
@@ -230,6 +302,7 @@ done
 #################################################
 IPANEMA_MODULE=
 BENCH=bench/phoronix
+MONITORING_SCHEDULED=n
 export PHORONIX
 PHORONIXES="compress-7zip compress-gzip compress-pbzip2 compress-rar compress-xz compress-zstd"
 # PHORONIXES+="blender fio dbench iozone brl-cad core-latency etqw-demo-irq aircrack-ng pts-self-test interbench luxmark renaissance stressapptest tiobench"
