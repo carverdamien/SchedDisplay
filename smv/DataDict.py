@@ -4,20 +4,27 @@ import tarfile, os, shutil
 import numpy as np
 from threading import Thread
 import time
+from smv.Computable import COMPUTABLE
 
-def from_tar(path, only=None):
+def from_tar(path, only=None, compute=None):
+	if only is None and compute is not None:
+		print('only is deprecated, use compute instead')
+	if compute is not None:
+		compute = {k:COMPUTABLE[k] for k in compute if k in COMPUTABLE}
 	dd = {}
 	with tarfile.open(path, 'r:') as tar:
 		#
 		# TODO: write a pragma parallel decorator
 		#
-		def filter(tarinfo, only=None):
-			if only is None:
+		def filter(tarinfo, only=None, compute=None):
+			if only is None or compute is None:
 				return tarinfo.isreg() and os.path.splitext(tarinfo.name)[1] == '.npz'
+			elif isinstance(compute, dict):
+				return filter(tarinfo) and os.path.splitext(os.path.basename(tarinfo.name))[0] in compute
 			elif isinstance(only, list):
 				return filter(tarinfo) and os.path.splitext(os.path.basename(tarinfo.name))[0] in only
 			else:
-				raise Exception('Exception: only must be None or list')
+				raise Exception('Exception: wrong type: only|compute')
 		def target(tarinfo):
 			start = time.time()
 			with tarfile.open(path, 'r:') as tar:
@@ -31,8 +38,17 @@ def from_tar(path, only=None):
 			t = Thread(target=target, args=args)
 			t.start()
 			return t
-		thread = [spawn(tarinfo) for tarinfo in tar if filter(tarinfo, only)]
+		thread = [spawn(tarinfo) for tarinfo in tar if filter(tarinfo, only, compute)]
 		for t in thread: t.join()
+	if compute is not None:
+		for k in compute:
+			if k in dd:
+				# k was previously computed and cached into the .tar
+				continue
+			dd[k] = compute[k](dd)
+			# TODO: flock path
+			# add_array_to_tar(path, k, dd[k])
+			# funlock path
 	return dd
 
 def walk_data(data, k, func_data):
