@@ -138,7 +138,7 @@
                         "label" : "IDL_LB_BEG",
                         "color" : "#a6d854",
                         "concatenate" : [[
-                                ["query","event==$IDL_BLN_FAIR_BEG | event==$IDL_BLN_IPA_BEG"],
+                                ["query","event==$IDL_BLN_FAIR_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -149,7 +149,7 @@
                         "label" : "IDL_LB_END",
                         "color" : "#a65628",
                         "concatenate" : [[
-                                ["query","event==$IDL_BLN_FAIR_END | event==$IDL_BLN_IPA_END"],
+                                ["query","event==$IDL_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -160,7 +160,7 @@
                         "label" : "LB_BEG",
                         "color" : "#f781bf",
                         "concatenate" : [[
-                                ["query","event==$PER_BLN_FAIR_BEG | event==$PER_BLN_IPA_BEG"],
+                                ["query","event==$PER_BLN_FAIR_BEG"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
@@ -171,29 +171,7 @@
                         "label" : "LB_END",
                         "color" : "#a65628",
                         "concatenate" : [[
-                                ["query","event==$PER_BLN_FAIR_END | event==$PER_BLN_IPA_END"],
-                                ["=","x0","timestamp"],
-                                ["=","x1","timestamp"],
-                                ["=","y0",["+","cpu",0.0]],
-                                ["=","y1",["+","cpu",0.5]]
-                        ]]
-                },
-                 {
-                        "label" : "UNBLOCK_PREPARE_IPA_BEG",
-                        "color" : "#f781bf",
-                        "concatenate" : [[
-                                ["query","event==$UNBLOCK_PREPARE_IPA_BEG"],
-                                ["=","x0","timestamp"],
-                                ["=","x1","timestamp"],
-                                ["=","y0",["+","cpu",0.0]],
-                                ["=","y1",["+","cpu",0.5]]
-                        ]]
-                },
-               {
-                        "label" : "UNBLOCK_PREPARE_IPA_END",
-                        "color" : "#ff7f00",
-                        "concatenate" : [[
-                                ["query","event==$UNBLOCK_PREPARE_IPA_END"],
+                                ["query","event==$PER_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
