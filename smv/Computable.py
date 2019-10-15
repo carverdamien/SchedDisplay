@@ -7,13 +7,13 @@ COMPUTABLE={}
 
 def add(dependencies, name):
 	def warp(function):
-		def f(dd, log=print):
+		def f(dd, var, log=print):
 			for k in dependencies:
 				log(f'{k} is a depency of {name}')
 				if k not in dd:
-					dd[k] = COMPUTABLE[k](dd, log=log)
+					dd[k] = COMPUTABLE[k](dd, var, log=log)
 			start = time.time()
-			r = function(dd, log=log)
+			r = function(dd, var, log=log)
 			end = time.time()
 			log(f'Computing {name} took {end-start}s')
 			return r
@@ -56,7 +56,7 @@ for key in ['timestamp', 'arg0', 'arg1']:
 	for where in ['cpu', 'pid']:
 		@add([key,'event',where], f'nxt_{key}_of_same_evt_on_same_{where}')
 		@extra(key, where)
-		def parallel_nxt_KEY_of_same_evt_on_same_WHERE(dd, key, where, log=print):
+		def parallel_nxt_KEY_of_same_evt_on_same_WHERE(dd, var, key, where, log=print):
 			nxt = np.array(dd[key])
 			idx = np.arange(len(nxt))
 			events = np.unique(dd['event'])

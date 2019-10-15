@@ -6,7 +6,7 @@ from threading import Thread
 import time
 from smv.Computable import COMPUTABLE
 
-def from_tar(path, only=None, compute=None, log=print):
+def from_tar(path, var, only=None, compute=None, log=print):
 	if only is not None:
 		log('only is deprecated, use compute instead')
 	if compute is not None:
@@ -45,7 +45,7 @@ def from_tar(path, only=None, compute=None, log=print):
 			if k in dd:
 				log(f'{k} was previously computed and cached in {path}')
 				continue
-			dd[k] = compute[k](dd, log=log)
+			dd[k] = compute[k](dd, var, log=log)
 			# TODO: flock path
 			# add_array_to_tar(path, k, dd[k])
 			# funlock path

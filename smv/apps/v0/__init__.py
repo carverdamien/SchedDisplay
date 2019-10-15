@@ -104,7 +104,7 @@ def modify_doc(doc):
 		try:
 			state['line_config'] = var.parse(json.loads(line_config))
 			if 'df' not in state:
-				df = pd.DataFrame(DataDict.from_tar(state['path'], compute=state['line_config']['input'], log=log))
+				df = pd.DataFrame(DataDict.from_tar(state['path'], var, compute=state['line_config']['input'], log=log))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['lines'] = LinesFrame_from_df(state['df'], state['line_config'])
@@ -146,7 +146,7 @@ def modify_doc(doc):
 		try:
 			state['point_config'] = var.parse(json.loads(point_config))
 			if 'df' not in state:
-				df = pd.DataFrame(DataDict.from_tar(state['path'], compute=state['point_config']['input'], log=log))
+				df = pd.DataFrame(DataDict.from_tar(state['path'], var, compute=state['point_config']['input'], log=log))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])
