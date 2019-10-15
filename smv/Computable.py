@@ -96,9 +96,9 @@ for event_tuple in EVENT_TUPLE:
 				for evt in event_tuple:
 					sel_evt = sel_evt | dd['event'] == int(var.parse(f"${evt}"))
 				sel_loc = { loc :   np.array(dd[where] == loc) for loc in locs}
-				iter_args = itertools.product(events, locs)
+				iter_args = itertools.product(locs)
 				@parallel(iter_args)
-				def compute_nxt(evt, loc):
+				def compute_nxt(loc):
 					sel = (sel_evt) & (sel_loc[loc])
 					nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
 				compute_nxt()
