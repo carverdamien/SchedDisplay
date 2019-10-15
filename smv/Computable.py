@@ -51,37 +51,21 @@ def extra(*extra_args, **extra_kwargs):
 	return wrap
 
 for key in ['timestamp', 'arg0', 'arg1']:
-	@add([key,'event','cpu'], f'nxt_{key}_of_same_evt_on_same_cpu')
-	@extra(key)
-	def parallel_nxt_of_same_evt_on_same_cpu(dd, key, log=print):
-		nxt = np.array(dd[key])
-		idx = np.arange(len(nxt))
-		events = np.unique(dd['event'])
-		cpus = np.unique(dd['cpu'])
-		# Compute == once only
-		sel_evt = { evt : np.array(dd['event'] == evt) for evt in events}
-		sel_cpu = { cpu :   np.array(dd['cpu'] == cpu) for cpu in cpus}
-		iter_args = itertools.product(events, cpus)
-		@parallel(iter_args)
-		def compute_nxt(evt, cpu):
-			sel = (sel_evt[evt]) & (sel_cpu[cpu])
-			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
-		compute_nxt()
-		return nxt
-	@add([key,'event','pid'], f'nxt_{key}_of_same_evt_of_same_pid')
-	@extra(key)
-	def parallel_nxt_of_same_evt_of_same_pid(dd, key, log=print):
-		nxt = np.array(dd[key])
-		idx = np.arange(len(nxt))
-		events = np.unique(dd['event'])
-		pids = np.unique(dd['pid'])
-		# Compute == once only
-		sel_evt = { evt : np.array(dd['event'] == evt) for evt in events}
-		sel_pid = { pid :   np.array(dd['pid'] == pid) for pid in pids}
-		iter_args = itertools.product(events, pids)
-		@parallel(iter_args)
-		def compute_nxt(evt, pid):
-			sel = (sel_evt[evt]) & (sel_pid[pid])
-			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
-		compute_nxt()
-		return nxt
+	for where in ['cpu', 'pid']:
+		@add([key,'event',where], f'nxt_{key}_of_same_evt_on_same_{where}')
+		@extra(key, where)
+		def parallel_nxt_KEY_of_same_evt_on_same_WHERE(dd, key, where, log=print):
+			nxt = np.array(dd[key])
+			idx = np.arange(len(nxt))
+			events = np.unique(dd['event'])
+			locs = np.unique(dd[where])
+			# Compute == once only
+			sel_evt = { evt : np.array(dd['event'] == evt) for evt in events}
+			sel_loc = { loc :   np.array(dd[where] == loc) for loc in locs}
+			iter_args = itertools.product(events, locs)
+			@parallel(iter_args)
+			def compute_nxt(evt, loc):
+				sel = (sel_evt[evt]) & (sel_loc[loc])
+				nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
+			compute_nxt()
+			return nxt
