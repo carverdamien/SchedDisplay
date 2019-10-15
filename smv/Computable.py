@@ -1,16 +1,24 @@
-from threading import Thread
-from multiprocessing import cpu_count, Semaphore
+from threading import Thread, Semaphore
+from multiprocessing import cpu_count
+import time, itertools
+import numpy as np
 
 COMPUTABLE={}
 
 def add(dependencies, name):
 	def warp(function):
-		def f(dd):
+		def f(dd, log=print):
 			for k in dependencies:
+				log(f'{k} is a depency of {name}')
 				if k not in dd:
-					dd[k] = COMPUTABLE[k](dd)
-			return function(dd)
+					dd[k] = COMPUTABLE[k](dd, log=log)
+			start = time.time()
+			r = function(dd, log=log)
+			end = time.time()
+			log(f'Computing {name} took {end-start}s')
+			return r
 		f.__name__ = name
+		assert f.__name__ not in COMPUTABLE
 		COMPUTABLE[f.__name__] = f
 		return f
 	return warp
@@ -33,9 +41,19 @@ def parallel(iter_args, sem_value=cpu_count()):
 		return f
 	return wrap
 
+def extra(*extra_args, **extra_kwargs):
+	def wrap(function):
+		def f(*args, **kwargs):
+			args = args + extra_args
+			kwargs.update(extra_kwargs)
+			return function(*args, **kwargs)
+		return f
+	return wrap
+
 for key in ['timestamp', 'arg0', 'arg1']:
-	@add([],name=f'nxt_{key}_of_same_evt_on_same_cpu')
-	def parallel_nxt_of_same_evt_on_same_cpu(dd):
+	@add([key,'event','cpu'], f'nxt_{key}_of_same_evt_on_same_cpu')
+	@extra(key)
+	def parallel_nxt_of_same_evt_on_same_cpu(dd, key, log=print):
 		nxt = np.array(dd[key])
 		idx = np.arange(len(nxt))
 		events = np.unique(dd['event'])
@@ -50,8 +68,9 @@ for key in ['timestamp', 'arg0', 'arg1']:
 			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
 		compute_nxt()
 		return nxt
-	@add([],name=f'nxt_{key}_of_same_evt_with_same_pid')
-	def parallel_nxt_of_same_evt_on_same_cpu(dd):
+	@add([key,'event','pid'], f'nxt_{key}_of_same_evt_of_same_pid')
+	@extra(key)
+	def parallel_nxt_of_same_evt_of_same_pid(dd, key, log=print):
 		nxt = np.array(dd[key])
 		idx = np.arange(len(nxt))
 		events = np.unique(dd['event'])
@@ -66,5 +85,3 @@ for key in ['timestamp', 'arg0', 'arg1']:
 			nxt[idx[sel][:-1]] = nxt[idx[sel][1:]]
 		compute_nxt()
 		return nxt
-
-print(COMPUTABLE)
