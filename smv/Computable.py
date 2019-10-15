@@ -18,8 +18,10 @@ def add(dependencies, name):
 			log(f'Computing {name} took {end-start}s')
 			return r
 		f.__name__ = name
-		assert f.__name__ not in COMPUTABLE
-		COMPUTABLE[f.__name__] = f
+		if f.__name__ not in COMPUTABLE:
+			COMPUTABLE[f.__name__] = f
+		else:
+			print(f'WARNING: {f.__name__} already in COMPUTABLE')
 		return f
 	return warp
 
