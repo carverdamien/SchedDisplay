@@ -169,7 +169,10 @@ def modify_doc(doc):
 		model.add_column(Column(**kwargs))
 		pass
 	DIFF = [
-		[FLOAT, 'diff_ratio', lambda index, row: (row['perf_value_powersave'] - row['perf_value_performance'])/row['perf_value_powersave']]
+		[FLOAT, 'power_perf', lambda index, row: (row['perf_value_powersave'])/row['perf_value_performance']],
+                [FLOAT, 'perf_power', lambda index, row: (row['perf_value_performance'])/row['perf_value_powersave']],
+                [FLOAT, 'power_perf_power', lambda index, row: (row['perf_value_powersave'] - row['perf_value_performance'])/row['perf_value_powersave']],
+                [FLOAT, 'perf_power_perf', lambda index, row: (row['perf_value_performance'] - row['perf_value_powersave'])/row['perf_value_performance']],
 	]
 	for args in DIFF:
 		kwargs = {'dtype':args[0],'name':args[1],'function':args[2]}

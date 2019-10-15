@@ -1,0 +1,17 @@
+{
+    "input"  : ["timestamp","cpu","event","pid","arg0","arg1","nxt_timestamp_of_same_evt_on_same_cpu"],
+    "output" : ["x0","y0","x1","y1","c","pid","arg0","arg1"],
+    "c" : [
+	{
+	    "label" : "job",
+	    "color" : "#000000",
+	    "concatenate" : [[
+		["query", "event==$USER_EVT"],
+		["=","x0","timestamp"],
+		["=","x1","timestamp"],
+		["=","y0",["+","cpu",0.0]],
+                ["=","y1",["+","cpu",0.5]]
+	    ]]
+	}
+    ]
+}

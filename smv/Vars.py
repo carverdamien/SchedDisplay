@@ -18,12 +18,29 @@ def add(function):
 	FUNC.append(f)
 	return f
 
+# DEPRECATED
 @add
 def parse_sched_monitor_events(path):
 	d = {}
 	with tarfile.open(path, 'r') as tar:
 		for tarinfo in tar:
 			if os.path.basename(tarinfo.name) != 'sched_monitor_events.start':
+				continue
+			with tar.extractfile(tarinfo.name) as f:
+				for line in f.read().decode().split('\n'):
+					if len(line) == 0:
+						break
+					value, key = line.split(' ')
+					d[key] = value
+			break
+	return d
+
+@add
+def parse_sched_log_traced_events(path):
+	d = {}
+	with tarfile.open(path, 'r') as tar:
+		for tarinfo in tar:
+			if os.path.basename(tarinfo.name) != 'sched_log_traced_events.start':
 				continue
 			with tar.extractfile(tarinfo.name) as f:
 				for line in f.read().decode().split('\n'):
