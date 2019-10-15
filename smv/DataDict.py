@@ -6,9 +6,9 @@ from threading import Thread
 import time
 from smv.Computable import COMPUTABLE
 
-def from_tar(path, only=None, compute=None):
-	if only is None and compute is not None:
-		print('only is deprecated, use compute instead')
+def from_tar(path, only=None, compute=None, log=print):
+	if only is not None:
+		log('only is deprecated, use compute instead')
 	if compute is not None:
 		compute = {k:COMPUTABLE[k] for k in compute if k in COMPUTABLE}
 	dd = {}
@@ -32,7 +32,7 @@ def from_tar(path, only=None, compute=None):
 					npzfile = np.load(f)
 					dd.update({k:npzfile[k] for k in npzfile.files})
 			end = time.time()
-			print('{} loaded in {} s'.format(tarinfo.name, end-start))
+			log('{} loaded in {} s'.format(tarinfo.name, end-start))
 		def spawn(tarinfo):
 			args = (tarinfo,)
 			t = Thread(target=target, args=args)
@@ -43,9 +43,9 @@ def from_tar(path, only=None, compute=None):
 	if compute is not None:
 		for k in compute:
 			if k in dd:
-				# k was previously computed and cached into the .tar
+				log(f'{k} was previously computed and cached in {path}')
 				continue
-			dd[k] = compute[k](dd)
+			dd[k] = compute[k](dd, log=log)
 			# TODO: flock path
 			# add_array_to_tar(path, k, dd[k])
 			# funlock path
