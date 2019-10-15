@@ -10,6 +10,7 @@ from smv.VarsViewController import VarsViewController
 import smv.Vars as Vars
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
+from smv.Computable import COMPUTABLE
 import json, os, traceback
 import pandas as pd
 import numpy as np
@@ -22,6 +23,8 @@ from threading import Thread
 def modify_doc(doc):
 	console = ConsoleViewController(doc=doc)
 	log = console.write
+	COMPUTABLE_STR = ', '.join(list(COMPUTABLE.keys()))
+	log(f'Computables are: {COMPUTABLE_STR}')
 	nr_cpu = 160
 	px_height = 4
 	height = (nr_cpu+2)*px_height
