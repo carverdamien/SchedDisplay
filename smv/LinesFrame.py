@@ -140,8 +140,8 @@ def from_df(df, config, log=default_log):
 		# assert min(df['timestamp']) == df['timestamp'][0]
 		# TODO: subtract_min_timestamp should be done @ recording
 		t0 = df['timestamp'][0]
-		for k in ['timestamp', 'nxt_timestamp_of_same_evt_on_same_cpu', 'nxt_blk_wkp_of_same_pid']:
-			if k in df:
+		for k in df.columns:
+			if k in ['nxt_blk_wkp_of_same_pid'] or 'timestamp' in k:
 				df[k] -= t0
 	subtract_min_timestamp(df)
 	@logFunctionCall(log)
