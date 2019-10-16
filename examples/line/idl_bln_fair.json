@@ -27,10 +27,22 @@
                         ]]
                 },
                 {
-                        "label" : "LB Lim",
+                        "label" : "LB beg",
                         "color" : "#000000",
                         "concatenate" : [[
-                                ["query","event==$IDL_BLN_FAIR_BEG | event==$IDL_BLN_FAIR_END"],
+                                ["query","event==$IDL_BLN_FAIR_BEG"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB end",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_FAIR_END"],
                                 ["=","x0","timestamp"],
                                 ["=","x1","timestamp"],
                                 ["=","y0",["+","cpu",0.0]],
