@@ -94,7 +94,7 @@ for event_tuple in EVENT_TUPLE:
 				# Compute == once only
 				sel_evt = np.zeros(len(nxt),dtype=bool)
 				for evt in event_tuple:
-					sel_evt = sel_evt | dd['event'] == int(var.parse(f"${evt}"))
+					sel_evt = sel_evt | (dd['event'] == int(var.parse(f"${evt}")))
 				sel_loc = { loc :   np.array(dd[where] == loc) for loc in locs}
 				iter_args = itertools.product(locs)
 				@parallel(iter_args)
