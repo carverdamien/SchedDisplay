@@ -1,0 +1,30 @@
+{
+    "input"  : ["timestamp","cpu","event","pid","arg0","arg1","nxt_timestamp_of_same_evt_on_same_pid","nxt_arg0_of_same_evt_on_same_pid", "nxt_arg1_of_same_evt_on_same_pid"],
+    "output" : ["x0","y0","x1","y1","c","pid","arg0","arg1","delta"],
+    "c" : [
+	{
+	    "label" : "job lim",
+	    "color" : "#000000",
+	    "concatenate" : [[
+		["query", "event==$USER_EVT"],
+		["=","x0","timestamp"],
+		["=","x1","timestamp"],
+		["=","y0",["+","pid",0.0]],
+                ["=","y1",["+","pid",0.5]],
+		["=","delta",["-","x1","x0"]]
+	    ]]
+	},
+	{
+	    "label" : "job",
+	    "color" : "#000000",
+	    "concatenate" : [[
+		["query", "event==$USER_EVT & arg0==nxt_arg0_of_same_evt_on_same_pid & arg1==nxt_arg1_of_same_evt_on_same_pid"],
+		["=","x0","timestamp"],
+		["=","x1","nxt_timestamp_of_same_evt_on_same_pid"],
+		["=","y0",["+","pid",0.0]],
+                ["=","y1",["+","pid",0.0]],
+		["=","delta",["-","x1","x0"]]
+	    ]]
+	}
+    ]
+}
