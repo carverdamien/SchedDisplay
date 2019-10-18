@@ -10,6 +10,7 @@ from smv.VarsViewController import VarsViewController
 import smv.Vars as Vars
 import smv.DataDict as DataDict
 import smv.LinesFrame as LinesFrame
+from smv.Computable import COMPUTABLE
 import json, os, traceback
 import pandas as pd
 import numpy as np
@@ -22,6 +23,8 @@ from threading import Thread
 def modify_doc(doc):
 	console = ConsoleViewController(doc=doc)
 	log = console.write
+	COMPUTABLE_STR = ', '.join(list(COMPUTABLE.keys()))
+	log(f'Computables are: {COMPUTABLE_STR}')
 	nr_cpu = 160
 	px_height = 4
 	height = (nr_cpu+2)*px_height
@@ -104,7 +107,7 @@ def modify_doc(doc):
 		try:
 			state['line_config'] = var.parse(json.loads(line_config))
 			if 'df' not in state:
-				df = pd.DataFrame(DataDict.from_tar(state['path'], state['line_config']['input']))
+				df = pd.DataFrame(DataDict.from_tar(state['path'], var, compute=state['line_config']['input'], log=log))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['lines'] = LinesFrame_from_df(state['df'], state['line_config'])
@@ -146,7 +149,7 @@ def modify_doc(doc):
 		try:
 			state['point_config'] = var.parse(json.loads(point_config))
 			if 'df' not in state:
-				df = pd.DataFrame(DataDict.from_tar(state['path'], state['point_config']['input']))
+				df = pd.DataFrame(DataDict.from_tar(state['path'], var, compute=state['point_config']['input'], log=log))
 				log('{} records in trace'.format(len(df)))
 				state['df'] = df
 			state['points'] = LinesFrame_from_df(state['df'], state['point_config'])

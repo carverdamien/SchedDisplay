@@ -1,0 +1,90 @@
+{
+    "input"  : ["timestamp","cpu","event","pid","arg0","arg1","nxt_timestamp_of_same_evt_on_same_cpu","nxt_timestamp_of_(IDL_BLN_FAIR_BEG|IDL_BLN_FAIR_END)_on_same_cpu", "nxt_timestamp_of_(IDL_BLN_IPA_BEG|IDL_BLN_IPA_END)_on_same_cpu"],
+        "output" : ["x0","y0","x1","y1","c","pid","arg0","arg1","delta"],
+        "c" : [
+                {
+                        "label" : "TICK",
+                        "color" : "#fc8d62",
+                        "concatenate" : [[
+                                ["query","event == $TICK"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB fair",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_FAIR_BEG"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","nxt_timestamp_of_(IDL_BLN_FAIR_BEG|IDL_BLN_FAIR_END)_on_same_cpu"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.0]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB fair beg",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_FAIR_BEG"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB fair end",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_FAIR_END"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB ipa",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_IPA_BEG"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","nxt_timestamp_of_(IDL_BLN_IPA_BEG|IDL_BLN_IPA_END)_on_same_cpu"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.0]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB ipa beg",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_IPA_BEG"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                },
+                {
+                        "label" : "LB ipa end",
+                        "color" : "#000000",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_IPA_END"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]],
+                                ["=","delta",["-","x1","x0"]]
+                        ]]
+                }
+        ]
+}
