@@ -2,6 +2,8 @@
 
 SchedDisplay is a visualization tool for [SchedLog](https://github.com/carverdamien/SchedLog), a custom ring buffer collecting scheduling events in the Linux kernel.
 
+[![example](https://github.com/carverdamien/SchedDisplay/raw/master/docs/example.png)](https://github.com/carverdamien/SchedDisplay/raw/master/docs/example.png)
+
 ## Steps
 
 1) Build and launch the webserver with `./docker` script.
