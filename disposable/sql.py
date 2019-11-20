@@ -14,10 +14,12 @@ q = """SELECT
         births b
            ON m.date = b.date;"""
 
-print(pysqldf(q).head())
+# print(pysqldf(q).head())
 
 import pandas as pd
 import numpy as np
+import smv.DataDict as DataDict
+
 EXEC=0
 EXIT=1
 WAKEUP=2
@@ -45,7 +47,7 @@ def dummy_data():
 		'event'     : np.array(event+event),
 		'arg1'      : np.array(arg1+arg1)
 	}
-def dummy_data():
+def rand_data():
 	N = 10000
 	tmax = 1000000000
 	nr_pid = 2
@@ -61,11 +63,25 @@ def dummy_data():
 		'event':event,
 		'pid':pid,
 	}
-data = dummy_data()
-df = pd.DataFrame(data)
+# dd = dummy_data()'examples/trace/32-patchlocal.tar'
+tar = 'examples/trace/32-patchlocal.tar'
+# tar = 'examples/trace/mysql.tar' # Needs RAM > 46GB
+dd = DataDict.from_tar(tar, var=None)
+df = pd.DataFrame(dd)
 df['idx'] = df.index
 print(df)
-q = "SELECT e0.idx as e0idx, e1.idx as e1idx FROM (SELECT * FROM df where event=0) as e0 INNER JOIN (SELECT * FROM df where event=1) as e1 ON e0.pid = e1.pid and e0.timestamp <= e1.timestamp;"
-print(pysqldf(q).head())
+# q = f"SELECT e0.idx as e0idx, e1.idx as e1idx FROM (SELECT * FROM df where event={BLOCK}) as e0 INNER JOIN (SELECT * FROM df where event={WAKEUP}) as e1 ON e0.pid = e1.pid and e0.timestamp <= e1.timestamp;"
+q0 = f"SELECT * FROM df where event={BLOCK}"
+q1 = f"SELECT * FROM df where event={WAKEUP}"
+q = f"SELECT e0.idx as e0idx, e1.idx as e1idx FROM ({q0}) as e0 INNER JOIN ({q1}) as e1 ON e0.pid = e1.pid and e0.timestamp <= e1.timestamp"
+
+# DISTINCT???
+
+q0 = f"SELECT * FROM df where event={BLOCK}"
+q1 = f"SELECT * FROM df where event={WAKEUP}"
+q = f"SELECT e0.idx as e0idx, e1.idx as e1idx FROM ({q0}) as e0 INNER JOIN ({q1}) as e1 ON e0.pid = e1.pid and e0.timestamp <= e1.timestamp GROUP BY e0.idx HAVING e1.timestamp = MIN(e1.timestamp)"
+
+print(q)
+print(pysqldf(q))
 
 
