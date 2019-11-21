@@ -1,5 +1,25 @@
-import tarfile, os
+import tarfile, os, string
 FUNC = []
+
+class Vars(object):
+	"""docstring for Vars"""
+	def __init__(self, vars):
+		super(Vars, self).__init__()
+		self.vars = vars
+	
+	def parse(self, o):
+		if isinstance(o, dict):
+			for k in o:
+				o[k] = self.parse(o[k])
+		elif isinstance(o, list):
+			for i in range(len(o)):
+				o[i] = self.parse(o[i])
+		elif isinstance(o, str):
+			t = string.Template(o)
+			o = t.substitute(**self.vars)
+		else:
+			pass
+		return o
 
 def from_tar(path):
 	d={}
