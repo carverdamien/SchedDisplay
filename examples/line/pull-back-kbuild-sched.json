@@ -1,0 +1,241 @@
+{
+	"input"  : ["timestamp","cpu","event","pid","arg0","arg1","nxt_timestamp_of_same_evt_on_same_cpu"],
+	"output" : ["x0","y0","x1","y1","c","pid","arg0","arg1"],
+        "c" : [
+                {
+                        "label" : "EXEC_EVT",
+                        "color" : "#e41a1c",
+                        "concatenate" : [[
+                                ["query","event==$EXEC"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "EXIT_EVT",
+                        "color" : "#377eb8",
+                        "concatenate" : [[
+                                ["query","event==$EXIT"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAKEUP",
+                        "color" : "#4daf4a",
+                        "concatenate" : [[
+                                ["query","event==$WAKEUP"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAKEUP_NEW",
+                        "color" : "#984ea3",
+                        "concatenate" : [[
+                                ["query","event==$WAKEUP_NEW"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK",
+                        "color" : "#ff7f00",
+                        "concatenate" : [[
+                                ["query","event==$BLOCK"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "BLOCK_IO",
+                        "color" : "#ffff33",
+                        "concatenate" : [[
+                                ["query","event==$BLOCK_IO"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "WAIT_PID",
+                        "color" : "#999999",
+                        "concatenate" : [[
+                                ["query","event==$WAIT_PID"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "FORK",
+                        "color" : "#66c2a5",
+                        "concatenate" : [[
+                                ["query","event==$FORK"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "CTX_SWITCH",
+                        "color" : "#8da0cb",
+                        "concatenate" : [[
+                                ["query","event==$CTX_SWITCH"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+	                    {
+                        "label" : "IDL_LB_BEG",
+                        "color" : "#a6d854",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_FAIR_BEG"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "IDL_LB_END",
+                        "color" : "#a65628",
+                        "concatenate" : [[
+                                ["query","event==$IDL_BLN_FAIR_END"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "DEBUG",
+                        "color" : "#f781bf",
+                        "concatenate" : [[
+                                ["query","event==$DEBUG_EVT"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "MIGRATE",
+                        "color" : "#f781bf",
+                        "concatenate" : [[
+                                ["query","event==$MIGRATE"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE = 1",
+                        "color" : "#444444",
+                        "hide_hovertool" : true,
+                        "concatenate" : [[
+                                ["query","event==$RQ_SIZE & arg0==1"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.0]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE > 1",
+                        "color" : "#ff0000",
+                        "hide_hovertool" : true,
+                        "concatenate" : [[
+                                ["query","event==$RQ_SIZE & arg0>1"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","nxt_timestamp_of_same_evt_on_same_cpu"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.0]]
+                        ]]
+                },
+                {
+                        "label" : "RQ_SIZE Lim",
+                        "color" : "#444444",
+                        "concatenate" : [[
+                                ["query","event==$RQ_SIZE"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+		{
+                        "label" : "[0.0, 1.2] GHz",
+                        "color" : "#8cd0f5",
+                        "concatenate" : [[
+                                ["query","event==$TICK & arg1<=1200000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[1.2, 1.7] GHz",
+                        "color" : "#8ded6d",
+                        "concatenate" : [[
+                                ["query","event==$TICK & arg1>1200000 & arg1<=1700000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[1.7, 2.1] GHz",
+                        "color" : "#d6ed6d",
+                        "concatenate" : [[
+                                ["query","event==$TICK & arg1>1700000 & arg1<=2100000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[2.1, 2.6] GHz",
+                        "color" : "#e03030",
+                        "concatenate" : [[
+                                ["query","event==$TICK & arg1>2100000 & arg1<=2600000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                },
+                {
+                        "label" : "[2.6, inf] GHz",
+                        "color" : "#f00000",
+                        "concatenate" : [[
+                                ["query","event==$TICK & arg1>2600000"],
+                                ["=","x0","timestamp"],
+                                ["=","x1","timestamp"],
+                                ["=","y0",["+","cpu",0.0]],
+                                ["=","y1",["+","cpu",0.5]]
+                        ]]
+                }
+
+        ]
+
+ }
