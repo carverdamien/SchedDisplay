@@ -6,3 +6,5 @@ cloudpickle
 fastparquet
 tqdm
 parse
+jupyter
+tabulate

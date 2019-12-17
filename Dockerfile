@@ -3,9 +3,11 @@ WORKDIR /home/server
 COPY pip3.install.txt .
 RUN pip3 install -r pip3.install.txt
 COPY smv smv
-COPY *.py ./
+COPY server.py ./
 COPY static ./static
 COPY disposable ./disposable
-ENTRYPOINT ["./server.py"]
-EXPOSE 5006
+COPY jupyter-notebook.sh ./
+COPY entrypoint.sh ./
+ENTRYPOINT ["./entrypoint.sh"]
+EXPOSE 5006 443
 ENV BOKEH_ALLOW_WS_ORIGIN *
