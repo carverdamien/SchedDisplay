@@ -4,7 +4,7 @@ SchedDisplay is a visualization tool for [SchedLog](https://github.com/carverdam
 
 [![example](https://github.com/carverdamien/SchedDisplay/raw/master/docs/example.png)](https://github.com/carverdamien/SchedDisplay/raw/master/docs/example.png)
 
-## Steps
+## SchedDisplay in a few Steps
 
 1) Build and launch the webserver with `./docker` script.
 2) Open the web app http://localhost:5006/v0.
@@ -21,11 +21,18 @@ A jupyter environment is also available https://localhost (the ssl certificate i
 The token can be obtain by running `docker exec -ti NAME_OF_SCHEDDISPLAY_CONTAINER jupyter notebook list`.
 Feel free to duplicate and modify [./examples/notebook/jupyter-example.ipynb](./examples/notebook/jupyter-example.ipynb).
 
-## Tarball
+## The tarball record
+
+You can try SchedDisplay with the trace provided in [./examples/trace/kbuild-sched-example.tar](./examples/trace/kbuild-sched-example.tar).
+To record your own trace, follow these instructions:
+1) install the [SchedLog](https://github.com/carverdamien/SchedLog) kernel.
+2) record your experiment with the [sched_log](https://github.com/carverdamien/SchedLog/blob/SchedLog/tools/sched_log/sched_log) script.
+3) convert the per-cpu buffers into compressed numpy arrays with the [report.py](https://github.com/carverdamien/RecordSchedLog/blob/master/monitoring/SchedLog/report.py) script.
+4) create the tarball and store it in `./examples/trace`
 
 A tarball must at least contain the following files:
 
-* sched_log_traced_events.start (a copy of `/proc/sched_log_traced_events`) which contains the mapping EVENT_ID EVENT_NAME.
+* sched_log_traced_events.start (a copy of `/proc/sched_log_traced_events`) which contains the mapping `EVENT_ID -> EVENT_NAME`.
 * timestamp.npz
 * pid.npz
 * event.npz
@@ -35,7 +42,7 @@ A tarball must at least contain the following files:
 
 Check [RecordSchedLog](https://github.com/carverdamien/RecordSchedLog) to discover how we automate our experiments.
 
-## Json
+## The json instructions
 
 The `input` field lists the data required to build the image.
 Some data are directly recorded through SchedLog (timestamp, cpu, event, pid, arg0, arg1).
@@ -44,6 +51,6 @@ Other data must be computed.
 The `output` field lists the data to store in the image.
 Some data are mandatory (x0,y0,x1,y1,c).
 
-Tbe `c` field lists instructions on how to build categories of lines.
+The `c` field lists instructions on how to build categories of lines.
 
 See [examples/line/freq4_new.json](examples/line/freq4_new.json)
