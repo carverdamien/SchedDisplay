@@ -8,3 +8,4 @@ tqdm
 parse
 jupyter
 tabulate
+seaborn
