@@ -23,7 +23,15 @@ Feel free to duplicate and modify [./examples/notebook/jupyter-example.ipynb](./
 
 ## Tarball
 
-A tarball must at least contain the following files: ...
+A tarball must at least contain the following files:
+
+* sched_log_traced_events.start (a copy of `/proc/sched_log_traced_events`) which contains the mapping EVENT_ID EVENT_NAME.
+* timestamp.npz
+* pid.npz
+* event.npz
+* cpu.npz
+* arg1.npz
+* arg0.npz
 
 Check [RecordSchedLog](https://github.com/carverdamien/RecordSchedLog) to discover how we automate our experiments.
 
