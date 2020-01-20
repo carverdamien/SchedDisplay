@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.7.4
 WORKDIR /home/server
 COPY pip3.install.txt .
 RUN pip3 install -r pip3.install.txt
