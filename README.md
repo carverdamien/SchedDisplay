@@ -52,5 +52,18 @@ The `output` field lists the data to store in the image.
 Some data are mandatory (x0,y0,x1,y1,c).
 
 The `c` field lists instructions on how to build categories of lines.
-
-See [examples/line/freq4_new.json](examples/line/freq4_new.json)
+For example, the following category draws small vertical lines when the frequency measured at a scheduling tick is between 1.2 and 1.7 GHz.
+```
+{
+        "label" : "[1.2, 1.7] GHz",
+        "color" : "#8ded6d",
+        "concatenate" : [[
+                ["query","event==$TICK & arg1>1200000 & arg1<=1700000"],
+                ["=","x0","timestamp"],
+                ["=","x1","timestamp"],
+                ["=","y0",["+","cpu",0.0]],
+                ["=","y1",["+","cpu",0.5]]
+        ]]
+},
+```
+See [examples/line/freq4_new.json](examples/line/freq4_new.json) for a full example.
