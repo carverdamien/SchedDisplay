@@ -45,3 +45,5 @@ The `output` field lists the data to store in the image.
 Some data are mandatory (x0,y0,x1,y1,c).
 
 Tbe `c` field lists instructions on how to build categories of lines.
+
+See [examples/line/freq4_new.json](examples/line/freq4_new.json)
