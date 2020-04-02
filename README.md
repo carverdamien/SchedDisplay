@@ -2,6 +2,8 @@
 
 SchedDisplay is a visualization tool for [SchedLog](https://github.com/carverdamien/SchedLog), a custom ring buffer collecting scheduling events in the Linux kernel.
 
+(Note that SchedDisplay is currently being rewritten into [TraceDisplay](https://github.com/carverdamien/trace-cmd), a visualization tool for trace-cmd records.)
+
 [![example](https://github.com/carverdamien/SchedDisplay/raw/master/docs/example.png)](https://github.com/carverdamien/SchedDisplay/raw/master/docs/example.png)
 
 ## SchedDisplay in a few Steps
